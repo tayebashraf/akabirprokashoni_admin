@@ -59,6 +59,15 @@ export default function CheckoutPage() {
         })
         .catch(err => console.error(err));
       }
+    } else {
+      const savedInfo = localStorage.getItem('akabir_saved_info');
+      if (savedInfo) {
+        try {
+          const parsed = JSON.parse(savedInfo);
+          setDefaultValues(parsed);
+          setCreateAccount(true); // pre-check the save checkbox
+        } catch (e) {}
+      }
     }
   }, [user, token]);
 
@@ -84,10 +93,17 @@ export default function CheckoutPage() {
       district: formData.get('district'),
       address: formData.get('address'),
       payment_method: paymentMethod,
-      create_account: createAccount,
-      password: formData.get('password') || '',
       items: cart.map(item => ({ book_id: item.id, slug: item.slug, quantity: item.quantity }))
     };
+
+    if (!user && createAccount) {
+      localStorage.setItem('akabir_saved_info', JSON.stringify({
+        name: orderData.customer_name,
+        phone: orderData.phone,
+        district: orderData.district,
+        address: orderData.address
+      }));
+    }
 
     try {
       const response = await createOrder(orderData);
@@ -183,16 +199,6 @@ export default function CheckoutPage() {
                 />
                 আমার তথ্য সেভ করুন (পরবর্তীতে এক ক্লিকে অর্ডারের জন্য)
               </label>
-              
-              {createAccount && (
-                <div className="input-group" style={{ marginTop: '1rem' }}>
-                  <label className="input-label">অ্যাকাউন্ট পাসওয়ার্ড *</label>
-                  <input name="password" type="password" className="input" required placeholder="কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড দিন" minLength="6" />
-                  <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                    এই পাসওয়ার্ড দিয়ে পরবর্তীতে মোবাইল নাম্বার ব্যবহার করে লগইন করতে পারবেন।
-                  </p>
-                </div>
-              )}
             </div>
           )}
 

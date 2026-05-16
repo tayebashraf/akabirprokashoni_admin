@@ -247,56 +247,62 @@ export default function BookDetailClient({ book, relatedBooks }) {
             <button
               className={`${styles.tab} ${activeTab === 'description' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('description')}
-            >Summary</button>
+            >সারসংক্ষেপ</button>
             <button
               className={`${styles.tab} ${activeTab === 'specification' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('specification')}
-            >Specification</button>
+            >বিস্তারিত বিবরণ</button>
             <button
               className={`${styles.tab} ${activeTab === 'author' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('author')}
-            >Author</button>
+            >লেখক পরিচিতি</button>
           </div>
           <div className={styles.tabContent}>
             {activeTab === 'description' && (
               <div className={styles.descriptionText}>
-                <h3 className={styles.contentTitle}>বইটির সংক্ষিপ্ত বিবরণ</h3>
+                <h3 className={styles.contentTitle}>সারসংক্ষেপ</h3>
                 <p>{book.description || 'বিবরণ পাওয়া যায়নি।'}</p>
               </div>
             )}
             
             {activeTab === 'specification' && (
               <div className={styles.specificationTable}>
-                <h3 className={styles.contentTitle}>বইটির বিস্তারিত তথ্য</h3>
+                <h3 className={styles.contentTitle}>বিস্তারিত বিবরণ</h3>
                 <table className={styles.specTable}>
                   <tbody>
                     <tr>
-                      <td className={styles.specLabel}>Title</td>
+                      <td className={styles.specLabel}>শিরোনাম</td>
                       <td className={styles.specValue}>{title}</td>
                     </tr>
                     <tr>
-                      <td className={styles.specLabel}>Author</td>
+                      <td className={styles.specLabel}>লেখক</td>
                       <td className={styles.specValue}>
                         <Link href={`/books?author=${authorSlug}`} className={styles.specLink}>
                           {authorName}
                         </Link>
                       </td>
                     </tr>
+                    {book.book_type === 'translated' && (
+                      <tr>
+                        <td className={styles.specLabel}>বইয়ের ধরন</td>
+                        <td className={styles.specValue}>অনুবাদ</td>
+                      </tr>
+                    )}
                     {book.translator && (
                       <tr>
-                        <td className={styles.specLabel}>Translator</td>
+                        <td className={styles.specLabel}>অনুবাদক</td>
                         <td className={styles.specValue}>{book.translator}</td>
                       </tr>
                     )}
                     {book.editor && (
                       <tr>
-                        <td className={styles.specLabel}>Editor</td>
+                        <td className={styles.specLabel}>সম্পাদক</td>
                         <td className={styles.specValue}>{book.editor}</td>
                       </tr>
                     )}
                     {book.publisher && (
                       <tr>
-                        <td className={styles.specLabel}>Publisher</td>
+                        <td className={styles.specLabel}>প্রকাশক</td>
                         <td className={styles.specValue}>{book.publisher}</td>
                       </tr>
                     )}
@@ -308,23 +314,23 @@ export default function BookDetailClient({ book, relatedBooks }) {
                     )}
                     {book.edition && (
                       <tr>
-                        <td className={styles.specLabel}>Edition</td>
+                        <td className={styles.specLabel}>সংস্করণ</td>
                         <td className={styles.specValue}>{book.edition}</td>
                       </tr>
                     )}
                     {book.pages > 0 && (
                       <tr>
-                        <td className={styles.specLabel}>Number of Pages</td>
+                        <td className={styles.specLabel}>পৃষ্ঠা সংখ্যা</td>
                         <td className={styles.specValue}>{book.pages}</td>
                       </tr>
                     )}
                     <tr>
-                      <td className={styles.specLabel}>Country</td>
+                      <td className={styles.specLabel}>দেশ</td>
                       <td className={styles.specValue}>বাংলাদেশ</td>
                     </tr>
                     <tr>
-                      <td className={styles.specLabel}>Language</td>
-                      <td className={styles.specValue}>{book.language === 'bangla' ? 'বাংলা' : book.language}</td>
+                      <td className={styles.specLabel}>ভাষা</td>
+                      <td className={styles.specValue}>{book.language === 'bangla' ? 'বাংলা' : book.language === 'english' ? 'English' : 'আরবি'}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -332,8 +338,8 @@ export default function BookDetailClient({ book, relatedBooks }) {
             )}
 
             {activeTab === 'author' && (
-              <div className={styles.authorContent}>
-                <h3 className={styles.contentTitle}>{authorName}</h3>
+              <div className={styles.authorBio}>
+                <h3 className={styles.contentTitle}>লেখক পরিচিতি</h3>
                 <p>{book.author_bio || book.author_details?.bio || book.author?.bio || 'লেখকের তথ্য পাওয়া যায়নি।'}</p>
               </div>
             )}

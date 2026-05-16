@@ -18,6 +18,10 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
   
   const [createAccount, setCreateAccount] = useState(false);
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponMessage, setCouponMessage] = useState('');
+  const [couponError, setCouponError] = useState('');
   
   const [defaultValues, setDefaultValues] = useState({
     name: '', phone: '', district: '', address: ''
@@ -36,9 +40,39 @@ export default function CheckoutPage() {
       ? siteSettings.delivery_charge_dhaka 
       : siteSettings.delivery_charge_outside;
   }
-  // Optional: Keep free delivery for large orders if you had it, or just use the settings directly.
-  // if (totalPrice >= 1000) deliveryCharge = 0;
+  
+  const discountAmount = appliedCoupon ? Math.floor(totalPrice * (appliedCoupon.discountPercent / 100)) : 0;
+  const finalTotal = totalPrice - discountAmount + deliveryCharge;
 
+  const handleApplyCoupon = async () => {
+    setCouponError('');
+    setCouponMessage('');
+    if (!couponCodeInput.trim()) {
+      setCouponError('কুপন কোড দিন');
+      return;
+    }
+    
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/orders/validate-coupon/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCodeInput })
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        setAppliedCoupon({
+          code: couponCodeInput,
+          discountPercent: data.discount_percent
+        });
+        setCouponMessage(data.message);
+      } else {
+        setCouponError(data.error || 'কুপন প্রযোজ্য নয়');
+      }
+    } catch (err) {
+      setCouponError('সার্ভার ত্রুটি, আবার চেষ্টা করুন');
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -93,7 +127,8 @@ export default function CheckoutPage() {
       district: formData.get('district'),
       address: formData.get('address'),
       payment_method: paymentMethod,
-      items: cart.map(item => ({ book_id: item.id, slug: item.slug, quantity: item.quantity }))
+      items: cart.map(item => ({ book_id: item.id, slug: item.slug, quantity: item.quantity })),
+      coupon_code: appliedCoupon ? appliedCoupon.code : ''
     };
 
     if (!user && createAccount) {
@@ -250,9 +285,36 @@ export default function CheckoutPage() {
                 {deliveryCharge === 0 ? 'ফ্রি' : `৳${deliveryCharge}`}
               </span>
             </div>
+            {appliedCoupon && (
+              <div className={styles.summaryRow} style={{ color: 'var(--color-success)' }}>
+                <span>ডিসকাউন্ট ({appliedCoupon.discountPercent}%)</span>
+                <span>- ৳{discountAmount}</span>
+              </div>
+            )}
+            
+            <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  className="input" 
+                  placeholder="প্রোমো কোড (যদি থাকে)" 
+                  value={couponCodeInput}
+                  onChange={(e) => setCouponCodeInput(e.target.value)}
+                  disabled={appliedCoupon}
+                />
+                {!appliedCoupon ? (
+                  <button type="button" onClick={handleApplyCoupon} className="btn btn-primary" style={{ padding: '0 16px', whiteSpace: 'nowrap' }}>এপ্লাই</button>
+                ) : (
+                  <button type="button" onClick={() => { setAppliedCoupon(null); setCouponCodeInput(''); setCouponMessage(''); }} className="btn btn-outline" style={{ padding: '0 16px', color: '#e74c3c', borderColor: '#e74c3c' }}>বাতিল</button>
+                )}
+              </div>
+              {couponError && <div style={{ color: '#e74c3c', fontSize: '0.85rem', marginTop: '4px' }}>{couponError}</div>}
+              {couponMessage && <div style={{ color: '#27ae60', fontSize: '0.85rem', marginTop: '4px' }}>{couponMessage}</div>}
+            </div>
+            
             <div className={styles.summaryDivider} />
             <div className={`${styles.summaryRow} ${styles.totalRow}`}>
-              <span>সর্বমোট</span><span>৳{(totalPrice + deliveryCharge).toLocaleString()}</span>
+              <span>সর্বমোট</span><span>৳{finalTotal.toLocaleString()}</span>
             </div>
             
             <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: 'var(--space-4)', lineHeight: '1.5', textAlign: 'center' }}>

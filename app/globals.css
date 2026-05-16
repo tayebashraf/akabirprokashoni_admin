@@ -508,12 +508,12 @@ ul, ol {
   :root {
     --header-height: 52px;
   }
-  .container { padding: 0 var(--space-3); }
+  .container { padding: 0 8px; }
   .section { padding: var(--space-2) 0; }
-  .grid { gap: var(--space-3); }
-  .grid-5 { grid-template-columns: repeat(2, 1fr); }
-  .grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid { gap: 8px; }
+  .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .booksGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
@@ -525,14 +525,15 @@ ul, ol {
 }
 
 @media (max-width: 600px) {
-  .grid { gap: var(--space-3); }
-  .grid-5 { grid-template-columns: repeat(2, 1fr); }
-  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid { gap: 8px; }
+  .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid-3 { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {
-  .grid { gap: var(--space-2); }
+  .container { padding: 0 6px; }
+  .grid { gap: 6px; }
 }
 
 /* --- Scrollbar --- */

@@ -33,15 +33,15 @@
 .imageWrap {
   display: block;
   width: 100%;
-  aspect-ratio: 3/4;
+  aspect-ratio: 2/3;
   overflow: hidden;
-  background: #f7f7f7;
+  background: white;
   position: relative;
 }
 .coverImg {
   width: 100% !important;
   height: 100% !important;
-  object-fit: cover !important;
+  object-fit: contain !important;
 }
 .imagePlaceholder {
   width: 100%;
@@ -66,10 +66,10 @@
 
 /* Info Section */
 .info {
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   flex: 1;
 }
 .title {
@@ -100,7 +100,7 @@
   align-items: baseline;
   gap: 8px;
   margin-top: auto;
-  padding-top: 6px;
+  padding-top: 4px;
 }
 .price {
   font-size: 16px;
@@ -123,7 +123,7 @@
   border-radius: 6px;
   font-size: 13px;
   font-weight: 700;
-  margin-top: 8px;
+  margin-top: 6px;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -142,9 +142,9 @@
   .addBtn { padding: 5px; font-size: 11px; margin-top: 4px; border-radius: 4px; }
   .discountBadge { top: 6px; left: 6px; padding: 1px 6px; font-size: 11px; }
   .imageWrap {
-    aspect-ratio: 3/4;
+    aspect-ratio: 2/3;
   }
   .coverImg {
-    object-fit: cover !important;
+    object-fit: contain !important;
   }
 }

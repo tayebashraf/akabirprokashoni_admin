@@ -61,6 +61,22 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      {/* Trending Books */}
+      <section className="section" style={{ background: 'var(--color-bg-secondary)' }}>
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">ট্রেন্ডিং বই</h2>
+            <Link href="/books?sort=trending" className="section-link">সব দেখুন →</Link>
+          </div>
+          <div className={`grid grid-5 ${styles.bookGrid}`}>
+            {trendingBooks.map((book, i) => (
+              <div key={book.id} style={{ animationDelay: `${i * 0.08}s` }} className="animate-fadeInUp">
+                <BookCard book={book} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Popular Authors */}
       {popularAuthors.length > 0 && (
@@ -90,22 +106,6 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Trending Books */}
-      <section className="section" style={{ background: 'var(--color-bg-secondary)' }}>
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">ট্রেন্ডিং বই</h2>
-            <Link href="/books?sort=trending" className="section-link">সব দেখুন →</Link>
-          </div>
-          <div className={`grid grid-5 ${styles.bookGrid}`}>
-            {trendingBooks.map((book, i) => (
-              <div key={book.id} style={{ animationDelay: `${i * 0.08}s` }} className="animate-fadeInUp">
-                <BookCard book={book} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
 
 

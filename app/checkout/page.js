@@ -26,7 +26,7 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState('');
   
   const [defaultValues, setDefaultValues] = useState({
-    name: '', phone: '', district: '', address: ''
+    name: '', phone: '', email: '', district: '', address: ''
   });
   const [siteSettings, setSiteSettings] = useState(null);
 
@@ -78,7 +78,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (user) {
-      setDefaultValues(prev => ({ ...prev, name: user.name || '', phone: user.phone || '' }));
+      setDefaultValues(prev => ({ ...prev, name: user.name || '', phone: user.phone || '', email: user.email || prev.email }));
       if (token) {
         fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/accounts/profile/`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -125,6 +125,7 @@ export default function CheckoutPage() {
     const orderData = {
       customer_name: formData.get('name'),
       phone: formData.get('phone'),
+      email: formData.get('email') || '',
       alt_phone: formData.get('alt_phone') || '',
       district: formData.get('district'),
       address: formData.get('address'),
@@ -137,6 +138,7 @@ export default function CheckoutPage() {
       localStorage.setItem('akabir_saved_info', JSON.stringify({
         name: orderData.customer_name,
         phone: orderData.phone,
+        email: orderData.email,
         district: orderData.district,
         address: orderData.address
       }));
@@ -238,6 +240,10 @@ export default function CheckoutPage() {
             <div className="input-group">
               <label className="input-label">পুরো নাম *</label>
               <input name="name" className="input" required placeholder="আপনার নাম" defaultValue={defaultValues.name} />
+            </div>
+            <div className="input-group">
+              <label className="input-label">ইমেইল (ঐচ্ছিক)</label>
+              <input name="email" type="email" className="input" placeholder="আপনার ইমেইল" defaultValue={defaultValues.email} />
             </div>
             <div className="input-group">
               <label className="input-label">মোবাইল নম্বর *</label>

@@ -11,7 +11,7 @@
 
 /* Result */
 .resultCard {
-  max-width: 700px; margin: 0 auto; background: white; border-radius: var(--radius-xl);
+  max-width: 900px; margin: 0 auto; background: white; border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg); overflow: hidden; animation: fadeInUp 0.4s ease;
 }
 .orderHeader {
@@ -50,21 +50,22 @@
 
 /* Items */
 .orderItems { padding: var(--space-6); border-top: 1px solid var(--color-border-light); }
-.orderItems h3 { font-size: var(--text-base); font-weight: 700; margin-bottom: var(--space-4); }
+.orderItems h3 { font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-4); }
 .orderItem {
-  display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0;
+  display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4) 0;
   border-bottom: 1px solid var(--color-border-light);
 }
 .orderItemIcon { font-size: 1.5rem; }
-.orderItemInfo { flex: 1; }
-.orderItemInfo strong { display: block; font-size: var(--text-sm); }
-.orderItemInfo span { font-size: var(--text-xs); color: var(--color-text-secondary); }
-.orderItemPrice { font-weight: 700; font-family: var(--font-english); color: var(--color-primary); }
+.orderItemInfo { flex: 1; min-width: 200px; }
+.orderItemInfo strong { display: block; font-size: var(--text-base); }
+.orderItemQty { font-size: var(--text-base); color: var(--color-text-secondary); width: 100px; text-align: center; }
+.orderItemPrice { font-weight: 700; font-family: var(--font-english); color: var(--color-primary); width: 120px; text-align: right; font-size: var(--text-lg); }
 .orderTotal {
-  display: flex; justify-content: space-between; padding-top: var(--space-4);
+  display: flex; justify-content: flex-end; align-items: center; padding-top: var(--space-4); gap: 2rem;
   font-size: var(--text-lg);
 }
-.orderTotal strong { color: var(--color-primary); font-family: var(--font-english); }
+.orderTotal span:first-child { color: var(--color-text-secondary); font-weight: 500; }
+.orderTotal strong { color: var(--color-primary); font-family: var(--font-english); min-width: 120px; text-align: right; }
 
 /* Delivery */
 .deliveryInfo { padding: var(--space-6); border-top: 1px solid var(--color-border-light); background: var(--color-bg-secondary); }

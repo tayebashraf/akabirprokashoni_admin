@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { orderStatuses } from '@/lib/data';
 import styles from './page.module.css';
 import { trackOrdersByPhone } from '@/lib/api';
@@ -9,6 +9,15 @@ export default function TrackPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Prepopulate phone number if passed in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const phoneParam = params.get('phone');
+    if (phoneParam) {
+      setPhone(phoneParam);
+    }
+  }, []);
 
   const handleTrack = async (e) => {
     e.preventDefault();
@@ -88,16 +97,16 @@ export default function TrackPage() {
                     <span className={styles.orderItemIcon}>📖</span>
                     <div className={styles.orderItemInfo}>
                       <strong>{item.book_title}</strong>
-                      <span>পরিমাণ: {item.quantity}</span>
                     </div>
-                    <span className={styles.orderItemPrice}>৳{item.price}</span>
+                    <span className={styles.orderItemQty}>{item.quantity} কপি</span>
+                    <span className={styles.orderItemPrice}>৳{item.line_total || (item.price * item.quantity)}</span>
                   </div>
                 ))}
                 <div className={styles.orderTotal}>
                   <span>ডেলিভারি চার্জ:</span>
                   <strong>৳{order.delivery_charge}</strong>
                 </div>
-                <div className={styles.orderTotal} style={{ borderTop: 'none', paddingTop: 0 }}>
+                <div className={styles.orderTotal} style={{ borderTop: 'none', paddingTop: '0.5rem' }}>
                   <span>সর্বমোট:</span>
                   <strong>৳{order.total}</strong>
                 </div>

@@ -6,6 +6,7 @@ import { districts } from '@/lib/data';
 import styles from './page.module.css';
 import { createOrder, getSiteSettings } from '@/lib/api';
 import { useAuth } from '@/lib/AuthContext';
+import confetti from 'canvas-confetti';
 
 export default function CheckoutPage() {
   const { cart, totalPrice, clearCart } = useCart();
@@ -13,6 +14,7 @@ export default function CheckoutPage() {
   
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [placedPhone, setPlacedPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -150,6 +152,7 @@ export default function CheckoutPage() {
       } else {
         // Cash on delivery or fallback
         setOrderId(response.order_id);
+        setPlacedPhone(orderData.phone);
         setOrderPlaced(true);
       }
     } catch (err) {
@@ -162,6 +165,22 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (orderPlaced) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      const duration = 3 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+      
+      const randomInRange = (min, max) => Math.random() * (max - min) + min;
+      
+      const interval = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+        const particleCount = 50 * (timeLeft / duration);
+        confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+        confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+      }, 250);
     }
   }, [orderPlaced]);
 
@@ -169,11 +188,23 @@ export default function CheckoutPage() {
     return (
       <div className="container section" style={{ textAlign: 'center', padding: '80px 0' }}>
         <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>🎉</div>
-        <h1 style={{ fontSize: 'var(--text-3xl)', marginBottom: '0.5rem' }}>অর্ডার সফল হয়েছে!</h1>
-        <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>অর্ডার আইডি: {orderId}</p>
-        <p style={{ marginBottom: '2rem' }}>আপনার অর্ডার সফলভাবে গৃহীত হয়েছে। শীঘ্রই আমরা আপনার সাথে যোগাযোগ করবো।</p>
+        <h1 style={{ fontSize: 'var(--text-2xl)', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+          সুখবর। আপনার অর্ডারটি সফলভাবে সাবমিট হয়েছে।
+        </h1>
+        <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>
+          কিছুক্ষণের মধ্যেই আপনাকে ফোন দিয়ে অর্ডারটি নিশ্চিত করা হবে। ইনশাআল্লাহ।
+        </p>
+        <div style={{ background: '#f1f5f9', padding: '1rem', borderRadius: '8px', display: 'inline-block', marginBottom: '2rem' }}>
+          <p style={{ fontSize: '1.2rem', color: 'var(--color-text)' }}>আপনার অর্ডার নাম্বার:</p>
+          <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-primary)', fontFamily: 'var(--font-english)' }}>{orderId}</p>
+        </div>
+        
+        <p style={{ marginBottom: '1.5rem', color: 'var(--color-text-secondary)' }}>
+          অর্ডারটি ট্রাক করতে আপনার মোবাইল নাম্বার লিখে নিচে সার্চ করুন।
+        </p>
+
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/track" className="btn btn-primary btn-lg">অর্ডার ট্র্যাক করুন</Link>
+          <Link href={`/track?phone=${placedPhone}`} className="btn btn-primary btn-lg">অর্ডার ট্র্যাক করুন</Link>
           <Link href="/" className="btn btn-outline btn-lg">হোমে ফিরুন</Link>
         </div>
       </div>

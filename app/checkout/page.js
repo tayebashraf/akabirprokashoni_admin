@@ -159,6 +159,12 @@ export default function CheckoutPage() {
     }
   };
 
+  useEffect(() => {
+    if (orderPlaced) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [orderPlaced]);
+
   if (orderPlaced) {
     return (
       <div className="container section" style={{ textAlign: 'center', padding: '80px 0' }}>

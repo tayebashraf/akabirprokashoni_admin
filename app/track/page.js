@@ -150,14 +150,6 @@ export default function TrackPage() {
                 </div>
               </div>
 
-              <div className={styles.deliveryInfo}>
-                <h3>📍 ডেলিভারি ঠিকানা</h3>
-                <p><strong>নাম:</strong> {order.customer_name}</p>
-                <p><strong>মোবাইল:</strong> {order.phone}</p>
-                <p><strong>জেলা:</strong> {order.district}</p>
-                <p><strong>ঠিকানা:</strong> {order.address}</p>
-                <p><strong>পেমেন্ট:</strong> {order.payment_display}</p>
-              </div>
             </div>
           ))}
         </div>

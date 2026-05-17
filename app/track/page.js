@@ -64,57 +64,89 @@ export default function TrackPage() {
           <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>আপনার পূর্ববর্তী অর্ডারসমূহ</h2>
           {orders.map((order) => (
             <div key={order.order_id} className={styles.resultCard}>
-              <div className={styles.orderHeader} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
-                <h2 className={styles.orderId} style={{ fontSize: '1.5rem' }}>অর্ডার #{order.order_id}</h2>
-                <p className={styles.orderDate} style={{ fontSize: '1rem' }}>তারিখ: {new Date(order.created_at).toLocaleDateString('bn-BD')}</p>
-                <span className={styles.statusBadge} style={{ marginTop: '0.5rem', display: 'inline-block' }}>
+              {/* Header section (Order ID, Date, Status) */}
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>অর্ডার নাম্বার</span>
+                <strong className={`${styles.infoValue} ${styles.eng}`}>#{order.order_id}</strong>
+              </div>
+
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>তারিখ</span>
+                <strong className={styles.infoValue}>{new Date(order.created_at).toLocaleDateString('bn-BD')}</strong>
+              </div>
+
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>স্ট্যাটাস</span>
+                <span className={styles.statusBadge}>
                   {order.steadfast_status ? `🚚 SteadFast: ${order.steadfast_status}` : `📌 ${order.status_display}`}
                 </span>
               </div>
 
-              {/* SteadFast Details if sent */}
-              {order.steadfast_consignment_id && (
-                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '4px', marginBottom: '1.5rem', border: '1px solid #cbd5e1' }}>
-                  <h3 style={{ color: '#0369a1', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span>🚀</span> স্টেটফাস্ট ডেলিভারি ট্র্যাকিং
-                  </h3>
-                  <p><strong>কনসাইনমেন্ট আইডি:</strong> {order.steadfast_consignment_id}</p>
-                  {order.steadfast_tracking_code && <p><strong>ট্র্যাকিং কোড:</strong> {order.steadfast_tracking_code}</p>}
-                  <p><strong>সর্বশেষ অবস্থা:</strong> {order.steadfast_status || 'অপেক্ষমাণ'}</p>
-                  <a href={`https://steadfast.com.bd/t/${order.steadfast_consignment_id}`} target="_blank" rel="noreferrer" className="btn btn-outline" style={{ marginTop: '0.5rem', display: 'inline-block' }}>
-                    স্টেটফাস্ট ওয়েবসাইটে বিস্তারিত দেখুন
-                  </a>
-                </div>
-              )}
-
-              {/* Order Items */}
-              <div className={styles.orderItems}>
-                <h3 style={{ marginBottom: '1.5rem' }}>অর্ডারকৃত বই</h3>
+              {/* Books */}
+              <div style={{ marginTop: '1rem', borderTop: '2px solid var(--color-border)', paddingTop: '1rem' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>অর্ডারকৃত বই</h3>
                 {order.items.map((item, i) => (
-                  <div key={i} style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--color-border-light)' }}>
-                    <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📖</div>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                      <strong style={{ fontSize: '1.1rem', display: 'block', color: 'var(--color-text)', lineHeight: '1.4' }}>{item.book_title}</strong>
-                      {item.author_name && <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.95rem', display: 'block', marginTop: '4px' }}>{item.author_name}</span>}
+                  <div key={i} className={styles.bookItem}>
+                    <div className={styles.infoRow} style={{ borderBottom: 'none', padding: '0 0 0.5rem 0' }}>
+                      <span className={styles.infoLabel}>বইয়ের নাম</span>
+                      <div className={styles.infoValue} style={{ maxWidth: '60%' }}>
+                        {item.book_title}
+                        {item.author_name && <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontWeight: 'normal' }}>{item.author_name}</div>}
+                      </div>
                     </div>
                     
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '1rem' }}>{item.quantity} কপি</span>
-                      <strong style={{ fontSize: '1.1rem', color: 'var(--color-primary)', fontFamily: 'var(--font-english)' }}>
-                        ৳{item.price} × {item.quantity} = ৳{item.line_total || (item.price * item.quantity)}
-                      </strong>
+                    <div className={styles.infoRow} style={{ borderBottom: 'none', padding: '0 0 0.5rem 0' }}>
+                      <span className={styles.infoLabel}>পরিমাণ</span>
+                      <strong className={styles.infoValue}>{item.quantity} কপি</strong>
+                    </div>
+                    
+                    <div className={styles.infoRow} style={{ borderBottom: 'none', padding: '0' }}>
+                      <span className={styles.infoLabel}>মূল্য</span>
+                      <strong className={`${styles.infoValue} ${styles.eng}`}>৳{item.price} × {item.quantity} = ৳{item.line_total || (item.price * item.quantity)}</strong>
                     </div>
                   </div>
                 ))}
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', fontSize: '1.1rem' }}>
-                  <span style={{ color: 'var(--color-text-secondary)' }}>ডেলিভারি চার্জ:</span>
-                  <strong style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-english)' }}>৳{order.delivery_charge}</strong>
+              </div>
+
+              {/* Totals */}
+              <div className={styles.infoRow} style={{ marginTop: '1rem' }}>
+                <span className={styles.infoLabel}>ডেলিভারি চার্জ</span>
+                <strong className={`${styles.infoValue} ${styles.eng}`}>৳{order.delivery_charge}</strong>
+              </div>
+
+              <div className={styles.infoRow} style={{ borderBottom: '2px solid var(--color-primary)', borderTop: 'none', paddingBottom: '1rem' }}>
+                <strong className={styles.infoLabel} style={{ color: 'var(--color-text)', fontSize: '1.2rem' }}>সর্বমোট</strong>
+                <strong className={`${styles.infoValue} ${styles.eng}`} style={{ color: 'var(--color-primary)', fontSize: '1.2rem' }}>৳{order.total}</strong>
+              </div>
+
+              {/* Delivery Info */}
+              <div className={styles.deliverySection}>
+                <h3>📍 ডেলিভারি ঠিকানা</h3>
+                <div className={styles.infoRow} style={{ borderBottom: 'none', padding: '0.25rem 0' }}>
+                  <span className={styles.infoLabel}>নাম</span>
+                  <strong className={styles.infoValue}>{order.customer_name}</strong>
                 </div>
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.25rem', borderTop: '2px solid var(--color-border-light)', paddingTop: '1rem', fontWeight: 'bold' }}>
-                  <span>সর্বমোট:</span>
-                  <strong style={{ color: '#16a34a', fontFamily: 'var(--font-english)' }}>৳{order.total}</strong>
+                <div className={styles.infoRow} style={{ borderBottom: 'none', padding: '0.25rem 0' }}>
+                  <span className={styles.infoLabel}>মোবাইল</span>
+                  <strong className={`${styles.infoValue} ${styles.eng}`}>{order.phone}</strong>
+                </div>
+                {order.email && (
+                  <div className={styles.infoRow} style={{ borderBottom: 'none', padding: '0.25rem 0' }}>
+                    <span className={styles.infoLabel}>ইমেইল</span>
+                    <strong className={styles.infoValue} style={{ wordBreak: 'break-all' }}>{order.email}</strong>
+                  </div>
+                )}
+                <div className={styles.infoRow} style={{ borderBottom: 'none', padding: '0.25rem 0' }}>
+                  <span className={styles.infoLabel}>জেলা</span>
+                  <strong className={styles.infoValue}>{order.district}</strong>
+                </div>
+                <div className={styles.infoRow} style={{ borderBottom: 'none', padding: '0.25rem 0' }}>
+                  <span className={styles.infoLabel}>ঠিকানা</span>
+                  <strong className={styles.infoValue} style={{ maxWidth: '65%' }}>{order.address}</strong>
+                </div>
+                <div className={styles.infoRow} style={{ borderBottom: 'none', padding: '0.25rem 0', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--color-border)' }}>
+                  <span className={styles.infoLabel}>পেমেন্ট মেথড</span>
+                  <strong className={styles.infoValue}>{order.payment_display}</strong>
                 </div>
               </div>
 

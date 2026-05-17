@@ -64,12 +64,10 @@ export default function TrackPage() {
           <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>আপনার পূর্ববর্তী অর্ডারসমূহ</h2>
           {orders.map((order) => (
             <div key={order.order_id} className={styles.resultCard}>
-              <div className={styles.orderHeader}>
-                <div>
-                  <h2 className={styles.orderId}>অর্ডার #{order.order_id}</h2>
-                  <p className={styles.orderDate}>তারিখ: {new Date(order.created_at).toLocaleDateString('bn-BD')}</p>
-                </div>
-                <span className={styles.statusBadge}>
+              <div className={styles.orderHeader} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                <h2 className={styles.orderId} style={{ fontSize: '1.5rem' }}>অর্ডার #{order.order_id}</h2>
+                <p className={styles.orderDate} style={{ fontSize: '1rem' }}>তারিখ: {new Date(order.created_at).toLocaleDateString('bn-BD')}</p>
+                <span className={styles.statusBadge} style={{ marginTop: '0.5rem', display: 'inline-block' }}>
                   {order.steadfast_status ? `🚚 SteadFast: ${order.steadfast_status}` : `📌 ${order.status_display}`}
                 </span>
               </div>
@@ -91,24 +89,32 @@ export default function TrackPage() {
 
               {/* Order Items */}
               <div className={styles.orderItems}>
-                <h3>অর্ডারকৃত বই</h3>
+                <h3 style={{ marginBottom: '1.5rem' }}>অর্ডারকৃত বই</h3>
                 {order.items.map((item, i) => (
-                  <div key={i} className={styles.orderItem}>
-                    <span className={styles.orderItemIcon}>📖</span>
-                    <div className={styles.orderItemInfo}>
-                      <strong>{item.book_title}</strong>
+                  <div key={i} style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--color-border-light)' }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📖</div>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <strong style={{ fontSize: '1.1rem', display: 'block', color: 'var(--color-text)', lineHeight: '1.4' }}>{item.book_title}</strong>
+                      {item.author_name && <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.95rem', display: 'block', marginTop: '4px' }}>{item.author_name}</span>}
                     </div>
-                    <span className={styles.orderItemQty}>{item.quantity} কপি</span>
-                    <span className={styles.orderItemPrice}>৳{item.line_total || (item.price * item.quantity)}</span>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '1rem' }}>{item.quantity} কপি</span>
+                      <strong style={{ fontSize: '1.1rem', color: 'var(--color-primary)', fontFamily: 'var(--font-english)' }}>
+                        ৳{item.price} × {item.quantity} = ৳{item.line_total || (item.price * item.quantity)}
+                      </strong>
+                    </div>
                   </div>
                 ))}
-                <div className={styles.orderTotal}>
-                  <span>ডেলিভারি চার্জ:</span>
-                  <strong>৳{order.delivery_charge}</strong>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', fontSize: '1.1rem' }}>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>ডেলিভারি চার্জ:</span>
+                  <strong style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-english)' }}>৳{order.delivery_charge}</strong>
                 </div>
-                <div className={styles.orderTotal} style={{ borderTop: 'none', paddingTop: '0.5rem' }}>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.25rem', borderTop: '2px solid var(--color-border-light)', paddingTop: '1rem', fontWeight: 'bold' }}>
                   <span>সর্বমোট:</span>
-                  <strong>৳{order.total}</strong>
+                  <strong style={{ color: '#16a34a', fontFamily: 'var(--font-english)' }}>৳{order.total}</strong>
                 </div>
               </div>
 

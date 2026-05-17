@@ -166,9 +166,9 @@ export default function CheckoutPage() {
     if (orderPlaced) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      const duration = 3 * 1000;
+      const duration = 1.5 * 1000; // Reduced duration
       const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+      const defaults = { startVelocity: 20, spread: 360, ticks: 40, zIndex: 0 }; // Lighter effect
       
       const randomInRange = (min, max) => Math.random() * (max - min) + min;
       
@@ -177,10 +177,10 @@ export default function CheckoutPage() {
         if (timeLeft <= 0) {
           return clearInterval(interval);
         }
-        const particleCount = 50 * (timeLeft / duration);
+        const particleCount = 20 * (timeLeft / duration); // Fewer particles
         confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
         confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-      }, 250);
+      }, 300);
     }
   }, [orderPlaced]);
 

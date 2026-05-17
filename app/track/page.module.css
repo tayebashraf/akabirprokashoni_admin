@@ -72,7 +72,13 @@
 .deliveryInfo h3 { font-size: var(--text-base); font-weight: 700; margin-bottom: var(--space-2); }
 .deliveryInfo p { font-size: var(--text-sm); color: var(--color-text-secondary); }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .searchForm { flex-direction: column; border-radius: var(--radius-md); }
   .orderHeader { flex-direction: column; gap: var(--space-3); align-items: flex-start; }
+  .orderItem { flex-wrap: wrap; gap: var(--space-2); position: relative; padding-bottom: var(--space-6); }
+  .orderItemInfo { min-width: 100%; margin-bottom: var(--space-2); }
+  .orderItemQty { width: auto; flex: 1; text-align: left; padding-left: 2.5rem; }
+  .orderItemPrice { width: auto; text-align: right; }
+  .orderTotal { justify-content: space-between; gap: 0; width: 100%; }
+  .orderTotal strong { min-width: auto; }
 }

@@ -128,7 +128,11 @@ export default function AdminBooks() {
       // Add all text fields
       Object.keys(formData).forEach(key => {
         if (formData[key] !== null && formData[key] !== '') {
-           data.append(key, formData[key]);
+           if (key === 'author') {
+             data.append('authors', formData[key]);
+           } else {
+             data.append(key, formData[key]);
+           }
         }
       });
       

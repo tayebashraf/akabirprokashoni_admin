@@ -3,6 +3,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { API_URL } from '@/lib/api';
 
 export default function AccountPage() {
   const { user, token, logout, loading } = useAuth();
@@ -16,7 +17,7 @@ export default function AccountPage() {
       router.push('/login');
     } else if (token) {
       // Fetch user profile from Django
-      fetch('http://localhost:8000/api/accounts/profile/', {
+      fetch(`${API_URL}/accounts/profile/`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -26,7 +27,7 @@ export default function AccountPage() {
       .catch(err => console.error(err));
 
       // Fetch user's orders
-      fetch('http://localhost:8000/api/orders/my-orders/', {
+      fetch(`${API_URL}/orders/my-orders/`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

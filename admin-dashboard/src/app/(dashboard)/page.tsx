@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import {
   Package, TrendingUp, BookOpen, Star,
   AlertTriangle, ArrowUpRight, ArrowDownRight,
@@ -16,12 +16,12 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 
-const container = {
+const container: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
 
-const item = {
+const item: Variants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 500, damping: 30 } },
 };
@@ -111,7 +111,7 @@ function RevenueChart({ data }: { data: { date: string; revenue: number }[] }) {
               <Tooltip
                 contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: '8px', fontFamily: "'Hind Siliguri', sans-serif" }}
                 labelStyle={{ color: '#a1a1aa' }}
-                formatter={(value: number) => [`৳${value.toLocaleString('bn-BD')}`, 'রাজস্ব']}
+                formatter={(value: any) => [`৳${Number(value).toLocaleString('bn-BD')}`, 'রাজস্ব']}
               />
               <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fill="url(#revenueGrad)" />
             </AreaChart>

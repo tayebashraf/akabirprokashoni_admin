@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getBooks, deleteBook, createBook, updateBook, getCategories, getAuthors, getBookBySlug, createAuthor } from '@/lib/api';
+import { getBooks, deleteBook, createBook, updateBook, getCategories, getAuthors, getBookBySlug, createAuthor, getImageUrl } from '@/lib/api';
 import styles from './page.module.css';
 
 export default function AdminBooks() {
@@ -213,7 +213,7 @@ export default function AdminBooks() {
                       <td>
                         <div className={styles.bookCell}>
                           {book.cover ? (
-                            <img src={book.cover} alt="" style={{ width: '40px', height: '56px', objectFit: 'cover', borderRadius: '4px' }} />
+                            <img src={getImageUrl(book.cover)} alt="" style={{ width: '40px', height: '56px', objectFit: 'cover', borderRadius: '4px' }} />
                           ) : (
                             <span className={styles.bookThumb}>📖</span>
                           )}

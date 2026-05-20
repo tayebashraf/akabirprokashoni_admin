@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getHeroSlides, createHeroSlide, updateHeroSlide, deleteHeroSlide } from '@/lib/api';
+import { getHeroSlides, createHeroSlide, updateHeroSlide, deleteHeroSlide, getImageUrl } from '@/lib/api';
 import styles from './page.module.css';
 
 export default function AdminHero() {
@@ -138,7 +138,7 @@ export default function AdminHero() {
                   <tr key={slide.id}>
                     <td>
                       {slide.image && (
-                        <img src={slide.image} alt={slide.title} style={{ width: '120px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
+                        <img src={getImageUrl(slide.image)} alt={slide.title} style={{ width: '100px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
                       )}
                     </td>
                     <td>

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getAuthors, createAuthor, updateAuthor, deleteAuthor } from '@/lib/api';
+import { getAuthors, createAuthor, updateAuthor, deleteAuthor, getImageUrl } from '@/lib/api';
 import styles from '../categories/page.module.css';
 
 export default function AdminAuthors() {
@@ -126,7 +126,7 @@ export default function AdminAuthors() {
                   <tr key={author.id}>
                     <td>
                       {author.image ? (
-                        <img src={author.image} alt={author.name} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                        <img src={getImageUrl(author.image)} alt={author.name} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
                       ) : (
                         <span style={{ fontSize: '1.5rem' }}>👤</span>
                       )}

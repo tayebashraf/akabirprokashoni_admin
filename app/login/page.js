@@ -35,9 +35,13 @@ export default function LoginPage() {
         
         const data = await res.json();
         
-        // Decode token or use returned user data
-        // For simplicity, we just use the phone for now, but a real app would decode JWT
-        const user = { phone, name: 'গ্রাহক' }; 
+        // Use user data returned from the backend (includes name, phone, is_staff, is_superuser)
+        const user = data.user || { 
+          phone, 
+          name: 'গ্রাহক',
+          is_staff: false,
+          is_superuser: false
+        };
         login(user, data.access, data.refresh);
         router.push('/account');
         

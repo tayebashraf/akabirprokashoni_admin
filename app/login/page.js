@@ -43,7 +43,13 @@ export default function LoginPage() {
           is_superuser: false
         };
         login(user, data.access, data.refresh);
-        router.push('/account');
+        
+        // Admin users go to admin panel, regular users go to account
+        if (user.is_staff || user.is_superuser) {
+          router.push('/admin');
+        } else {
+          router.push('/account');
+        }
         
       } else {
         // Register API Call

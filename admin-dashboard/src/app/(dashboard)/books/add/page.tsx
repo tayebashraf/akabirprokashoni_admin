@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Loader2, ImagePlus } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, ImagePlus, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -200,10 +200,10 @@ export default function AddBookPage() {
 
           {/* সাইডবার - ডান পাশ */}
           <div className="space-y-6">
-            {/* ছবি */}
+            {/* ছবি ও ফাইল */}
             <Card className="bg-zinc-900/50 border-zinc-800/50">
               <CardHeader>
-                <CardTitle className="text-base text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>বইয়ের ছবি</CardTitle>
+                <CardTitle className="text-base text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>ছবি ও একটু পড়ে দেখুন</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="border-2 border-dashed border-zinc-700 rounded-xl p-8 flex flex-col items-center justify-center text-center bg-zinc-800/30 hover:bg-zinc-800/50 transition-colors cursor-pointer relative overflow-hidden group">
@@ -211,6 +211,13 @@ export default function AddBookPage() {
                   <ImagePlus className="w-8 h-8 text-zinc-500 group-hover:text-emerald-400 mb-2 transition-colors" />
                   <p className="text-sm font-medium text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>কভার আপলোড করুন</p>
                   <p className="text-xs text-zinc-500 mt-1">JPG, PNG (max 2MB)</p>
+                </div>
+
+                <div className="border-2 border-dashed border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-zinc-800/30 hover:bg-zinc-800/50 transition-colors cursor-pointer relative overflow-hidden group">
+                  <input type="file" name="sample_pdf" accept=".pdf,image/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                  <FileText className="w-8 h-8 text-zinc-500 group-hover:text-blue-400 mb-2 transition-colors" />
+                  <p className="text-sm font-medium text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>"একটু পড়ে দেখুন" ফাইল</p>
+                  <p className="text-xs text-zinc-500 mt-1">PDF অথবা Image (অপশনাল)</p>
                 </div>
               </CardContent>
             </Card>

@@ -1,17 +1,51 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
+import { API_URL } from '@/lib/api';
 import styles from './layout.module.css';
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
-  const { user, loading } = useAuth();
+  const { user, login, loading } = useAuth();
+  
+  // Inline admin login form state
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    setLoginLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/accounts/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: phone, password })
+      });
+      if (!res.ok) throw new Error('ফোন নম্বর বা পাসওয়ার্ড ভুল।');
+      const data = await res.json();
+      const userData = data.user || { phone, name: 'Admin', is_staff: false, is_superuser: false };
+      
+      if (!userData.is_staff && !userData.is_superuser) {
+        throw new Error('এই অ্যাকাউন্টে অ্যাডমিন পারমিশন নেই।');
+      }
+      
+      login(userData, data.access, data.refresh);
+    } catch (err) {
+      setLoginError(err.message);
+    } finally {
+      setLoginLoading(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--color-bg)' }}>
-        <div style={{ color: 'var(--color-primary)', fontSize: '1.2rem', fontWeight: 'bold' }}>লোড হচ্ছে...</div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#1e293b' }}>
+        <div style={{ color: '#22c55e', fontSize: '1.2rem', fontWeight: 'bold' }}>লোড হচ্ছে...</div>
       </div>
     );
   }
@@ -21,19 +55,57 @@ export default function AdminLayout({ children }) {
 
   if (!isAuthorized) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', padding: '2rem' }}>
-        <div style={{ background: 'white', padding: '3rem', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', maxWidth: '450px', textAlign: 'center' }}>
-          <span style={{ fontSize: '4rem', display: 'block', marginBottom: '1.5rem' }}>⚠️</span>
-          <h2 style={{ color: '#b91c1c', marginBottom: '1rem', fontWeight: 'bold' }}>অননুমোদিত অ্যাক্সেস</h2>
-          <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.95rem', lineHeight: '1.6' }}>
-            দুঃখিত, এই পাতাটি দেখার জন্য আপনার প্রয়োজনীয় অ্যাডমিন পারমিশন নেই। অনুগ্রহ করে অ্যাডমিন অ্যাকাউন্ট দিয়ে লগইন করুন।
-          </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <Link href="/login" style={{ padding: '0.75rem 1.5rem', background: 'var(--color-primary)', color: 'white', borderRadius: '6px', fontWeight: 'bold', textDecoration: 'none' }}>
-              লগইন করুন
-            </Link>
-            <Link href="/" style={{ padding: '0.75rem 1.5rem', border: '1px solid #cbd5e1', color: '#334155', borderRadius: '6px', fontWeight: 'bold', textDecoration: 'none' }}>
-              হোমপেজ
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0f172a', padding: '2rem' }}>
+        <div style={{ background: '#1e293b', padding: '2.5rem', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', maxWidth: '420px', width: '100%', border: '1px solid #334155' }}>
+          
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '0.75rem' }}>📚</span>
+            <h2 style={{ color: '#f1f5f9', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '1.5rem' }}>অ্যাডমিন প্যানেল</h2>
+            <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>আকাবির প্রকাশনী ম্যানেজমেন্ট</p>
+          </div>
+
+          {loginError && (
+            <div style={{ background: '#451a1a', color: '#fca5a5', padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1.25rem', fontSize: '0.9rem', border: '1px solid #7f1d1d' }}>
+              ⚠️ {loginError}
+            </div>
+          )}
+
+          <form onSubmit={handleAdminLogin}>
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ display: 'block', color: '#cbd5e1', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>মোবাইল নম্বর</label>
+              <input 
+                type="tel" 
+                required
+                placeholder="01XXXXXXXXX"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                style={{ width: '100%', padding: '0.8rem 1rem', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: '#f1f5f9', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', color: '#cbd5e1', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>পাসওয়ার্ড</label>
+              <input 
+                type="password" 
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                style={{ width: '100%', padding: '0.8rem 1rem', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: '#f1f5f9', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+            
+            <button 
+              type="submit"
+              disabled={loginLoading}
+              style={{ width: '100%', padding: '0.85rem', background: loginLoading ? '#475569' : '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '1.05rem', fontWeight: 'bold', cursor: loginLoading ? 'wait' : 'pointer', transition: 'background 0.2s' }}
+            >
+              {loginLoading ? '⏳ যাচাই করা হচ্ছে...' : '🔐 অ্যাডমিন লগইন'}
+            </button>
+          </form>
+
+          <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+            <Link href="/" style={{ color: '#64748b', fontSize: '0.85rem', textDecoration: 'none' }}>
+              ← ওয়েবসাইটে ফিরে যান
             </Link>
           </div>
         </div>

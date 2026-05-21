@@ -21,8 +21,13 @@ export default function BookDetailClient({ book, relatedBooks }) {
   const price = Number(book.price) || 0;
   const originalPrice = Number(book.original_price) || 0;
   const coverImage = book.cover_url || book.cover || book.cover_image || null;
-  const authorName = book.author_details?.name || book.author?.name || book.author_name || '';
-  const authorSlug = book.author_details?.slug || book.author?.slug || '';
+  let authorName = book.author_name || book.author?.name || '';
+  let authorSlug = book.author?.slug || '';
+  
+  if (Array.isArray(book.author_details) && book.author_details.length > 0) {
+    authorName = book.author_details.map(a => a.name).join(', ');
+    authorSlug = book.author_details[0].slug;
+  }
   const categoryName = book.category_details?.name || book.category?.name || book.category_name || '';
   const categorySlug = book.category_details?.slug || book.category?.slug || '';
   const stock = book.stock || 0;

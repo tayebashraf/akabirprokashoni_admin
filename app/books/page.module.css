@@ -125,17 +125,19 @@
   .mobileFilterBtn {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
     background: var(--color-primary);
     color: white;
     border: none;
-    border-radius: var(--radius-full);
-    font-size: 14px;
-    font-weight: 600;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-top: -42px;
+    margin-bottom: 8px;
+    margin-left: auto;
+    position: relative;
+    z-index: 10;
   }
   
   .sidebar {

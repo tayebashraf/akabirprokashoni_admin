@@ -27,11 +27,11 @@ export default function FilterSidebarClient({ categories, authors, getUrl }) {
       <button 
         className={styles.mobileFilterBtn} 
         onClick={() => setIsOpen(true)}
+        aria-label="Filter"
       >
-        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
         </svg>
-        ফিল্টার করুন
       </button>
 
       {/* Overlay */}

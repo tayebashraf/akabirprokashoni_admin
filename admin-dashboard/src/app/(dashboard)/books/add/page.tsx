@@ -26,6 +26,11 @@ export default function AddBookPage() {
   const [selectedAuthors, setSelectedAuthors] = useState<number[]>([]);
   const [selectedTranslators, setSelectedTranslators] = useState<number[]>([]);
   const [categoryId, setCategoryId] = useState('');
+  const [language, setLanguage] = useState('bangla');
+  const [productionStatus, setProductionStatus] = useState('published');
+  const [isNewRelease, setIsNewRelease] = useState(true);
+  const [isTrending, setIsTrending] = useState(false);
+  const [isPreorder, setIsPreorder] = useState(false);
 
   const { data: authorsData } = useQuery<PaginatedResponse<Author>>({
     queryKey: ['authors'],
@@ -45,8 +50,18 @@ export default function AddBookPage() {
       router.push('/books');
     },
     onError: (err: any) => {
-      console.error(err);
-      toast.error('বই তৈরি করতে সমস্যা হয়েছে। ডেটা চেক করুন।');
+      console.error('Book creation error:', err);
+      const detail = err?.response?.data;
+      let msg = 'সমস্যা হয়েছে: Failed to create book';
+      if (detail) {
+        if (typeof detail === 'string') msg = detail;
+        else if (typeof detail === 'object') {
+          const parts = Object.entries(detail).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`);
+          msg = parts.join('\n');
+        }
+      }
+      toast.error(msg);
+      alert(msg);
     },
   });
 
@@ -55,20 +70,38 @@ export default function AddBookPage() {
     const form = e.currentTarget;
     const fd = new FormData(form);
 
-    // ManyToMany ফিল্ডগুলো ম্যানুয়ালি যুক্ত করতে হবে
+    // Base UI Select/Switch components don't produce native form data,
+    // so we must explicitly set all controlled fields.
+
+    // Authors (ManyToMany)
     fd.delete('authors');
     selectedAuthors.forEach(id => fd.append('authors', String(id)));
 
-    fd.delete('translators');
-    if (bookType === 'translation') {
-      selectedTranslators.forEach(id => fd.append('translators', String(id)));
-    }
-
+    // Category
     if (categoryId) {
       fd.set('category', categoryId);
     }
-    
-    fd.set('book_type', bookType);
+
+    // Book type — model expects 'translated', not 'translation'
+    fd.set('book_type', bookType === 'translation' ? 'translated' : bookType);
+
+    // Translator (CharField, not M2M) — if translation, combine translator names
+    fd.delete('translators');
+
+    // Select-based fields (base-ui Select doesn't submit natively)
+    fd.set('language', language);
+    fd.set('production_status', productionStatus);
+
+    // Switch/Boolean fields (base-ui Switch doesn't submit natively)
+    fd.set('is_new_release', isNewRelease ? 'true' : 'false');
+    fd.set('is_trending', isTrending ? 'true' : 'false');
+    fd.set('is_preorder', isPreorder ? 'true' : 'false');
+
+    // Remove empty file fields to avoid sending empty File objects
+    const cover = fd.get('cover') as File | null;
+    if (cover && cover.size === 0) fd.delete('cover');
+    const samplePdf = fd.get('sample_pdf') as File | null;
+    if (samplePdf && samplePdf.size === 0) fd.delete('sample_pdf');
 
     createMutation.mutate(fd);
   };
@@ -259,7 +292,7 @@ export default function AddBookPage() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>ভাষা</Label>
-                    <Select name="language" defaultValue="bangla">
+                    <Select value={language} onValueChange={setLanguage}>
                       <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }}>
                         <SelectValue />
                       </SelectTrigger>
@@ -294,7 +327,7 @@ export default function AddBookPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>বর্তমান অবস্থা *</Label>
-                  <Select name="production_status" defaultValue="published">
+                  <Select value={productionStatus} onValueChange={setProductionStatus}>
                     <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }}>
                       <SelectValue />
                     </SelectTrigger>
@@ -318,15 +351,15 @@ export default function AddBookPage() {
                 <hr className="border-zinc-800/50 my-4" />
                 <div className="flex items-center justify-between">
                   <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>নতুন রিলিজ?</Label>
-                  <Switch name="is_new_release" defaultChecked />
+                  <Switch checked={isNewRelease} onCheckedChange={setIsNewRelease} />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>ট্রেন্ডিং?</Label>
-                  <Switch name="is_trending" />
+                  <Switch checked={isTrending} onCheckedChange={setIsTrending} />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>প্রি-অর্ডার?</Label>
-                  <Switch name="is_preorder" />
+                  <Switch checked={isPreorder} onCheckedChange={setIsPreorder} />
                 </div>
               </CardContent>
             </Card>

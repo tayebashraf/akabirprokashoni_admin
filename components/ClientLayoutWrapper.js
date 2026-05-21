@@ -3,13 +3,19 @@ import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
+import { Suspense } from 'react';
+
 export default function ClientLayoutWrapper({ children }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
 
   return (
     <>
-      {!isAdmin && <Header />}
+      {!isAdmin && (
+        <Suspense fallback={<div style={{ height: '70px', background: '#F8F9FA' }}></div>}>
+          <Header />
+        </Suspense>
+      )}
       <main>{children}</main>
       {!isAdmin && <Footer />}
       

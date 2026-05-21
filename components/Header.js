@@ -1,17 +1,49 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/CartContext';
 import { getCategories, getAuthors } from '@/lib/api';
 import styles from './Header.module.css';
 
 export default function Header() {
   const { totalItems } = useCart();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
+
+  // Helper function to determine if a link is active
+  const isActive = (path) => {
+    if (!pathname) return false;
+    
+    // Exact match for home
+    if (path === '/') {
+      return pathname === '/' && searchParams.toString() === '';
+    }
+    
+    // For path with query params (e.g. /books?filter=offer)
+    if (path.includes('?')) {
+      const [base, query] = path.split('?');
+      if (pathname !== base) return false;
+      
+      const urlParams = new URLSearchParams(query);
+      for (const [key, value] of urlParams.entries()) {
+        if (searchParams.get(key) !== value) return false;
+      }
+      return true;
+    }
+    
+    // Standard path matching (e.g. /books)
+    if (path === '/books') {
+      return pathname === '/books' && !searchParams.has('filter') && !searchParams.has('category') && !searchParams.has('author');
+    }
+    
+    return pathname.startsWith(path);
+  };
 
   useEffect(() => {
     getCategories()
@@ -118,16 +150,16 @@ export default function Header() {
         {/* Navigation */}
         <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
           <div className={`container ${styles.navInner}`}>
-            <Link href="/" className={styles.navLink} onClick={closeMenu}>হোম</Link>
-            <Link href="/books" className={styles.navLink} onClick={closeMenu}>সকল বই</Link>
+            <Link href="/" className={`${styles.navLink} ${isActive('/') ? styles.navLinkHighlight : ''}`} onClick={closeMenu}>হোম</Link>
+            <Link href="/books" className={`${styles.navLink} ${isActive('/books') ? styles.navLinkHighlight : ''}`} onClick={closeMenu}>সকল বই</Link>
 
             <div className={styles.navDropdown}>
-              <span className={styles.navLink}>
+              <span className={`${styles.navLink} ${searchParams?.has('category') ? styles.navLinkHighlight : ''}`}>
                 বিষয় <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
               </span>
               <div className={styles.dropdownMenu}>
                 {categories.map(cat => (
-                  <Link key={cat.slug} href={`/books?category=${cat.slug}`} onClick={closeMenu}>
+                  <Link key={cat.slug} href={`/books?category=${cat.slug}`} className={searchParams?.get('category') === cat.slug ? styles.navLinkHighlight : ''} onClick={closeMenu}>
                     {cat.name}
                   </Link>
                 ))}
@@ -138,12 +170,12 @@ export default function Header() {
             </div>
 
             <div className={styles.navDropdown}>
-              <span className={styles.navLink}>
+              <span className={`${styles.navLink} ${searchParams?.has('author') ? styles.navLinkHighlight : ''}`}>
                 লেখক <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
               </span>
               <div className={styles.dropdownMenu}>
                 {authors.map(author => (
-                  <Link key={author.slug} href={`/books?author=${author.slug}`} onClick={closeMenu}>
+                  <Link key={author.slug} href={`/books?author=${author.slug}`} className={searchParams?.get('author') === author.slug ? styles.navLinkHighlight : ''} onClick={closeMenu}>
                     {author.name}
                   </Link>
                 ))}
@@ -153,9 +185,9 @@ export default function Header() {
               </div>
             </div>
 
-            <Link href="/books?filter=new" className={styles.navLink} onClick={closeMenu}>নতুন প্রকাশিত</Link>
-            <Link href="/books?filter=preorder" className={styles.navLink} onClick={closeMenu}>প্রি-অর্ডার</Link>
-            <Link href="/books?filter=offer" className={styles.navLinkHighlight} onClick={closeMenu}>আজকের অফার</Link>
+            <Link href="/books?filter=new" className={`${styles.navLink} ${isActive('/books?filter=new') ? styles.navLinkHighlight : ''}`} onClick={closeMenu}>নতুন প্রকাশিত</Link>
+            <Link href="/books?filter=preorder" className={`${styles.navLink} ${isActive('/books?filter=preorder') ? styles.navLinkHighlight : ''}`} onClick={closeMenu}>প্রি-অর্ডার</Link>
+            <Link href="/books?filter=offer" className={`${styles.navLink} ${isActive('/books?filter=offer') ? styles.navLinkHighlight : ''}`} onClick={closeMenu}>আজকের অফার</Link>
 
             {/* Mobile Only Links at the bottom of the hamburger menu */}
             <div className={styles.mobileOnlyLinks}>

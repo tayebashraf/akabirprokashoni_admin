@@ -39,28 +39,7 @@ export default async function Home() {
       {/* Hero Banner */}
       <HeroSlider slides={heroSlides} />
 
-      {/* Categories */}
-      <section className="section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">বিষয় অনুযায়ী বই</h2>
-            <Link href="/books" className="section-link">সকল বিষয় →</Link>
-          </div>
-          <div className={styles.catGrid}>
-            {categories.map((cat, i) => (
-              <Link
-                key={cat.slug}
-                href={`/books?category=${cat.slug}`}
-                className={styles.catCard}
-                style={{ animationDelay: `${i * 0.05}s`, '--cat-color': cat.color || '#3B82F6' }}
-              >
-                <span className={styles.catName}>{cat.name}</span>
-                <span className={styles.catCount}>{cat.book_count || 0} বই</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+
       {/* Trending Books */}
       <section className="section" style={{ background: 'var(--color-bg-secondary)' }}>
         <div className="container">

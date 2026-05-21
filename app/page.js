@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import BookCard from '@/components/BookCard';
 import HeroSlider from '@/components/HeroSlider';
-import { getCategories, getTrendingBooks, getNewReleases, getBooks, getHeroSlides, getAuthors } from '@/lib/api';
+import { getCategories, getTrendingBooks, getNewReleases, getBooks, getHeroSlides, getAuthors, getImageUrl } from '@/lib/api';
 import styles from './page.module.css';
 
 export default async function Home() {
@@ -74,7 +74,7 @@ export default async function Home() {
                   style={{ animationDelay: `${i * 0.05}s`, '--cat-color': '#10b981' }}
                 >
                   {author.image && (
-                    <img src={author.image} alt={author.name} style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', marginBottom: '8px' }} />
+                    <img src={author.image_url || getImageUrl(author.image) || author.image} alt={author.name} style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', marginBottom: '8px' }} />
                   )}
                   <span className={styles.catName}>{author.name}</span>
                   <span className={styles.catCount}>{author.book_count || 0} বই</span>

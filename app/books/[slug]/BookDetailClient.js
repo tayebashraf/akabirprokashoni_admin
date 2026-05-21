@@ -53,36 +53,27 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
   // Convert Cloudinary PDF URL to image URL (renders specific page)
   const getPdfAsImageUrl = (url, page = 1) => {
+    // Keep this for backwards compatibility if any old PDFs exist
     if (!url) return null;
-    
-    // If it's not a Cloudinary URL, we can't use this trick
     if (!url.includes('cloudinary.com')) return url;
-
-    let imgUrl = url;
-    // Ensure it's treated as an image upload, not raw
-    imgUrl = imgUrl.replace('/raw/upload/', '/image/upload/');
-    
-    // Insert pg_{page} after /upload/
+    let imgUrl = url.replace('/raw/upload/', '/image/upload/');
     if (imgUrl.includes('/upload/v')) {
       imgUrl = imgUrl.replace('/upload/v', `/upload/pg_${page}/v`);
     } else {
       imgUrl = imgUrl.replace('/upload/', `/upload/pg_${page}/`);
     }
-    
-    // Change extension to .jpg or append it if missing
     if (imgUrl.toLowerCase().includes('.pdf')) {
       imgUrl = imgUrl.replace(/\.pdf($|\?)/i, '.jpg$1');
     } else {
-      // If there's no extension, append .jpg before query params if any
-      if (imgUrl.includes('?')) {
-        imgUrl = imgUrl.replace('?', '.jpg?');
-      } else {
-        imgUrl += '.jpg';
-      }
+      if (imgUrl.includes('?')) imgUrl = imgUrl.replace('?', '.jpg?');
+      else imgUrl += '.jpg';
     }
-    
     return imgUrl;
   };
+  
+  const sampleImages = book.images || [];
+  const hasSampleImages = sampleImages.length > 0;
+  const showPreviewBtn = hasSampleImages || samplePdfUrl;
 
   const handleAddToCart = () => {
     addToCart({
@@ -148,7 +139,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
             </div>
 
             {/* "একটু পড়ে দেখুন" Button */}
-            {samplePdfUrl && (
+            {showPreviewBtn && (
               <button
                 className={styles.previewBtn}
                 onClick={() => setShowPreview(true)}
@@ -368,7 +359,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
 
       {/* Preview Modal */}
-      {showPreview && samplePdfUrl && (
+      {showPreview && showPreviewBtn && (
         <div className={styles.modalOverlay} onClick={() => setShowPreview(false)}>
           <div className={styles.previewModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -376,7 +367,19 @@ export default function BookDetailClient({ book, relatedBooks }) {
               <button className={styles.modalClose} onClick={() => setShowPreview(false)}>✕</button>
             </div>
             <div className={styles.modalBody}>
-              {isPdf ? (
+              {hasSampleImages ? (
+                <div className={styles.pdfPagesWrap}>
+                  {sampleImages.map((img, idx) => (
+                    <img
+                      key={img.id || idx}
+                      src={getFileUrl(img.image)}
+                      alt={`${title} - পৃষ্ঠা ${idx + 1}`}
+                      className={styles.pdfPageImage}
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                  ))}
+                </div>
+              ) : isPdf ? (
                 <div className={styles.pdfPagesWrap}>
                   {[1, 2, 3, 4].map(page => (
                     <img

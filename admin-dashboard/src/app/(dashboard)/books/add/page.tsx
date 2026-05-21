@@ -31,6 +31,8 @@ export default function AddBookPage() {
   const [isNewRelease, setIsNewRelease] = useState(true);
   const [isTrending, setIsTrending] = useState(false);
   const [isPreorder, setIsPreorder] = useState(false);
+  const [sampleImages, setSampleImages] = useState<File[]>([]);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   const { data: authorsData } = useQuery<PaginatedResponse<Author>>({
     queryKey: ['authors'],
@@ -44,7 +46,29 @@ export default function AddBookPage() {
 
   const createMutation = useMutation({
     mutationFn: (formData: FormData) => booksApi.create(formData),
-    onSuccess: () => {
+    onSuccess: async (data: any) => {
+      if (sampleImages.length > 0 && data?.id) {
+        setIsUploadingImages(true);
+        toast.info('বই তৈরি হয়েছে, এখন পৃষ্ঠার ছবি আপলোড হচ্ছে...');
+        try {
+          const { default: api } = await import('@/lib/api/client');
+          for (let i = 0; i < sampleImages.length; i++) {
+            const fd = new FormData();
+            fd.append('book', data.id);
+            fd.append('image', sampleImages[i]);
+            fd.append('order', String(i + 1));
+            
+            await api.post('/book-images/', fd, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+          }
+        } catch (err) {
+          console.error('Error uploading sample images:', err);
+          toast.error('পৃষ্ঠার ছবি আপলোড করতে সমস্যা হয়েছে');
+        }
+        setIsUploadingImages(false);
+      }
+      
       toast.success('নতুন বই সফলভাবে যুক্ত হয়েছে!');
       queryClient.invalidateQueries({ queryKey: ['books'] });
       router.push('/books');
@@ -97,11 +121,9 @@ export default function AddBookPage() {
     fd.set('is_trending', isTrending ? 'true' : 'false');
     fd.set('is_preorder', isPreorder ? 'true' : 'false');
 
-    // Remove empty file fields to avoid sending empty File objects
     const cover = fd.get('cover') as File | null;
     if (cover && cover.size === 0) fd.delete('cover');
-    const samplePdf = fd.get('sample_pdf') as File | null;
-    if (samplePdf && samplePdf.size === 0) fd.delete('sample_pdf');
+    // `sample_pdf` is no longer used, so we don't need to append it.
 
     createMutation.mutate(fd);
   };
@@ -247,11 +269,28 @@ export default function AddBookPage() {
                 </div>
 
                 <div className="border-2 border-dashed border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-zinc-800/30 hover:bg-zinc-800/50 transition-colors cursor-pointer relative overflow-hidden group">
-                  <input type="file" name="sample_pdf" accept=".pdf,image/*" className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                  <input type="file" multiple accept="image/*" onChange={(e) => {
+                    if (e.target.files) {
+                      const filesArray = Array.from(e.target.files);
+                      setSampleImages(prev => [...prev, ...filesArray]);
+                    }
+                  }} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
                   <FileText className="w-8 h-8 text-zinc-500 group-hover:text-blue-400 mb-2 transition-colors" />
-                  <p className="text-sm font-medium text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>"একটু পড়ে দেখুন" ফাইল</p>
-                  <p className="text-xs text-zinc-500 mt-1">PDF অথবা Image (অপশনাল)</p>
+                  <p className="text-sm font-medium text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>"একটু পড়ে দেখুন" (পৃষ্ঠার ছবিসমূহ)</p>
+                  <p className="text-xs text-zinc-500 mt-1">একাধিক ছবি আপলোড করতে পারবেন (JPG, PNG)</p>
                 </div>
+                
+                {sampleImages.length > 0 && (
+                  <div className="flex gap-2 flex-wrap mt-4">
+                    {sampleImages.map((file, idx) => (
+                      <div key={idx} className="relative group w-20 h-24 bg-zinc-800 rounded border border-zinc-700 overflow-hidden">
+                        <img src={URL.createObjectURL(file)} alt={`Sample ${idx+1}`} className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => setSampleImages(sampleImages.filter((_, i) => i !== idx))} className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-0.5">Page {idx+1}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -373,9 +412,12 @@ export default function AddBookPage() {
               বাতিল
             </Button>
           </Link>
-          <Button type="submit" disabled={createMutation.isPending || selectedAuthors.length === 0} className="bg-emerald-600 hover:bg-emerald-500 gap-2 min-w-[150px]" style={{ fontFamily: "'Hind Siliguri'" }}>
-            {createMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-            সংরক্ষণ করুন
+          <Button type="submit" disabled={createMutation.isPending || isUploadingImages || selectedAuthors.length === 0} className="bg-emerald-600 hover:bg-emerald-500 gap-2 min-w-[150px]" style={{ fontFamily: "'Hind Siliguri'" }}>
+            {createMutation.isPending || isUploadingImages ? (
+              <><Loader2 className="w-5 h-5 animate-spin" /> {isUploadingImages ? 'ছবি আপলোড হচ্ছে...' : 'সংরক্ষণ হচ্ছে...'}</>
+            ) : (
+              <><Save className="w-5 h-5" /> সংরক্ষণ করুন</>
+            )}
           </Button>
         </div>
       </form>

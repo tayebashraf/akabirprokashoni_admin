@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { getImageUrl } from '@/lib/api';
 import styles from './HeroSlider.module.css';
 
 export default function HeroSlider({ slides }) {
@@ -32,7 +33,7 @@ export default function HeroSlider({ slides }) {
         <div 
           key={slide.id}
           className={`${styles.slide} ${index === currentSlide ? styles.active : ''}`}
-          style={{ backgroundImage: `url(${slide.image})` }}
+          style={{ backgroundImage: `url(${slide.image_url || getImageUrl(slide.image) || slide.image})` }}
         >
           <div className={styles.overlay}>
             <div className="container">

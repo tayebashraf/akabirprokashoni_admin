@@ -6,16 +6,26 @@ import ClientLayoutWrapper from '@/components/ClientLayoutWrapper';
 export const metadata = {
   metadataBase: new URL('https://akabirprokashoni.com'),
   title: {
-    default: 'আকাবির প্রকাশনী — বাংলাদেশের বিশ্বস্ত অনলাইন বুকশপ',
+    default: 'আকাবির প্রকাশনী | Akabir Prokashoni — ইসলামিক ও দ্বীনি বইয়ের বিশ্বস্ত অনলাইন বুকশপ',
     template: '%s | আকাবির প্রকাশনী',
   },
-  description: 'আকাবির প্রকাশনী বাংলাদেশের অন্যতম সেরা অনলাইন বই বিক্রির ওয়েবসাইট। ইসলামিক, সাহিত্য, শিশু-কিশোর, আত্ম-উন্নয়নসহ সকল ধরনের বই পাওয়া যায়।',
-  keywords: ['বই', 'অনলাইন বুকশপ', 'বাংলা বই', 'ইসলামিক বই', 'বই কিনুন', 'আকাবির প্রকাশনী', 'বাংলাদেশ'],
+  description: 'আকাবির প্রকাশনী (Akabir Prokashoni) থেকে কিনুন ইসলামিক বই, দ্বীনি বই, আত্মশুদ্ধির বই এবং ইসলাহ (Islah) বিষয়ক সেরা সব কালেকশন। বাংলাদেশের অন্যতম সেরা অনলাইন বুকশপ।',
+  keywords: [
+    'প্রকাশনী', 'Prokashoni', 'Prokashani', 
+    'আকাবির', 'Akabir', 'আকাবির প্রকাশনী', 'Akabir Prokashoni',
+    'ইসলামিক বই', 'Islamic Books', 
+    'দ্বীনি বই', 'Deeni Books', 'Dini Boi',
+    'আত্মশুদ্ধির বই', 'Atmosuddhi Books', 'আত্মশুদ্ধি', 'Atmosuddho',
+    'ইসলাহ', 'Islah', 'ইসলাহী বই',
+    'অনলাইন বুকশপ', 'বই কিনুন', 'বাংলাদেশ'
+  ],
   openGraph: {
     type: 'website',
     locale: 'bn_BD',
     url: 'https://akabirprokashoni.com',
     siteName: 'আকাবির প্রকাশনী',
+    title: 'আকাবির প্রকাশনী | ইসলামিক ও দ্বীনি বইয়ের সেরা কালেকশন',
+    description: 'আকাবির প্রকাশনী থেকে কিনুন ইসলামিক, দ্বীনি এবং আত্মশুদ্ধির বই।',
   },
 };
 

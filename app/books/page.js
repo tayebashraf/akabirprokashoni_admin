@@ -5,6 +5,12 @@ import FilterSidebarClient from '@/components/FilterSidebarClient';
 import { getBooks, getCategories, getAuthors } from '@/lib/api';
 import styles from './page.module.css';
 
+export const metadata = {
+  title: 'সকল বই | ইসলামিক, দ্বীনি ও আত্মশুদ্ধির বইয়ের সংগ্রহ',
+  description: 'আকাবির প্রকাশনী থেকে কিনুন সেরা সব ইসলামিক বই, দ্বীনি বই, আত্মশুদ্ধির বই এবং ইসলাহ সংক্রান্ত বই। সব ক্যাটাগরি ও লেখকের বই এখানে পাবেন।',
+  keywords: ['সকল বই', 'ইসলামিক বই', 'দ্বীনি বই', 'আত্মশুদ্ধির বই', 'আত্মশুদ্ধি', 'ইসলাহ', 'Akabir Prokashoni Books', 'আকাবির প্রকাশনী বই'],
+};
+
 export default async function BooksPage({ searchParams }) {
   const resolvedParams = await searchParams;
   const selectedCat = resolvedParams.category || 'all';

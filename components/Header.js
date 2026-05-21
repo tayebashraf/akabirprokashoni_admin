@@ -158,7 +158,11 @@ export default function Header() {
             <div className={styles.navDropdown}>
               <span 
                 className={`${styles.navLink} ${searchParams?.has('category') ? styles.navLinkHighlight : ''}`}
-                onClick={() => setCategoriesOpen(!categoriesOpen)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCategoriesOpen(!categoriesOpen);
+                }}
               >
                 বিষয় <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ transform: categoriesOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path d="M6 9l6 6 6-6"/></svg>
               </span>
@@ -177,7 +181,11 @@ export default function Header() {
             <div className={styles.navDropdown}>
               <span 
                 className={`${styles.navLink} ${searchParams?.has('author') ? styles.navLinkHighlight : ''}`}
-                onClick={() => setAuthorsOpen(!authorsOpen)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setAuthorsOpen(!authorsOpen);
+                }}
               >
                 লেখক <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ transform: authorsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path d="M6 9l6 6 6-6"/></svg>
               </span>

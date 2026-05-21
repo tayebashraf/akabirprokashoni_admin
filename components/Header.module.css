@@ -313,6 +313,10 @@
   padding-left: var(--space-5);
 }
 
+.dropdownMenuOpen {
+  display: block !important;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .topBar { display: none; }
@@ -382,9 +386,6 @@
     padding: 0;
     display: none; /* Hidden by default on mobile, toggled via state */
     width: 100%;
-  }
-  .dropdownMenuOpen {
-    display: block !important;
   }
   .navDropdown {
     width: 100%;

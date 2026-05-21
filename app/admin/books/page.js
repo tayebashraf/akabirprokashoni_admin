@@ -127,18 +127,29 @@ export default function AdminBooks() {
       
       // Add all text fields
       Object.keys(formData).forEach(key => {
-        if (formData[key] !== null && formData[key] !== '') {
-           if (key === 'author') {
-             data.append('authors', formData[key]);
-           } else {
-             data.append(key, formData[key]);
-           }
+        const val = formData[key];
+        // Skip null/undefined
+        if (val === null || val === undefined) return;
+        // Skip empty strings (but not booleans or zero)
+        if (val === '' && typeof val === 'string') return;
+        
+        if (key === 'author') {
+          // author -> authors for ManyToMany
+          data.append('authors', val);
+        } else {
+          data.append(key, val);
         }
       });
       
       // Add files if selected
       if (files.cover) data.append('cover', files.cover);
       if (files.sample_pdf) data.append('sample_pdf', files.sample_pdf);
+
+      // Debug: log what's being sent
+      console.log('Sending FormData:');
+      for (const [k, v] of data.entries()) {
+        console.log(`  ${k}:`, v instanceof File ? `[File: ${v.name}]` : v);
+      }
 
       if (editingSlug) {
         await updateBook(editingSlug, data);
@@ -151,7 +162,7 @@ export default function AdminBooks() {
       setShowForm(false);
       fetchData(); // Refresh list
     } catch (error) {
-      console.error(error);
+      console.error('Book save error:', error);
       alert(`সমস্যা হয়েছে: ${error.message}`);
     } finally {
       setIsSubmitting(false);

@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { useCart } from '@/lib/CartContext';
 import { getCategories, getAuthors } from '@/lib/api';
 import styles from './Header.module.css';
@@ -17,6 +17,7 @@ export default function Header() {
   const [authorsOpen, setAuthorsOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
+  const router = useRouter();
 
   // Helper function to determine if a link is active
   const isActive = (path) => {
@@ -65,6 +66,14 @@ export default function Header() {
 
   const closeMenu = () => setMenuOpen(false);
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/books?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchOpen(false);
+    }
+  };
+
   return (
     <>
       {/* Top Bar */}
@@ -95,7 +104,7 @@ export default function Header() {
           </div>
 
           {/* Search Bar (Desktop) */}
-          <div className={`${styles.searchBar} ${searchOpen ? styles.searchOpen : ''}`}>
+          <form className={`${styles.searchBar} ${searchOpen ? styles.searchOpen : ''}`} onSubmit={handleSearch}>
             <input
               type="text"
               placeholder="বই, লেখক বা প্রকাশক খুঁজুন..."
@@ -103,13 +112,13 @@ export default function Header() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className={styles.searchInput}
             />
-            <button className={styles.searchBtn}>
+            <button type="submit" className={styles.searchBtn}>
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="8"/>
                 <path d="M21 21l-4.35-4.35"/>
               </svg>
             </button>
-          </div>
+          </form>
 
           {/* Right section: Actions */}
           <div className={styles.actions}>

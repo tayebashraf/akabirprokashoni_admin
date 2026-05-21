@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import BookCard from '@/components/BookCard';
 import InfiniteBookList from '@/components/InfiniteBookList';
+import FilterSidebarClient from '@/components/FilterSidebarClient';
 import { getBooks, getCategories, getAuthors } from '@/lib/api';
 import styles from './page.module.css';
 
@@ -11,6 +12,7 @@ export default async function BooksPage({ searchParams }) {
   const sortBy = resolvedParams.sort || 'popular';
   const viewMode = resolvedParams.view || 'grid';
   const filter = resolvedParams.filter || ''; // new, preorder, offer
+  const searchQuery = resolvedParams.search || '';
 
   // Fetch categories and authors for sidebar
   const [categoriesResult, authorsResult] = await Promise.all([
@@ -24,6 +26,7 @@ export default async function BooksPage({ searchParams }) {
   const apiParams = {};
   if (selectedCat !== 'all') apiParams.category = selectedCat;
   if (selectedAuthor !== 'all') apiParams.author = selectedAuthor;
+  if (searchQuery) apiParams.search = searchQuery;
   if (sortBy === 'new') apiParams.new_release = 'true';
   // Note: API doesn't support 'price-low' sort natively yet, this is basic mapping
   if (filter === 'new') apiParams.new_release = 'true';
@@ -57,45 +60,7 @@ export default async function BooksPage({ searchParams }) {
 
       <div className={styles.pageGrid}>
         {/* Sidebar Filters */}
-        <aside className={styles.sidebar}>
-          <div className={styles.filterGroup}>
-            <h3 className={styles.filterTitle}>বিষয়</h3>
-            <Link
-              href={getUrl({ category: 'all' })}
-              className={`${styles.filterBtn} ${selectedCat === 'all' ? styles.filterActive : ''}`}
-            >
-              সকল বিষয়
-            </Link>
-            {categories.map(cat => (
-              <Link
-                key={cat.slug}
-                href={getUrl({ category: cat.slug })}
-                className={`${styles.filterBtn} ${selectedCat === cat.slug ? styles.filterActive : ''}`}
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-
-          <div className={styles.filterGroup} style={{ marginTop: '24px' }}>
-            <h3 className={styles.filterTitle}>লেখক</h3>
-            <Link
-              href={getUrl({ author: 'all' })}
-              className={`${styles.filterBtn} ${selectedAuthor === 'all' ? styles.filterActive : ''}`}
-            >
-              সকল লেখক
-            </Link>
-            {authors.map(author => (
-              <Link
-                key={author.slug}
-                href={getUrl({ author: author.slug })}
-                className={`${styles.filterBtn} ${selectedAuthor === author.slug ? styles.filterActive : ''}`}
-              >
-                {author.name}
-              </Link>
-            ))}
-          </div>
-        </aside>
+        <FilterSidebarClient categories={categories} authors={authors} />
 
         {/* Books */}
         <div className={styles.booksSection}>

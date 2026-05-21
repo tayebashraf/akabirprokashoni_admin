@@ -112,3 +112,114 @@
     overflow: hidden;
   }
 }
+
+/* Mobile Filter Drawer Classes */
+.mobileFilterBtn {
+  display: none;
+}
+.closeSidebar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobileFilterBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: -100% !important;
+    bottom: 0 !important;
+    width: 80vw !important;
+    max-width: 300px !important;
+    background: white !important;
+    z-index: 1000 !important;
+    overflow-y: auto !important;
+    transition: left 0.3s ease !important;
+    padding: 24px !important;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .sidebarOpen {
+    left: 0 !important;
+  }
+  
+  .filterOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+  }
+
+  .sidebarHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .sidebarHeader h2 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  .closeSidebar {
+    display: block;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    line-height: 1;
+  }
+
+  .filterGroup {
+    flex-direction: column !important;
+    overflow-x: visible !important;
+    padding: 0 !important;
+  }
+  
+  .filterTitle { 
+    display: block !important; 
+    font-size: 14px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .filterBtn {
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    border: none !important;
+    border-radius: 4px !important;
+    background: transparent !important;
+  }
+  
+  .filterBtn:hover {
+    background: var(--color-primary-50) !important;
+  }
+  
+  .filterActive {
+    background: var(--color-primary) !important;
+    color: white !important;
+  }
+}

@@ -13,6 +13,8 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [authorsOpen, setAuthorsOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
 
@@ -154,10 +156,13 @@ export default function Header() {
             <Link href="/books" className={`${styles.navLink} ${isActive('/books') ? styles.navLinkHighlight : ''}`} onClick={closeMenu}>সকল বই</Link>
 
             <div className={styles.navDropdown}>
-              <span className={`${styles.navLink} ${searchParams?.has('category') ? styles.navLinkHighlight : ''}`}>
-                বিষয় <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+              <span 
+                className={`${styles.navLink} ${searchParams?.has('category') ? styles.navLinkHighlight : ''}`}
+                onClick={() => setCategoriesOpen(!categoriesOpen)}
+              >
+                বিষয় <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ transform: categoriesOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path d="M6 9l6 6 6-6"/></svg>
               </span>
-              <div className={styles.dropdownMenu}>
+              <div className={`${styles.dropdownMenu} ${categoriesOpen ? styles.dropdownMenuOpen : ''}`}>
                 {categories.map(cat => (
                   <Link key={cat.slug} href={`/books?category=${cat.slug}`} className={searchParams?.get('category') === cat.slug ? styles.navLinkHighlight : ''} onClick={closeMenu}>
                     {cat.name}
@@ -170,10 +175,13 @@ export default function Header() {
             </div>
 
             <div className={styles.navDropdown}>
-              <span className={`${styles.navLink} ${searchParams?.has('author') ? styles.navLinkHighlight : ''}`}>
-                লেখক <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+              <span 
+                className={`${styles.navLink} ${searchParams?.has('author') ? styles.navLinkHighlight : ''}`}
+                onClick={() => setAuthorsOpen(!authorsOpen)}
+              >
+                লেখক <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ transform: authorsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path d="M6 9l6 6 6-6"/></svg>
               </span>
-              <div className={styles.dropdownMenu}>
+              <div className={`${styles.dropdownMenu} ${authorsOpen ? styles.dropdownMenuOpen : ''}`}>
                 {authors.map(author => (
                   <Link key={author.slug} href={`/books?author=${author.slug}`} className={searchParams?.get('author') === author.slug ? styles.navLinkHighlight : ''} onClick={closeMenu}>
                     {author.name}

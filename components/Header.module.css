@@ -380,8 +380,11 @@
     background: rgba(0,0,0,0.1);
     border-radius: 0;
     padding: 0;
-    display: block; /* Always show in mobile */
+    display: none; /* Hidden by default on mobile, toggled via state */
     width: 100%;
+  }
+  .dropdownMenuOpen {
+    display: block !important;
   }
   .navDropdown {
     width: 100%;

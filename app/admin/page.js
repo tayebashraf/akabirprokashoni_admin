@@ -1,7 +1,28 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { getAdminDashboardStats, getAdminOrders } from '@/lib/api';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import styles from './page.module.css';
+
+const STATUS_COLORS = {
+  pending: '#F59E0B',
+  confirmed: '#3B82F6',
+  packaging: '#8B5CF6',
+  shipped: '#06B6D4',
+  delivered: '#10B981',
+  returned: '#6B7280',
+  cancelled: '#EF4444',
+};
+
+const STATUS_LABELS = {
+  pending: 'অপেক্ষমাণ',
+  confirmed: 'নিশ্চিতকৃত',
+  packaging: 'প্যাকেজিং',
+  shipped: 'শিপড',
+  delivered: 'ডেলিভারড',
+  returned: 'রিটার্ন',
+  cancelled: 'বাতিল',
+};
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -194,6 +215,72 @@ export default function AdminDashboard() {
               </span>
             </div>
 
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className={styles.sectionsGrid} style={{ marginTop: 'var(--space-6)' }}>
+        {/* Revenue Chart */}
+        <div className={styles.card}>
+          <h2 className={styles.cardTitle}>📈 সাপ্তাহিক রাজস্ব (গত ৭ দিন)</h2>
+          <div style={{ width: '100%', height: 300 }}>
+            {stats?.revenue?.daily_chart && stats.revenue.daily_chart.length > 0 ? (
+              <ResponsiveContainer>
+                <AreaChart data={stats.revenue.daily_chart} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" tick={{fontSize: 12}} />
+                  <YAxis tick={{fontSize: 12}} tickFormatter={(value) => `৳${value}`} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <Tooltip formatter={(value) => [`৳${value}`, 'রাজস্ব']} />
+                  <Area type="monotone" dataKey="revenue" stroke="var(--color-primary)" fillOpacity={1} fill="url(#colorRevenue)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+               <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#999' }}>পর্যাপ্ত ডাটা নেই</div>
+            )}
+          </div>
+        </div>
+
+        {/* Order Status Chart */}
+        <div className={styles.card}>
+          <h2 className={styles.cardTitle}>📊 অর্ডার স্ট্যাটাস (সামগ্রিক)</h2>
+          <div style={{ width: '100%', height: 300 }}>
+            {stats?.orders?.status_breakdown && Object.keys(stats.orders.status_breakdown).length > 0 ? (
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie
+                    data={Object.entries(stats.orders.status_breakdown).map(([k, v]) => ({ name: STATUS_LABELS[k] || k, value: v, color: STATUS_COLORS[k] || '#999' }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {Object.entries(stats.orders.status_breakdown).map(([k, v], index) => (
+                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[k] || '#999'} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [value, 'অর্ডার']} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#999' }}>পর্যাপ্ত ডাটা নেই</div>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', marginTop: '10px' }}>
+             {stats?.orders?.status_breakdown && Object.entries(stats.orders.status_breakdown).map(([k, v]) => (
+               <div key={k} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px' }}>
+                 <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: STATUS_COLORS[k] || '#999' }}></div>
+                 <span>{STATUS_LABELS[k] || k} ({v})</span>
+               </div>
+             ))}
           </div>
         </div>
       </div>

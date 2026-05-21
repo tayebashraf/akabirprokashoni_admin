@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, Variants } from 'framer-motion';
 import {
   Package, TrendingUp, BookOpen, Star,
-  AlertTriangle, ArrowUpRight, ArrowDownRight,
+  AlertTriangle, ArrowUpRight, ArrowDownRight, Wallet, Truck
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -225,6 +225,12 @@ export default function DashboardPage() {
     refetchInterval: 30000,
   });
 
+  const { data: sfBalance } = useQuery<{ balance: number }>({
+    queryKey: ['steadfast-balance'],
+    queryFn: dashboardApi.getSteadfastBalance,
+    refetchInterval: 60000,
+  });
+
   if (isLoading) return <DashboardSkeleton />;
 
   if (error || !stats) {
@@ -299,6 +305,10 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex justify-between items-center py-2 border-b border-zinc-800/30">
+                <span className="text-sm text-zinc-400 flex items-center gap-1" style={{ fontFamily: "'Hind Siliguri', sans-serif" }}><Truck className="w-4 h-4 text-orange-400" /> Steadfast ব্যালেন্স</span>
+                <span className="text-sm font-semibold text-orange-400">৳{sfBalance?.balance ? sfBalance.balance.toLocaleString('bn-BD') : '0'}</span>
+              </div>
               <div className="flex justify-between items-center py-2 border-b border-zinc-800/30">
                 <span className="text-sm text-zinc-400" style={{ fontFamily: "'Hind Siliguri', sans-serif" }}>পেন্ডিং অর্ডার</span>
                 <Badge className="bg-amber-500/20 text-amber-400 border-0">{stats.orders.pending}</Badge>

@@ -27,6 +27,10 @@ export const dashboardApi = {
     const { data } = await api.get('/orders/admin/dashboard/');
     return data;
   },
+  getSteadfastBalance: async (): Promise<{ balance: number }> => {
+    const { data } = await api.get('/orders/admin/steadfast/balance/');
+    return data;
+  },
 };
 
 // ============================================

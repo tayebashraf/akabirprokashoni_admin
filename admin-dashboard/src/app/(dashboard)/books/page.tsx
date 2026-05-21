@@ -19,6 +19,14 @@ import { toast } from 'sonner';
 
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
+// ইমেজ URL নিশ্চিত করার হেল্পার
+const getImageUrl = (url: string | null | undefined): string | null => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace('/api', '');
+  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export default function BooksPage() {
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -118,7 +126,7 @@ export default function BooksPage() {
             <Card key={book.id} className="bg-zinc-900/50 border-zinc-800/50 hover:border-zinc-700/50 transition-all group overflow-hidden">
               <div className="aspect-[3/4] bg-zinc-800/50 relative overflow-hidden">
                 {book.cover ? (
-                  <img src={book.cover} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <img src={getImageUrl(book.cover)!} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 ) : (
                   <div className="flex items-center justify-center h-full"><BookOpen className="w-12 h-12 text-zinc-700" /></div>
                 )}

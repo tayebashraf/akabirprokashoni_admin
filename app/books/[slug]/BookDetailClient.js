@@ -20,7 +20,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
   const title = book.title || '';
   const price = Number(book.price) || 0;
   const originalPrice = Number(book.original_price) || 0;
-  const coverImage = book.cover || book.cover_image || null;
+  const coverImage = book.cover_url || book.cover || book.cover_image || null;
   const authorName = book.author_details?.name || book.author?.name || book.author_name || '';
   const authorSlug = book.author_details?.slug || book.author?.slug || '';
   const categoryName = book.category_details?.name || book.category?.name || book.category_name || '';
@@ -40,7 +40,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
     return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
   };
   const finalCoverImage = getFileUrl(coverImage);
-  const samplePdfUrl = getFileUrl(book.sample_pdf);
+  const samplePdfUrl = getFileUrl(book.sample_pdf_url || book.sample_pdf);
 
   // Check if sample is image (jpg/png/webp), otherwise treat as PDF since field is sample_pdf
   const isImage = samplePdfUrl && samplePdfUrl.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|svg)($|\?)/);

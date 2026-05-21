@@ -12,7 +12,7 @@ export default function BookCard({ book }) {
   const authorName = book.author_name || book.author?.name || book.author || '';
   const price = Number(book.price) || 0;
   const originalPrice = Number(book.original_price || book.originalPrice) || 0;
-  const coverImage = book.cover || book.cover_image || book.coverImage || null;
+  const coverImage = book.cover_url || book.cover || book.cover_image || book.coverImage || null;
   const rating = Number(book.rating) || 0;
   const reviewCount = Number(book.review_count || book.reviewCount) || 0;
   const discount = book.discount || (originalPrice > price ? Math.round((1 - price / originalPrice) * 100) : 0);

@@ -10,7 +10,8 @@ export default function AdminSettings() {
   const [formData, setFormData] = useState({
     site_name: '', site_tagline: '', phone: '', email: '', address: '',
     facebook_url: '', youtube_url: '', instagram_url: '',
-    footer_text: '', announcement: ''
+    footer_text: '', announcement: '',
+    delivery_charge_dhaka: 60, delivery_charge_outside: 120
   });
   const [files, setFiles] = useState({
     logo: null,
@@ -32,7 +33,9 @@ export default function AdminSettings() {
           youtube_url: data.youtube_url || '',
           instagram_url: data.instagram_url || '',
           footer_text: data.footer_text || '',
-          announcement: data.announcement || ''
+          announcement: data.announcement || '',
+          delivery_charge_dhaka: data.delivery_charge_dhaka !== undefined ? data.delivery_charge_dhaka : 60,
+          delivery_charge_outside: data.delivery_charge_outside !== undefined ? data.delivery_charge_outside : 120
         });
       }
     } catch (error) {
@@ -143,6 +146,18 @@ export default function AdminSettings() {
             <div>
               <label>Instagram URL</label>
               <input type="url" name="instagram_url" value={formData.instagram_url} onChange={handleInputChange} className="form-control" />
+            </div>
+          </div>
+
+          <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginTop: '20px' }}>🚚 ডেলিভারি চার্জ</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div>
+              <label>ঢাকার ভিতরে (৳)</label>
+              <input type="number" name="delivery_charge_dhaka" value={formData.delivery_charge_dhaka} onChange={handleInputChange} className="form-control" />
+            </div>
+            <div>
+              <label>ঢাকার বাইরে (৳)</label>
+              <input type="number" name="delivery_charge_outside" value={formData.delivery_charge_outside} onChange={handleInputChange} className="form-control" />
             </div>
           </div>
 

@@ -2,21 +2,21 @@
 import { useState, useEffect } from 'react';
 import { orderStatuses } from '@/lib/data';
 import styles from './page.module.css';
-import { trackOrdersByPhone } from '@/lib/api';
+import { trackOrdersByPhone, trackOrder } from '@/lib/api';
 
 export default function TrackPage() {
-  const [phone, setPhone] = useState('');
+  const [query, setQuery] = useState('');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Prepopulate phone number if passed in URL
+  // Prepopulate query if passed in URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const phoneParam = params.get('phone');
-    if (phoneParam) {
-      setPhone(phoneParam);
-    }
+    const orderParam = params.get('order_id');
+    if (phoneParam) setQuery(phoneParam);
+    if (orderParam) setQuery(orderParam);
   }, []);
 
   const handleTrack = async (e) => {
@@ -24,12 +24,26 @@ export default function TrackPage() {
     setLoading(true);
     setError('');
     setOrders([]);
+    
+    const searchVal = query.trim();
     try {
-      const data = await trackOrdersByPhone(phone);
+      let data = [];
+      // If it contains letters or hyphen, assume it's an Order ID
+      if (/[a-zA-Z\-]/.test(searchVal)) {
+        try {
+          const singleOrder = await trackOrder(searchVal);
+          if (singleOrder) data = [singleOrder];
+        } catch (err) {
+          // Keep data empty if not found
+        }
+      } else {
+        data = await trackOrdersByPhone(searchVal);
+      }
+
       if (data && data.length > 0) {
         setOrders(data);
       } else {
-        setError('এই নাম্বারে কোনো অর্ডার পাওয়া যায়নি।');
+        setError('এই নাম্বার বা আইডি দিয়ে কোনো অর্ডার পাওয়া যায়নি।');
       }
     } catch (err) {
       setError('সার্ভার থেকে ডেটা আনতে সমস্যা হচ্ছে।');
@@ -47,9 +61,9 @@ export default function TrackPage() {
           <input
             type="text"
             required
-            placeholder="আপনার মোবাইল নাম্বার দিন (যেমন: 01XXXXXXXXX)"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            placeholder="আপনার মোবাইল নাম্বার বা অর্ডার আইডি দিন (যেমন: AKB-...)"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             className={styles.searchInput}
           />
           <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>

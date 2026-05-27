@@ -84,12 +84,6 @@ export default function CartPage() {
                 </span>
               </div>
 
-              {deliveryCharge > 0 && (
-                <p className={styles.freeDeliveryNote}>
-                  ৳{(500 - totalPrice).toLocaleString()} আরো কিনলে ফ্রি ডেলিভারি!
-                </p>
-              )}
-
               <div className={styles.summaryDivider} />
 
               <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>

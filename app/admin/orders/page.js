@@ -199,14 +199,45 @@ export default function AdminOrders() {
                     </div>
                   </td>
                   <td>
-                    <span className={`${styles.orderStatus} ${styles[`status-${order.status}`] || styles.statusPending}`}>
-                      {getStatusLabel(order.status)}
-                    </span>
+                    <select 
+                      className={`${styles.orderStatus} ${styles[`status-${order.status}`] || styles.statusPending}`}
+                      style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none', cursor: 'pointer', fontSize: '12px' }}
+                      value={order.status}
+                      onChange={async (e) => {
+                        const newStatus = e.target.value;
+                        try {
+                          const { updateAdminOrder } = await import('@/lib/api');
+                          await updateAdminOrder(order.order_id, { status: newStatus });
+                          setOrders(prev => prev.map(o => o.order_id === order.order_id ? { ...o, status: newStatus } : o));
+                        } catch (err) {
+                          alert('স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে।');
+                        }
+                      }}
+                    >
+                      {statusOptions.filter(o => o.value !== 'all').map(opt => (
+                        <option key={opt.value} value={opt.value} style={{color: '#000'}}>{opt.label}</option>
+                      ))}
+                    </select>
                   </td>
                   <td>
-                    <span style={{ fontSize: '13px' }}>
-                      {contactStatusOptions.find(o => o.value === order.contact_status)?.label || order.contact_status}
-                    </span>
+                    <select 
+                      style={{ fontSize: '13px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', outline: 'none', cursor: 'pointer', maxWidth: '140px', backgroundColor: '#f8fafc' }}
+                      value={order.contact_status || 'not_contacted'}
+                      onChange={async (e) => {
+                        const newStatus = e.target.value;
+                        try {
+                          const { updateAdminOrder } = await import('@/lib/api');
+                          await updateAdminOrder(order.order_id, { contact_status: newStatus });
+                          setOrders(prev => prev.map(o => o.order_id === order.order_id ? { ...o, contact_status: newStatus } : o));
+                        } catch (err) {
+                          alert('যোগাযোগ স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে।');
+                        }
+                      }}
+                    >
+                      {contactStatusOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
                   </td>
                   <td style={{ fontWeight: '700' }}>৳{order.total}</td>
                   <td>

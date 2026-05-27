@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/lib/CartContext';
-import { districts } from '@/lib/data';
+import bdGeodata from '@/lib/bdGeodata.json';
 import styles from './page.module.css';
 import { createOrder, getSiteSettings } from '@/lib/api';
 import { useAuth } from '@/lib/AuthContext';
@@ -26,7 +26,7 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState('');
   
   const [defaultValues, setDefaultValues] = useState({
-    name: '', phone: '', email: '', district: '', address: ''
+    name: '', phone: '', email: '', district: '', thana: '', address: ''
   });
   const [siteSettings, setSiteSettings] = useState(null);
 
@@ -122,13 +122,19 @@ export default function CheckoutPage() {
     setError('');
     
     const formData = new FormData(e.target);
+    
+    // Combine Village and Thana for the final address string
+    const rawAddress = formData.get('address');
+    const selectedThana = formData.get('thana');
+    const finalAddress = selectedThana ? `${rawAddress}, ${selectedThana}` : rawAddress;
+
     const orderData = {
       customer_name: formData.get('name'),
       phone: formData.get('phone'),
       email: formData.get('email') || '',
       alt_phone: formData.get('alt_phone') || '',
       district: formData.get('district'),
-      address: formData.get('address'),
+      address: finalAddress,
       payment_method: paymentMethod,
       items: cart.map(item => ({ book_id: item.id, slug: item.slug, quantity: item.quantity })),
       coupon_code: appliedCoupon ? appliedCoupon.code : ''
@@ -140,7 +146,8 @@ export default function CheckoutPage() {
         phone: orderData.phone,
         email: orderData.email,
         district: orderData.district,
-        address: orderData.address
+        thana: selectedThana,
+        address: rawAddress
       }));
     }
 
@@ -255,15 +262,44 @@ export default function CheckoutPage() {
             </div>
             <div className="input-group">
               <label className="input-label">জেলা *</label>
-              <select name="district" className="input" required value={defaultValues.district} onChange={(e) => setDefaultValues({...defaultValues, district: e.target.value})}>
+              <select 
+                name="district" 
+                className="input" 
+                required 
+                value={defaultValues.district} 
+                onChange={(e) => setDefaultValues({...defaultValues, district: e.target.value, thana: ''})}
+              >
                 <option value="">জেলা নির্বাচন করুন</option>
-                {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                {Object.keys(bdGeodata).sort().map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
+            {defaultValues.district && bdGeodata[defaultValues.district] && (
+              <div className="input-group">
+                <label className="input-label">থানা / উপজেলা *</label>
+                <select 
+                  name="thana" 
+                  className="input" 
+                  required 
+                  value={defaultValues.thana} 
+                  onChange={(e) => setDefaultValues({...defaultValues, thana: e.target.value})}
+                >
+                  <option value="">থানা নির্বাচন করুন</option>
+                  {bdGeodata[defaultValues.district].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            )}
           </div>
           <div className="input-group" style={{ marginTop: 'var(--space-4)' }}>
-            <label className="input-label">সম্পূর্ণ ঠিকানা *</label>
-            <textarea name="address" className="input" rows="3" required placeholder="বাড়ি, রোড, এলাকা, পোস্ট কোড" style={{ resize: 'vertical' }} defaultValue={defaultValues.address} />
+            <label className="input-label">গ্রাম / এলাকা / বাড়ির ঠিকানা *</label>
+            <textarea 
+              name="address" 
+              className="input" 
+              rows="2" 
+              required 
+              placeholder="বাড়ি, রোড, এলাকা" 
+              style={{ resize: 'vertical' }} 
+              defaultValue={defaultValues.address} 
+            />
           </div>
           
           {!user && (
@@ -283,21 +319,20 @@ export default function CheckoutPage() {
           {/* Payment */}
           <h2 className={styles.sectionTitle} style={{ marginTop: 'var(--space-8)' }}>পেমেন্ট মেথড</h2>
           <div className={styles.paymentMethods}>
-            {[
-              { id: 'cod', label: 'ক্যাশ অন ডেলিভারি', desc: 'পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন' },
-              { id: 'bkash', label: 'বিকাশ', desc: 'বিকাশ মোবাইল ব্যাংকিং' },
-              { id: 'nagad', label: 'নগদ', desc: 'নগদ মোবাইল ব্যাংকিং' },
-              { id: 'card', label: 'কার্ড পেমেন্ট', desc: 'Visa / MasterCard' },
-            ].map(method => (
-              <label key={method.id} className={`${styles.paymentCard} ${paymentMethod === method.id ? styles.paymentActive : ''}`}>
-                <input type="radio" name="payment" value={method.id} checked={paymentMethod === method.id}
-                  onChange={() => setPaymentMethod(method.id)} className={styles.paymentRadio} />
-                <div>
-                  <strong>{method.label}</strong>
-                  <span>{method.desc}</span>
-                </div>
-              </label>
-            ))}
+            <label className={`${styles.paymentCard} ${styles.paymentActive}`}>
+              <input 
+                type="radio" 
+                name="payment" 
+                value="cod" 
+                checked={true}
+                readOnly
+                className={styles.paymentRadio} 
+              />
+              <div>
+                <strong>ক্যাশ অন ডেলিভারি</strong>
+                <span>পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন</span>
+              </div>
+            </label>
           </div>
         </div>
 

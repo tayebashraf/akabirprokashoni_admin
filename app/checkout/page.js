@@ -36,11 +36,19 @@ export default function CheckoutPage() {
     }).catch(console.error);
   }, []);
 
+  // Calculate total weight in kg
+  const totalWeightGrams = cart.reduce((sum, item) => sum + (item.weight || 300) * item.quantity, 0);
+  const totalWeightKg = totalWeightGrams / 1000.0;
+  // Calculate extra kg (1kg = 0 extra, 1.1kg = 1 extra, 2kg = 1 extra, 2.1kg = 2 extra)
+  const extraKg = Math.max(0, Math.floor(totalWeightKg) - 1 + (totalWeightKg % 1 > 0 && totalWeightKg > 1 ? 1 : 0));
+
   let deliveryCharge = 60; // fallback
   if (siteSettings) {
-    deliveryCharge = (defaultValues.district === 'Dhaka' || defaultValues.district === 'ঢাকা') 
-      ? siteSettings.delivery_charge_dhaka 
-      : siteSettings.delivery_charge_outside;
+    const isDhaka = (defaultValues.district === 'Dhaka' || defaultValues.district === 'ঢাকা');
+    const baseCharge = isDhaka ? siteSettings.delivery_charge_dhaka : siteSettings.delivery_charge_outside;
+    const extraChargePerKg = isDhaka ? (siteSettings.extra_charge_per_kg_dhaka || 15) : (siteSettings.extra_charge_per_kg_outside || 20);
+    
+    deliveryCharge = baseCharge + (extraKg * extraChargePerKg);
   }
   
   const discountAmount = appliedCoupon ? Math.floor(totalPrice * (appliedCoupon.discountPercent / 100)) : 0;

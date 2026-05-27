@@ -82,7 +82,8 @@ export default function BookDetailClient({ book, relatedBooks }) {
       price: price,
       coverImage: finalCoverImage,
       author: authorName,
-      slug: book.slug
+      slug: book.slug,
+      weight: book.weight || 0
     }, quantity);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
@@ -95,7 +96,8 @@ export default function BookDetailClient({ book, relatedBooks }) {
       price: price,
       coverImage: finalCoverImage,
       author: authorName,
-      slug: book.slug
+      slug: book.slug,
+      weight: book.weight || 0
     }, quantity);
     router.push('/checkout');
   };

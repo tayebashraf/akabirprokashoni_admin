@@ -11,7 +11,8 @@ export default function AdminSettings() {
     site_name: '', site_tagline: '', phone: '', email: '', address: '',
     facebook_url: '', youtube_url: '', instagram_url: '',
     footer_text: '', announcement: '',
-    delivery_charge_dhaka: 60, delivery_charge_outside: 120
+    delivery_charge_dhaka: 60, delivery_charge_outside: 120,
+    extra_charge_per_kg_dhaka: 15, extra_charge_per_kg_outside: 20
   });
   const [files, setFiles] = useState({
     logo: null,
@@ -35,7 +36,9 @@ export default function AdminSettings() {
           footer_text: data.footer_text || '',
           announcement: data.announcement || '',
           delivery_charge_dhaka: data.delivery_charge_dhaka !== undefined ? data.delivery_charge_dhaka : 60,
-          delivery_charge_outside: data.delivery_charge_outside !== undefined ? data.delivery_charge_outside : 120
+          delivery_charge_outside: data.delivery_charge_outside !== undefined ? data.delivery_charge_outside : 120,
+          extra_charge_per_kg_dhaka: data.extra_charge_per_kg_dhaka !== undefined ? data.extra_charge_per_kg_dhaka : 15,
+          extra_charge_per_kg_outside: data.extra_charge_per_kg_outside !== undefined ? data.extra_charge_per_kg_outside : 20
         });
       }
     } catch (error) {
@@ -150,14 +153,24 @@ export default function AdminSettings() {
           </div>
 
           <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginTop: '20px' }}>🚚 ডেলিভারি চার্জ</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '15px' }}>
             <div>
-              <label>ঢাকার ভিতরে (৳)</label>
+              <label>ঢাকার ভিতরে (প্রথম ১ কেজি)</label>
               <input type="number" name="delivery_charge_dhaka" value={formData.delivery_charge_dhaka} onChange={handleInputChange} className="form-control" />
             </div>
             <div>
-              <label>ঢাকার বাইরে (৳)</label>
+              <label>ঢাকার বাইরে (প্রথম ১ কেজি)</label>
               <input type="number" name="delivery_charge_outside" value={formData.delivery_charge_outside} onChange={handleInputChange} className="form-control" />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div>
+              <label>ঢাকায় অতিরিক্ত প্রতি কেজি (৳)</label>
+              <input type="number" name="extra_charge_per_kg_dhaka" value={formData.extra_charge_per_kg_dhaka} onChange={handleInputChange} className="form-control" />
+            </div>
+            <div>
+              <label>ঢাকার বাইরে অতিরিক্ত প্রতি কেজি (৳)</label>
+              <input type="number" name="extra_charge_per_kg_outside" value={formData.extra_charge_per_kg_outside} onChange={handleInputChange} className="form-control" />
             </div>
           </div>
 

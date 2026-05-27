@@ -5,8 +5,6 @@ import styles from './page.module.css';
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, totalItems, totalPrice, isLoaded } = useCart();
-  const deliveryCharge = totalPrice >= 500 ? 0 : 60;
-  const grandTotal = totalPrice + deliveryCharge;
 
   if (!isLoaded) return <div className="container section"><p>লোড হচ্ছে...</p></div>;
 
@@ -79,16 +77,14 @@ export default function CartPage() {
 
               <div className={styles.summaryRow}>
                 <span>ডেলিভারি চার্জ</span>
-                <span className={deliveryCharge === 0 ? styles.freeDelivery : ''}>
-                  {deliveryCharge === 0 ? 'ফ্রি!' : `৳${deliveryCharge}`}
-                </span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>চেকআউটে হিসেব করা হবে</span>
               </div>
 
               <div className={styles.summaryDivider} />
 
               <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
-                <span>সর্বমোট</span>
-                <span>৳{grandTotal.toLocaleString()}</span>
+                <span>সাবটোটাল</span>
+                <span>৳{totalPrice.toLocaleString()}</span>
               </div>
 
               <Link href="/checkout" className="btn btn-primary btn-lg" style={{ width: '100%', marginTop: 'var(--space-4)' }}>

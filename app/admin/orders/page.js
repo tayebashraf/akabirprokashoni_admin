@@ -225,6 +225,44 @@ export default function AdminOrders() {
                       >
                         🖨️ প্রিন্ট
                       </button>
+                      
+                      {order.steadfast_consignment_id ? (
+                        <span style={{ 
+                          padding: '6px 12px', fontSize: '13px', borderRadius: '4px',
+                          backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0',
+                          display: 'flex', alignItems: 'center', fontWeight: 'bold'
+                        }}>
+                          ✅ পাঠানো হয়েছে
+                        </span>
+                      ) : (
+                        <button 
+                          className="btn" 
+                          style={{ 
+                            padding: '6px 12px', fontSize: '13px', 
+                            backgroundColor: '#ff5722', color: 'white', border: 'none'
+                          }}
+                          onClick={async () => {
+                            if(confirm('আপনি কি নিশ্চিত যে এই অর্ডারটি SteadFast-এ পাঠাতে চান?')) {
+                              try {
+                                const { sendOrderToSteadfast } = await import('@/lib/api');
+                                const res = await sendOrderToSteadfast(order.order_id);
+                                alert('সফলভাবে SteadFast-এ পাঠানো হয়েছে!');
+                                // Update local state
+                                setOrders(prev => prev.map(o => o.order_id === order.order_id ? { 
+                                  ...o, 
+                                  steadfast_consignment_id: res.consignment_id || 'sent',
+                                  steadfast_tracking_code: res.tracking_code || '',
+                                  status: 'shipped'
+                                } : o));
+                              } catch(err) {
+                                alert(err.message || 'SteadFast-এ পাঠাতে সমস্যা হয়েছে।');
+                              }
+                            }
+                          }}
+                        >
+                          🚀 SteadFast
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

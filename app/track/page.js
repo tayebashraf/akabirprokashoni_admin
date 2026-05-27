@@ -77,9 +77,39 @@ export default function TrackPage() {
 
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>স্ট্যাটাস</span>
-                <span className={styles.statusBadge}>
-                  {order.steadfast_status ? `🚚 SteadFast: ${order.steadfast_status}` : `📌 ${order.status_display}`}
-                </span>
+                {(() => {
+                  if (order.steadfast_status && order.steadfast_status !== 'Unknown') {
+                    const status = order.steadfast_status.toLowerCase();
+                    let badgeConfig = { text: '🚚 ডেলিভারির পথে', color: '#3498db', bg: '#ebf5fb' };
+                    if (status.includes('deliver')) {
+                      badgeConfig = { text: '✅ ডেলিভারি সম্পন্ন', color: '#27ae60', bg: '#eaeded' };
+                    } else if (status.includes('cancel')) {
+                      badgeConfig = { text: '❌ বাতিল করা হয়েছে', color: '#c0392b', bg: '#f9ebea' };
+                    } else if (status.includes('return')) {
+                      badgeConfig = { text: '🔄 রিটার্ন হচ্ছে', color: '#d35400', bg: '#fdf2e9' };
+                    } else if (status.includes('pending')) {
+                      badgeConfig = { text: '🕒 প্রসেসিং হচ্ছে', color: '#f39c12', bg: '#fef5e7' };
+                    }
+                    return (
+                      <span style={{ 
+                        color: badgeConfig.color, 
+                        background: badgeConfig.bg, 
+                        padding: '6px 14px', 
+                        borderRadius: '20px', 
+                        fontWeight: 'bold', 
+                        fontSize: '0.95rem',
+                        display: 'inline-block'
+                      }}>
+                        {badgeConfig.text} (SteadFast)
+                      </span>
+                    );
+                  }
+                  return (
+                    <span className={styles.statusBadge}>
+                      📌 {order.status_display}
+                    </span>
+                  );
+                })()}
               </div>
 
               {/* Books */}

@@ -88,8 +88,13 @@ export default function AdminBooks() {
       setFormData({
         title: bookData.title || '',
         slug: bookData.slug || '',
-        author: bookData.author?.id || bookData.author || '',
-        category: bookData.category?.id || bookData.category || '',
+        author: (bookData.author_details && bookData.author_details.length > 0) 
+          ? bookData.author_details[0].id 
+          : (bookData.author?.id || bookData.author || ''),
+        category: bookData.category_details?.id 
+          || bookData.category?.id 
+          || bookData.category 
+          || '',
         publisher: bookData.publisher || '',
         price: bookData.price || '',
         original_price: bookData.original_price || '',

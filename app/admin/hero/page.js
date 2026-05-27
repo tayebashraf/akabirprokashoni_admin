@@ -137,8 +137,8 @@ export default function AdminHero() {
                 {slides.map(slide => (
                   <tr key={slide.id}>
                     <td>
-                      {slide.image && (
-                        <img src={getImageUrl(slide.image)} alt={slide.title} style={{ width: '100px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                      {(slide.image_url || slide.image) && (
+                        <img src={slide.image_url || getImageUrl(slide.image)} alt={slide.title || 'Slide'} style={{ width: '100px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
                       )}
                     </td>
                     <td>

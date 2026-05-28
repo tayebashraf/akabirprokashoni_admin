@@ -12,6 +12,7 @@ export default function AdminBooks() {
   // Form State
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
   const [editingSlug, setEditingSlug] = useState(null);
   const [showNewAuthor, setShowNewAuthor] = useState(false);
   const [newAuthorName, setNewAuthorName] = useState('');
@@ -76,6 +77,7 @@ export default function AdminBooks() {
       meta_title: '', meta_description: '', meta_keywords: ''
     });
     setFiles({ cover: null, sample_pdf: null });
+    setUploadError(null);
     setShowForm(true);
   };
 
@@ -123,9 +125,10 @@ export default function AdminBooks() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e, force = false) => {
+    if (e) e.preventDefault();
     setIsSubmitting(true);
+    setUploadError(null);
     
     try {
       const data = new FormData();
@@ -145,6 +148,10 @@ export default function AdminBooks() {
           data.append(key, val);
         }
       });
+      
+      if (force) {
+        data.append('force_upload', 'true');
+      }
       
       // Add files if selected
       if (files.cover) data.append('cover', files.cover);
@@ -168,7 +175,10 @@ export default function AdminBooks() {
       fetchData(); // Refresh list
     } catch (error) {
       console.error('Book save error:', error);
-      alert(`সমস্যা হয়েছে: ${error.message}`);
+      let errMsg = error.message || 'অজানা ত্রুটি দেখা দিয়েছে।';
+      // Clean up the DRF formatted error (e.g. "[400] title: ...")
+      errMsg = errMsg.replace(/^\[\d+\]\s*(.*?:\s*)?/, '');
+      setUploadError(errMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -410,6 +420,26 @@ export default function AdminBooks() {
                     <input type="text" name="meta_keywords" value={formData.meta_keywords} onChange={handleInputChange} className="form-control" placeholder="কমা দিয়ে কিওয়ার্ড দিন..." maxLength="500" />
                   </div>
                 </div>
+                
+                {uploadError && (
+                  <div style={{ marginTop: '20px', padding: '15px', border: '1px solid #f5c6cb', borderRadius: '8px', backgroundColor: '#f8d7da', color: '#721c24' }}>
+                    <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>⚠️ আপলোডে সমস্যা দেখা দিয়েছে!</h4>
+                    <p style={{ margin: '0 0 15px 0', fontSize: '14px' }}>{uploadError}</p>
+                    
+                    <div style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '5px', border: '1px solid #f5c6cb' }}>
+                      <p style={{ margin: '0 0 10px 0', fontWeight: 'bold' }}>তারপরও কি আপনি আপলোড করতে চান?</p>
+                      <button 
+                        type="button" 
+                        onClick={() => handleSubmit(null, true)} 
+                        className="btn btn-primary"
+                        disabled={isSubmitting}
+                        style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
+                      >
+                        {isSubmitting ? 'আপলোড হচ্ছে...' : 'হ্যাঁ, আপলোড করুন'}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className={styles.formActions}>
                   <button type="button" className="btn btn-outline" onClick={() => setShowForm(false)}>বাতিল</button>

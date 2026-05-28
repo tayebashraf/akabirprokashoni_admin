@@ -60,10 +60,10 @@ export default function BookCard({ book }) {
         )}
 
         <div className={styles.priceRow}>
-          <span className={styles.price}>৳{price.toLocaleString()}</span>
           {originalPrice > price && (
             <span className={styles.originalPrice}>৳{originalPrice.toLocaleString()}</span>
           )}
+          <span className={styles.price}>৳{price.toLocaleString()}</span>
         </div>
 
         <Link

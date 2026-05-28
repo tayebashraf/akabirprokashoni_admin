@@ -347,6 +347,35 @@ export default function AdminBooks() {
                   </div>
                 </div>
 
+                {/* Book Details */}
+                <h3>বইয়ের বিস্তারিত</h3>
+                <div className={styles.formGrid}>
+                  <div>
+                    <label>পৃষ্ঠা সংখ্যা</label>
+                    <input type="number" name="pages" value={formData.pages} onChange={handleInputChange} className="form-control" />
+                  </div>
+                  <div>
+                    <label>ওজন (গ্রাম)</label>
+                    <input type="number" name="weight" value={formData.weight} onChange={handleInputChange} className="form-control" />
+                  </div>
+                  <div>
+                    <label>ISBN</label>
+                    <input type="text" name="isbn" value={formData.isbn} onChange={handleInputChange} className="form-control" />
+                  </div>
+                  <div>
+                    <label>ভাষা</label>
+                    <input type="text" name="language" value={formData.language} onChange={handleInputChange} className="form-control" />
+                  </div>
+                  <div>
+                    <label>সংস্করণ (Edition)</label>
+                    <input type="text" name="edition" value={formData.edition} onChange={handleInputChange} className="form-control" />
+                  </div>
+                  <div>
+                    <label>মাপ (Dimensions)</label>
+                    <input type="text" name="dimensions" value={formData.dimensions} onChange={handleInputChange} className="form-control" placeholder="যেমন: 8.5 x 5.5 inch" />
+                  </div>
+                </div>
+
                 {/* Pricing & Stock */}
                 <h3>মূল্য ও স্টক</h3>
                 <div className={styles.formGrid}>

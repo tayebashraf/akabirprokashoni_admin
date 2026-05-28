@@ -139,6 +139,9 @@ export default function AdminLayout({ children }) {
           <Link href="/admin/orders" className={`${styles.navLink} ${pathname.includes('/orders') ? styles.navActive : ''}`}>
             📦 অর্ডার ম্যানেজমেন্ট
           </Link>
+          <Link href="/admin/reviews" className={`${styles.navLink} ${pathname.includes('/reviews') ? styles.navActive : ''}`}>
+            ⭐ রিভিউ ম্যানেজমেন্ট
+          </Link>
           <Link href="/admin/settings" className={`${styles.navLink} ${pathname.includes('/settings') ? styles.navActive : ''}`}>
             ⚙️ সাইট সেটিংস
           </Link>

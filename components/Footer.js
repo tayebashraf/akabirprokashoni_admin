@@ -23,9 +23,8 @@ export default function Footer() {
               বাংলাদেশের বিশ্বস্ত অনলাইন বুকশপ। হাজারো বইয়ের বিশাল সংগ্রহ থেকে আপনার পছন্দের বই বেছে নিন।
             </p>
             <div className={styles.socialLinks}>
-              <a href="#" aria-label="Facebook" className={styles.socialLink}>f</a>
-              <a href="#" aria-label="YouTube" className={styles.socialLink}>▶</a>
-              <a href="https://wa.me/8801XXXXXXXXX" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>w</a>
+              <a href="https://www.facebook.com/profile.php?id=61571561526323&mibextid=rS40aB7S9Ucbxw6v" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={styles.socialLink}>f</a>
+              <a href="https://wa.me/8801718763978" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className={styles.socialLink}>w</a>
             </div>
           </div>
 
@@ -67,8 +66,9 @@ export default function Footer() {
           <span className={styles.paymentLabel}>পেমেন্ট:</span>
           <div className={styles.paymentLogos}>
             <span className={styles.paymentBadge}>Cash on Delivery</span>
-            <span className={styles.comingSoon}>bKash (Coming Soon)</span>
-            <span className={styles.comingSoon}>Nagad (Coming Soon)</span>
+            <span className={styles.paymentBadge}>bKash</span>
+            <span className={styles.paymentBadge}>Nagad</span>
+            <span className={styles.paymentBadge}>Visa/Mastercard</span>
           </div>
         </div>
       </div>

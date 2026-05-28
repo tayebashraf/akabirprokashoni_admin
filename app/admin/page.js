@@ -1,6 +1,7 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { getAdminDashboardStats, getAdminOrders } from '@/lib/api';
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { getAdminDashboardStats, getAdminOrders, getAdminSteadfastBalance } from '@/lib/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import styles from './page.module.css';
 
@@ -24,55 +25,77 @@ const STATUS_LABELS = {
   cancelled: 'বাতিল',
 };
 
+const STATUS_STYLE_MAP = {
+  pending: 'statusPending',
+  confirmed: 'statusConfirmed',
+  packaging: 'statusConfirmed',
+  shipped: 'statusShipped',
+  delivered: 'statusDelivered',
+  returned: 'statusReturned',
+  cancelled: 'statusCancelled',
+};
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.97)',
+        border: '1px solid rgba(0, 0, 0, 0.08)',
+        borderRadius: '12px',
+        padding: '12px 16px',
+        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+        backdropFilter: 'blur(10px)',
+      }}>
+        <p style={{ margin: 0, fontSize: '0.8rem', color: '#6b7280', marginBottom: '4px' }}>{label}</p>
+        <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#0D6B3F' }}>
+          ৳{payload[0].value.toLocaleString('bn-BD')}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [steadfastBalance, setSteadfastBalance] = useState(null);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const statsData = await getAdminDashboardStats();
-        setStats(statsData);
-        
-        const ordersData = await getAdminOrders();
-        setRecentOrders((ordersData.results || []).slice(0, 5));
-      } catch (err) {
-        console.error(err);
-        setError('ড্যাশবোর্ড ডাটা লোড করতে ব্যর্থ হয়েছে।');
-      } finally {
-        setLoading(false);
+  const loadData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    try {
+      const [statsData, ordersData, balanceData] = await Promise.all([
+        getAdminDashboardStats(),
+        getAdminOrders(),
+        getAdminSteadfastBalance().catch(() => ({ balance: 'Error' })) // Don't fail the whole dashboard if Steadfast API is down
+      ]);
+      setStats(statsData);
+      setRecentOrders((ordersData.results || []).slice(0, 6));
+      if (balanceData && balanceData.balance !== undefined) {
+        setSteadfastBalance(balanceData.balance);
       }
+      setError('');
+    } catch (err) {
+      console.error(err);
+      setError('ড্যাশবোর্ড ডাটা লোড করতে ব্যর্থ হয়েছে।');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    loadData();
   }, []);
 
-  const getStatusText = (status) => {
-    switch(status) {
-      case 'pending': return 'অপেক্ষমাণ';
-      case 'confirmed': return 'নিশ্চিতকৃত';
-      case 'packaging': return 'প্যাকেজিং';
-      case 'shipped': return 'শিপড';
-      case 'delivered': return 'ডেলিভারড';
-      case 'returned': return 'রিটার্ন';
-      case 'cancelled': return 'বাতিল';
-      default: return status;
-    }
-  };
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const getStatusClass = (status) => {
-    switch(status) {
-      case 'pending': return styles.statusPending;
-      case 'confirmed': 
-      case 'packaging':
-        return styles.statusConfirmed;
-      case 'shipped': 
-      case 'delivered':
-        return styles.statusShipped;
-      default: return '';
-    }
+    return styles[STATUS_STYLE_MAP[status]] || '';
   };
+
+  const getStatusText = (status) => STATUS_LABELS[status] || status;
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
@@ -80,7 +103,7 @@ export default function AdminDashboard() {
       const date = new Date(dateStr);
       return date.toLocaleDateString('bn-BD', {
         day: 'numeric',
-        month: 'long',
+        month: 'short',
         year: 'numeric',
         hour: 'numeric',
         minute: 'numeric',
@@ -91,76 +114,213 @@ export default function AdminDashboard() {
     }
   };
 
+  const getTodayDate = () => {
+    return new Date().toLocaleDateString('bn-BD', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const formatChartDate = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('bn-BD', { day: 'numeric', month: 'short' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // --- Loading State ---
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <div style={{ color: 'var(--color-primary)', fontSize: '1.2rem', fontWeight: 'bold' }}>ড্যাশবোর্ড লোড হচ্ছে...</div>
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <div className={styles.loadingText}>ড্যাশবোর্ড লোড হচ্ছে...</div>
       </div>
     );
   }
 
-  if (error) {
+  // --- Error State ---
+  if (error && !stats) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#b91c1c' }}>
-        <h2>⚠️ {error}</h2>
+      <div className={styles.errorContainer}>
+        <div className={styles.errorIcon}>⚠️</div>
+        <div className={styles.errorText}>{error}</div>
+        <button
+          className={styles.refreshBtn}
+          onClick={() => { setLoading(true); loadData(); }}
+        >
+          🔄 আবার চেষ্টা করুন
+        </button>
       </div>
     );
   }
+
+  // Prepare chart data with formatted dates
+  const chartData = (stats?.revenue?.daily_chart || []).map(d => ({
+    ...d,
+    dateLabel: formatChartDate(d.date)
+  }));
+
+  // Pie chart data
+  const pieData = stats?.orders?.status_breakdown
+    ? Object.entries(stats.orders.status_breakdown).map(([k, v]) => ({
+        name: STATUS_LABELS[k] || k,
+        value: v,
+        color: STATUS_COLORS[k] || '#999',
+        key: k,
+      }))
+    : [];
 
   return (
     <div className={styles.dashboard}>
-      <h1 className={styles.title}>📊 ড্যাশবোর্ড ওভারভিউ</h1>
+      {/* ===== Header ===== */}
+      <div className={styles.dashboardHeader}>
+        <div className={styles.headerLeft}>
+          <h1 className={styles.title}>
+            <span className={styles.titleIcon}>📊</span>
+            ড্যাশবোর্ড ওভারভিউ
+          </h1>
+          <span className={styles.subtitle}>আকাবির প্রকাশনী ম্যানেজমেন্ট সিস্টেম</span>
+        </div>
+        <div className={styles.headerRight}>
+          <div className={styles.dateTag}>
+            📅 {getTodayDate()}
+          </div>
+          <button
+            className={styles.refreshBtn}
+            onClick={() => loadData(true)}
+            disabled={refreshing}
+          >
+            <span className={refreshing ? styles.refreshBtnSpin : ''}>🔄</span>
+            {refreshing ? 'লোড হচ্ছে...' : 'রিফ্রেশ'}
+          </button>
+        </div>
+      </div>
 
-      {/* Stats Grid */}
+      {/* ===== Main Stats Grid ===== */}
       <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>💰</div>
+        {/* Revenue Card */}
+        <div className={`${styles.statCard} ${styles.statCardRevenue}`}>
+          <div className={`${styles.statIcon} ${styles.statIconRevenue}`}>💰</div>
           <div className={styles.statInfo}>
-            <span className={styles.statNum}>৳ {(stats?.revenue?.today || 0).toLocaleString('bn-BD')}</span>
+            <span className={styles.statNum}>৳{(stats?.revenue?.today || 0).toLocaleString('bn-BD')}</span>
             <span className={styles.statLabel}>আজকের সেলস</span>
+            <span className={`${styles.statTrend} ${styles.trendUp}`}>
+              📈 সাপ্তাহিক: ৳{(stats?.revenue?.this_week || 0).toLocaleString('bn-BD')}
+            </span>
           </div>
         </div>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>📦</div>
+
+        {/* Orders Card */}
+        <div className={`${styles.statCard} ${styles.statCardOrders}`}>
+          <div className={`${styles.statIcon} ${styles.statIconOrders}`}>📦</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>{(stats?.orders?.today || 0).toLocaleString('bn-BD')}</span>
             <span className={styles.statLabel}>আজকের নতুন অর্ডার</span>
+            <span className={`${styles.statTrend} ${styles.trendNeutral}`}>
+              📋 মোট: {(stats?.orders?.total || 0).toLocaleString('bn-BD')}
+            </span>
           </div>
         </div>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>🚚</div>
+
+        {/* Pending Card */}
+        <div className={`${styles.statCard} ${styles.statCardPending}`}>
+          <div className={`${styles.statIcon} ${styles.statIconPending}`}>🚚</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>{(stats?.orders?.pending || 0).toLocaleString('bn-BD')}</span>
             <span className={styles.statLabel}>অপেক্ষমাণ ডেলিভারি</span>
+            {(stats?.orders?.pending || 0) > 0 && (
+              <span className={`${styles.statTrend} ${styles.trendDown}`}>
+                ⏳ দ্রুত প্রসেস করুন
+              </span>
+            )}
           </div>
         </div>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>👥</div>
+
+        {/* Customers Card */}
+        <div className={`${styles.statCard} ${styles.statCardCustomers}`}>
+          <div className={`${styles.statIcon} ${styles.statIconCustomers}`}>👥</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>{(stats?.catalog?.total_users || 0).toLocaleString('bn-BD')}</span>
             <span className={styles.statLabel}>মোট গ্রাহক</span>
+            <span className={`${styles.statTrend} ${styles.trendUp}`}>
+              🎉 নিবন্ধিত ব্যবহারকারী
+            </span>
+          </div>
+        </div>
+
+        {/* Steadfast Balance Card */}
+        <div className={`${styles.statCard}`} style={{ '--card-accent': '#FF5722' }}>
+          <div className={`${styles.statIcon}`} style={{ background: '#FFECE5', color: '#FF5722' }}>🚚</div>
+          <div className={styles.statInfo}>
+            <span className={styles.statNum}>
+              {steadfastBalance !== null ? (steadfastBalance === 'Error' ? 'এরর' : `৳${steadfastBalance.toLocaleString('bn-BD')}`) : 'লোড হচ্ছে...'}
+            </span>
+            <span className={styles.statLabel}>Steadfast ব্যালেন্স</span>
+            <span className={`${styles.statTrend} ${styles.trendNeutral}`}>
+              কুরিয়ার পেমেন্ট
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Main Sections */}
+      {/* ===== Quick Stats Row ===== */}
+      <div className={styles.quickStatsRow}>
+        <div className={styles.quickStat}>
+          <div className={styles.quickStatIcon} style={{ background: '#ecfdf5' }}>📚</div>
+          <div className={styles.quickStatInfo}>
+            <span className={styles.quickStatValue}>{(stats?.catalog?.total_books || 0).toLocaleString('bn-BD')}</span>
+            <span className={styles.quickStatLabel}>মোট বই</span>
+          </div>
+        </div>
+        <div className={styles.quickStat}>
+          <div className={styles.quickStatIcon} style={{ background: '#fef3c7' }}>✍️</div>
+          <div className={styles.quickStatInfo}>
+            <span className={styles.quickStatValue}>{(stats?.catalog?.total_authors || 0).toLocaleString('bn-BD')}</span>
+            <span className={styles.quickStatLabel}>মোট লেখক</span>
+          </div>
+        </div>
+        <div className={styles.quickStat}>
+          <div className={styles.quickStatIcon} style={{ background: '#ede9fe' }}>📂</div>
+          <div className={styles.quickStatInfo}>
+            <span className={styles.quickStatValue}>{(stats?.catalog?.total_categories || 0).toLocaleString('bn-BD')}</span>
+            <span className={styles.quickStatLabel}>মোট ক্যাটাগরি</span>
+          </div>
+        </div>
+        <div className={styles.quickStat}>
+          <div className={styles.quickStatIcon} style={{ background: '#fef2f2' }}>⭐</div>
+          <div className={styles.quickStatInfo}>
+            <span className={styles.quickStatValue}>{(stats?.reviews?.pending || 0).toLocaleString('bn-BD')}</span>
+            <span className={styles.quickStatLabel}>পেন্ডিং রিভিউ</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== Recent Orders + Alerts ===== */}
       <div className={styles.sectionsGrid}>
         {/* Recent Orders */}
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>সাম্প্রতিক অর্ডারসমূহ</h2>
+        <div className={styles.card} style={{ '--delay': '0.35s' }}>
+          <h2 className={styles.cardTitle}>
+            <span className={styles.cardTitleIcon} style={{ background: '#ecfdf5' }}>📋</span>
+            সাম্প্রতিক অর্ডারসমূহ
+          </h2>
           <div className={styles.orderList}>
             {recentOrders.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-                কোন অর্ডার পাওয়া যায়নি।
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
+                কোন অর্ডার পাওয়া যায়নি।
               </div>
             ) : (
               recentOrders.map(order => (
                 <div key={order.order_id} className={styles.orderItem}>
-                  <div>
+                  <div className={styles.orderItemLeft}>
                     <div className={styles.orderId}>{order.order_id}</div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>{formatDate(order.created_at)}</div>
+                    <div className={styles.orderDate}>{formatDate(order.created_at)}</div>
                   </div>
-                  <div style={{ fontWeight: '700' }}>৳ {order.total}</div>
+                  <div className={styles.orderAmount}>৳{order.total}</div>
                   <div className={`${styles.orderStatus} ${getStatusClass(order.status)}`}>
                     {getStatusText(order.status)}
                   </div>
@@ -168,120 +328,210 @@ export default function AdminDashboard() {
               ))
             )}
           </div>
-          <a href="/admin/orders" className="btn btn-outline" style={{ width: '100%', marginTop: 'var(--space-4)', display: 'block', textAlign: 'center' }}>
-            সব অর্ডার দেখুন →
-          </a>
+          <Link href="/admin/orders" className={styles.viewAllBtn}>
+            সব অর্ডার দেখুন
+            <span>→</span>
+          </Link>
         </div>
 
-        {/* Quick Actions / Notifications */}
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>নোটিফিকেশন ও অ্যালার্ট</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            
-            {/* Out of Stock alert */}
+        {/* Notifications & Alerts */}
+        <div className={styles.card} style={{ '--delay': '0.45s' }}>
+          <h2 className={styles.cardTitle}>
+            <span className={styles.cardTitleIcon} style={{ background: '#fef3c7' }}>🔔</span>
+            নোটিফিকেশন ও অ্যালার্ট
+          </h2>
+          <div className={styles.alertsContainer}>
+            {/* Out of Stock */}
             {stats?.catalog?.out_of_stock > 0 && (
-              <div style={{ padding: 'var(--space-3)', background: '#FEF2F2', borderLeft: '4px solid #EF4444', borderRadius: '4px' }}>
-                <strong style={{ display: 'block', color: '#991B1B' }}>🚨 স্টক আউট অ্যালার্ট</strong>
-                <span style={{ fontSize: 'var(--text-sm)', color: '#7F1D1D' }}>
-                  বর্তমানে <strong>{stats.catalog.out_of_stock}টি</strong> বইয়ের কোন স্টক নেই।
-                </span>
+              <div className={`${styles.alertCard} ${styles.alertDanger}`}>
+                <span className={styles.alertIcon}>🚨</span>
+                <div className={styles.alertContent}>
+                  <div className={styles.alertTitle}>স্টক আউট অ্যালার্ট</div>
+                  <div className={styles.alertText}>
+                    বর্তমানে <strong>{stats.catalog.out_of_stock}টি</strong> বইয়ের কোন স্টক নেই।
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Low stock list */}
+            {/* Low Stock */}
             {stats?.low_stock_alerts && stats.low_stock_alerts.length > 0 ? (
-              <div style={{ padding: 'var(--space-3)', background: '#FFFBEB', borderLeft: '4px solid #F59E0B', borderRadius: '4px' }}>
-                <strong style={{ display: 'block', color: '#92400E', marginBottom: '0.25rem' }}>⚠️ লো স্টক অ্যালার্ট ({stats.catalog?.low_stock || 0})</strong>
-                <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: 'var(--text-sm)', color: '#78350F', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {stats.low_stock_alerts.slice(0, 5).map(book => (
-                    <li key={book.id}>
-                      {book.title} (স্টক: {book.stock})
-                    </li>
-                  ))}
-                </ul>
+              <div className={`${styles.alertCard} ${styles.alertWarning}`}>
+                <span className={styles.alertIcon}>⚠️</span>
+                <div className={styles.alertContent}>
+                  <div className={styles.alertTitle}>
+                    লো স্টক অ্যালার্ট ({stats.catalog?.low_stock || 0}টি বই)
+                  </div>
+                  <ul className={styles.lowStockList}>
+                    {stats.low_stock_alerts.slice(0, 5).map(book => (
+                      <li key={book.id} className={styles.lowStockItem}>
+                        {book.title} — <strong>স্টক: {book.stock}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             ) : (
-              <div style={{ padding: 'var(--space-3)', background: '#F0FDF4', borderLeft: '4px solid #22C55E', borderRadius: '4px' }}>
-                <strong style={{ display: 'block', color: '#166534' }}>✅ স্টক স্ট্যাটাস</strong>
-                <span style={{ fontSize: 'var(--text-sm)', color: '#14532D' }}>সব বইয়ের পর্যাপ্ত স্টক রয়েছে!</span>
+              <div className={`${styles.alertCard} ${styles.alertSuccess}`}>
+                <span className={styles.alertIcon}>✅</span>
+                <div className={styles.alertContent}>
+                  <div className={styles.alertTitle}>স্টক স্ট্যাটাস</div>
+                  <div className={styles.alertText}>সব বইয়ের পর্যাপ্ত স্টক রয়েছে!</div>
+                </div>
               </div>
             )}
 
-            {/* General welcome notification */}
-            <div style={{ padding: 'var(--space-3)', background: '#ECFCCB', borderLeft: '4px solid #84CC16', borderRadius: '4px' }}>
-              <strong style={{ display: 'block', color: '#3F6212' }}>🎉 সিস্টেম কানেকশন</strong>
-              <span style={{ fontSize: 'var(--text-sm)', color: '#4D7C0F' }}>
-                Django REST API সফলভাবে কানেক্টেড এবং সচল আছে।
-              </span>
-            </div>
+            {/* Pending Reviews */}
+            {(stats?.reviews?.pending || 0) > 0 && (
+              <div className={`${styles.alertCard} ${styles.alertInfo}`}>
+                <span className={styles.alertIcon}>⭐</span>
+                <div className={styles.alertContent}>
+                  <div className={styles.alertTitle}>পেন্ডিং রিভিউ</div>
+                  <div className={styles.alertText}>
+                    <strong>{stats.reviews.pending}টি</strong> রিভিউ অপেক্ষমাণ রয়েছে অ্যাপ্রুভালের জন্য।
+                  </div>
+                </div>
+              </div>
+            )}
 
+            {/* System Status */}
+            <div className={`${styles.alertCard} ${styles.alertSuccess}`}>
+              <span className={styles.alertIcon}>🟢</span>
+              <div className={styles.alertContent}>
+                <div className={styles.alertTitle}>সিস্টেম সচল</div>
+                <div className={styles.alertText}>
+                  Django REST API সফলভাবে কানেক্টেড এবং সচল আছে।
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Charts Section */}
-      <div className={styles.sectionsGrid} style={{ marginTop: 'var(--space-6)' }}>
+      {/* ===== Charts Section ===== */}
+      <div className={styles.chartsGrid}>
         {/* Revenue Chart */}
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>📈 সাপ্তাহিক রাজস্ব (গত ৭ দিন)</h2>
-          <div style={{ width: '100%', height: 300 }}>
-            {stats?.revenue?.daily_chart && stats.revenue.daily_chart.length > 0 ? (
+        <div className={styles.chartCard}>
+          <h2 className={styles.cardTitle}>
+            <span className={styles.cardTitleIcon} style={{ background: '#ecfdf5' }}>📈</span>
+            সাপ্তাহিক রাজস্ব (গত ৭ দিন)
+          </h2>
+
+          {/* Revenue Summary */}
+          <div className={styles.revenueSummary}>
+            <div className={styles.revenueSummaryItem}>
+              <span className={styles.revenueSummaryLabel}>আজ</span>
+              <span className={styles.revenueSummaryValue}>৳{(stats?.revenue?.today || 0).toLocaleString('bn-BD')}</span>
+            </div>
+            <div className={styles.revenueSummaryItem}>
+              <span className={styles.revenueSummaryLabel}>এই সপ্তাহ</span>
+              <span className={styles.revenueSummaryValue}>৳{(stats?.revenue?.this_week || 0).toLocaleString('bn-BD')}</span>
+            </div>
+            <div className={styles.revenueSummaryItem}>
+              <span className={styles.revenueSummaryLabel}>সর্বমোট</span>
+              <span className={styles.revenueSummaryValue}>৳{(stats?.revenue?.total || 0).toLocaleString('bn-BD')}</span>
+            </div>
+          </div>
+
+          <div className={styles.chartContainer}>
+            {chartData.length > 0 ? (
               <ResponsiveContainer>
-                <AreaChart data={stats.revenue.daily_chart} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="date" tick={{fontSize: 12}} />
-                  <YAxis tick={{fontSize: 12}} tickFormatter={(value) => `৳${value}`} />
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <Tooltip formatter={(value) => [`৳${value}`, 'রাজস্ব']} />
-                  <Area type="monotone" dataKey="revenue" stroke="var(--color-primary)" fillOpacity={1} fill="url(#colorRevenue)" />
+                  <XAxis
+                    dataKey="dateLabel"
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    axisLine={{ stroke: '#e5e7eb' }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: '#6b7280' }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(value) => `৳${value}`}
+                  />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#10b981"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#colorRevenue)"
+                    dot={{ r: 4, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#10b981', stroke: '#fff', strokeWidth: 3 }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-               <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#999' }}>পর্যাপ্ত ডাটা নেই</div>
+              <div className={styles.noDataMessage}>
+                <span className={styles.noDataIcon}>📊</span>
+                পর্যাপ্ত ডাটা নেই
+              </div>
             )}
           </div>
         </div>
 
-        {/* Order Status Chart */}
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>📊 অর্ডার স্ট্যাটাস (সামগ্রিক)</h2>
-          <div style={{ width: '100%', height: 300 }}>
-            {stats?.orders?.status_breakdown && Object.keys(stats.orders.status_breakdown).length > 0 ? (
+        {/* Order Status Pie Chart */}
+        <div className={styles.chartCard}>
+          <h2 className={styles.cardTitle}>
+            <span className={styles.cardTitleIcon} style={{ background: '#ede9fe' }}>🎯</span>
+            অর্ডার স্ট্যাটাস (সামগ্রিক)
+          </h2>
+          <div className={styles.chartContainer}>
+            {pieData.length > 0 ? (
               <ResponsiveContainer>
                 <PieChart>
                   <Pie
-                    data={Object.entries(stats.orders.status_breakdown).map(([k, v]) => ({ name: STATUS_LABELS[k] || k, value: v, color: STATUS_COLORS[k] || '#999' }))}
+                    data={pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
+                    innerRadius={55}
                     outerRadius={90}
-                    paddingAngle={5}
+                    paddingAngle={4}
                     dataKey="value"
+                    animationBegin={200}
+                    animationDuration={800}
                   >
-                    {Object.entries(stats.orders.status_breakdown).map(([k, v], index) => (
-                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[k] || '#999'} />
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [value, 'অর্ডার']} />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'rgba(255, 255, 255, 0.97)',
+                      border: '1px solid rgba(0, 0, 0, 0.08)',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                    }}
+                    formatter={(value, name) => [`${value}টি`, name]}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#999' }}>পর্যাপ্ত ডাটা নেই</div>
+              <div className={styles.noDataMessage}>
+                <span className={styles.noDataIcon}>🎯</span>
+                পর্যাপ্ত ডাটা নেই
+              </div>
             )}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', marginTop: '10px' }}>
-             {stats?.orders?.status_breakdown && Object.entries(stats.orders.status_breakdown).map(([k, v]) => (
-               <div key={k} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px' }}>
-                 <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: STATUS_COLORS[k] || '#999' }}></div>
-                 <span>{STATUS_LABELS[k] || k} ({v})</span>
-               </div>
-             ))}
-          </div>
+          {/* Pie Legend */}
+          {pieData.length > 0 && (
+            <div className={styles.pieLegend}>
+              {pieData.map((entry) => (
+                <div key={entry.key} className={styles.legendItem}>
+                  <div className={styles.legendDot} style={{ backgroundColor: entry.color }}></div>
+                  <span>{entry.name} ({entry.value})</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

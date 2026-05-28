@@ -143,6 +143,7 @@ export default function CheckoutPage() {
       alt_phone: formData.get('alt_phone') || '',
       district: formData.get('district'),
       address: finalAddress,
+      customer_note: formData.get('customer_note') || '',
       payment_method: paymentMethod,
       items: cart.map(item => ({ book_id: item.id, slug: item.slug, quantity: item.quantity })),
       coupon_code: appliedCoupon ? appliedCoupon.code : ''
@@ -310,6 +311,17 @@ export default function CheckoutPage() {
             />
           </div>
           
+          <div className="input-group" style={{ marginTop: 'var(--space-4)' }}>
+            <label className="input-label">অতিরিক্ত কোনো নির্দেশনা (ঐচ্ছিক)</label>
+            <textarea 
+              name="customer_note" 
+              className="input" 
+              rows="2" 
+              placeholder="বই প্যাকেট করার কোনো বিশেষ নির্দেশনা থাকলে লিখতে পারেন..." 
+              style={{ resize: 'vertical' }} 
+            />
+          </div>
+          
           {!user && (
             <div style={{ marginTop: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: '500' }}>
@@ -327,18 +339,63 @@ export default function CheckoutPage() {
           {/* Payment */}
           <h2 className={styles.sectionTitle} style={{ marginTop: 'var(--space-8)' }}>পেমেন্ট মেথড</h2>
           <div className={styles.paymentMethods}>
-            <label className={`${styles.paymentCard} ${styles.paymentActive}`}>
+            <label className={`${styles.paymentCard} ${paymentMethod === 'cod' ? styles.paymentActive : ''}`}>
               <input 
                 type="radio" 
                 name="payment" 
                 value="cod" 
-                checked={true}
-                readOnly
+                checked={paymentMethod === 'cod'}
+                onChange={() => setPaymentMethod('cod')}
                 className={styles.paymentRadio} 
               />
               <div>
                 <strong>ক্যাশ অন ডেলিভারি</strong>
                 <span>পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন</span>
+              </div>
+            </label>
+
+            <label className={`${styles.paymentCard} ${paymentMethod === 'bkash' ? styles.paymentActive : ''}`}>
+              <input 
+                type="radio" 
+                name="payment" 
+                value="bkash" 
+                checked={paymentMethod === 'bkash'}
+                onChange={() => setPaymentMethod('bkash')}
+                className={styles.paymentRadio} 
+              />
+              <div>
+                <strong>bKash</strong>
+                <span>নিরাপদে বিকাশ পেমেন্ট করুন</span>
+              </div>
+            </label>
+
+            <label className={`${styles.paymentCard} ${paymentMethod === 'nagad' ? styles.paymentActive : ''}`}>
+              <input 
+                type="radio" 
+                name="payment" 
+                value="nagad" 
+                checked={paymentMethod === 'nagad'}
+                onChange={() => setPaymentMethod('nagad')}
+                className={styles.paymentRadio} 
+              />
+              <div>
+                <strong>Nagad</strong>
+                <span>নিরাপদে নগদ পেমেন্ট করুন</span>
+              </div>
+            </label>
+            
+            <label className={`${styles.paymentCard} ${paymentMethod === 'card' ? styles.paymentActive : ''}`}>
+              <input 
+                type="radio" 
+                name="payment" 
+                value="card" 
+                checked={paymentMethod === 'card'}
+                onChange={() => setPaymentMethod('card')}
+                className={styles.paymentRadio} 
+              />
+              <div>
+                <strong>Cards (Visa/Mastercard)</strong>
+                <span>ডেবিট বা ক্রেডিট কার্ড পেমেন্ট</span>
               </div>
             </label>
           </div>

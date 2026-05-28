@@ -96,7 +96,10 @@
   .statsGrid { grid-template-columns: repeat(2, 1fr); }
   .formGrid { grid-template-columns: 1fr; }
 }
-\n\n/* --- INJECTED PREMIUM STYLES --- */\n
+
+
+/* --- INJECTED PREMIUM STYLES --- */
+
 /* Top Bar */
 .topBar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .topBar h1 { font-size: 1.5rem; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px; }

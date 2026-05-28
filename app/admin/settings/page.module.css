@@ -43,7 +43,10 @@
 
 .catForm { padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
 .formActions { display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--color-border-light); }
-\n\n/* --- INJECTED PREMIUM STYLES --- */\n
+
+
+/* --- INJECTED PREMIUM STYLES --- */
+
 /* Top Bar */
 .topBar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .topBar h1 { font-size: 1.5rem; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px; }

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/lib/CartContext';
 import bdGeodata from '@/lib/bdGeodata.json';
@@ -18,6 +18,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   
   const [createAccount, setCreateAccount] = useState(false);
   const [couponCodeInput, setCouponCodeInput] = useState('');
@@ -30,6 +31,14 @@ export default function CheckoutPage() {
   });
   const [siteSettings, setSiteSettings] = useState(null);
 
+  // Refs for each form field
+  const nameRef = useRef(null);
+  const phoneRef = useRef(null);
+  const districtRef = useRef(null);
+  const thanaRef = useRef(null);
+  const addressRef = useRef(null);
+  const formRef = useRef(null);
+
   useEffect(() => {
     getSiteSettings().then(data => {
       if (data) setSiteSettings(data);
@@ -39,7 +48,6 @@ export default function CheckoutPage() {
   // Calculate total weight in kg
   const totalWeightGrams = cart.reduce((sum, item) => sum + (item.weight || 300) * item.quantity, 0);
   const totalWeightKg = totalWeightGrams / 1000.0;
-  // Calculate extra kg (1kg = 0 extra, 1.1kg = 1 extra, 2kg = 1 extra, 2.1kg = 2 extra)
   const extraKg = Math.max(0, Math.floor(totalWeightKg) - 1 + (totalWeightKg % 1 > 0 && totalWeightKg > 1 ? 1 : 0));
 
   let deliveryCharge = 60; // fallback
@@ -109,7 +117,7 @@ export default function CheckoutPage() {
         try {
           const parsed = JSON.parse(savedInfo);
           setDefaultValues(parsed);
-          setCreateAccount(true); // pre-check the save checkbox
+          setCreateAccount(true);
         } catch (e) {}
       }
     }
@@ -124,12 +132,78 @@ export default function CheckoutPage() {
     }
   }, []);
 
+  // Custom validation
+  const validateForm = (formData) => {
+    const errors = {};
+    const name = formData.get('name')?.trim();
+    const phone = formData.get('phone')?.trim();
+    const district = formData.get('district')?.trim();
+    const address = formData.get('address')?.trim();
+
+    if (!name) errors.name = 'আপনার নাম লিখুন';
+    if (!phone) {
+      errors.phone = 'মোবাইল নম্বর লিখুন';
+    } else if (!/^01[3-9]\d{8}$/.test(phone)) {
+      errors.phone = 'সঠিক মোবাইল নম্বর লিখুন (01XXXXXXXXX)';
+    }
+    if (!district) errors.district = 'জেলা নির্বাচন করুন';
+    
+    // Check if thana is required (if district has thanas)
+    if (district && bdGeodata[district]) {
+      const thana = formData.get('thana')?.trim();
+      if (!thana) errors.thana = 'থানা/উপজেলা নির্বাচন করুন';
+    }
+
+    if (!address) errors.address = 'আপনার ঠিকানা লিখুন';
+
+    return errors;
+  };
+
+  // Scroll to first error field
+  const scrollToFirstError = (errors) => {
+    const fieldOrder = ['name', 'phone', 'district', 'thana', 'address'];
+    const refMap = { name: nameRef, phone: phoneRef, district: districtRef, thana: thanaRef, address: addressRef };
+    
+    for (const field of fieldOrder) {
+      if (errors[field] && refMap[field]?.current) {
+        refMap[field].current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Focus the input after scroll
+        setTimeout(() => {
+          const input = refMap[field].current.querySelector('input, select, textarea');
+          if (input) input.focus();
+        }, 400);
+        break;
+      }
+    }
+  };
+
+  // Clear individual field error on change
+  const clearFieldError = (fieldName) => {
+    if (fieldErrors[fieldName]) {
+      setFieldErrors(prev => {
+        const copy = { ...prev };
+        delete copy[fieldName];
+        return copy;
+      });
+    }
+  };
+
   const handleOrder = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setFieldErrors({});
     
     const formData = new FormData(e.target);
+    
+    // Validate
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setLoading(false);
+      scrollToFirstError(errors);
+      return;
+    }
     
     // Combine Village and Thana for the final address string
     const rawAddress = formData.get('address');
@@ -184,9 +258,9 @@ export default function CheckoutPage() {
     if (orderPlaced) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      const duration = 1.5 * 1000; // Reduced duration
+      const duration = 1.5 * 1000;
       const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 20, spread: 360, ticks: 40, zIndex: 0 }; // Lighter effect
+      const defaults = { startVelocity: 20, spread: 360, ticks: 40, zIndex: 0 };
       
       const randomInRange = (min, max) => Math.random() * (max - min) + min;
       
@@ -195,7 +269,7 @@ export default function CheckoutPage() {
         if (timeLeft <= 0) {
           return clearInterval(interval);
         }
-        const particleCount = 20 * (timeLeft / duration); // Fewer particles
+        const particleCount = 20 * (timeLeft / duration);
         confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
         confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
       }, 300);
@@ -241,95 +315,156 @@ export default function CheckoutPage() {
   return (
     <div className="container section">
       <h1 className={styles.pageTitle}>চেকআউট</h1>
-      <form onSubmit={handleOrder} className={styles.checkoutGrid}>
+      <form ref={formRef} onSubmit={handleOrder} className={styles.checkoutGrid} noValidate>
         {/* Shipping Info */}
         <div className={styles.formSection}>
-          <h2 className={styles.sectionTitle}>ডেলিভারি তথ্য</h2>
+          <h2 className={styles.sectionTitle}>
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            ডেলিভারি তথ্য
+          </h2>
           
           {error && (
-            <div className="alert alert-error" style={{ background: '#fee2e2', color: '#b91c1c', padding: '1rem', borderRadius: '4px', marginBottom: '1.5rem' }}>
+            <div className={styles.alertError}>
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
               {error}
             </div>
           )}
           
           <div className={styles.formGrid}>
-            <div className="input-group">
-              <label className="input-label">পুরো নাম *</label>
-              <input name="name" className="input" required placeholder="আপনার নাম" defaultValue={defaultValues.name} />
+            {/* Name */}
+            <div className={styles.formField} ref={nameRef}>
+              <label className={styles.fieldLabel}>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                পুরো নাম <span className={styles.required}>*</span>
+              </label>
+              <input 
+                name="name" 
+                className={`${styles.fieldInput} ${fieldErrors.name ? styles.fieldInputError : ''}`} 
+                placeholder="আপনার পূর্ণ নাম লিখুন" 
+                defaultValue={defaultValues.name}
+                onChange={() => clearFieldError('name')}
+              />
+              {fieldErrors.name && <span className={styles.fieldErrorMsg}>{fieldErrors.name}</span>}
             </div>
-            <div className="input-group">
-              <label className="input-label">ইমেইল (ঐচ্ছিক)</label>
-              <input name="email" type="email" className="input" placeholder="আপনার ইমেইল" defaultValue={defaultValues.email} />
+
+            {/* Email */}
+            <div className={styles.formField}>
+              <label className={styles.fieldLabel}>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                ইমেইল <span style={{ color: '#94a3b8', fontSize: '12px' }}>(ঐচ্ছিক)</span>
+              </label>
+              <input name="email" type="email" className={styles.fieldInput} placeholder="example@email.com" defaultValue={defaultValues.email} />
             </div>
-            <div className="input-group">
-              <label className="input-label">মোবাইল নম্বর *</label>
-              <input name="phone" className="input" required placeholder="01XXXXXXXXX" defaultValue={defaultValues.phone} />
+
+            {/* Phone */}
+            <div className={styles.formField} ref={phoneRef}>
+              <label className={styles.fieldLabel}>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                মোবাইল নম্বর <span className={styles.required}>*</span>
+              </label>
+              <input 
+                name="phone" 
+                className={`${styles.fieldInput} ${fieldErrors.phone ? styles.fieldInputError : ''}`} 
+                placeholder="01XXXXXXXXX" 
+                defaultValue={defaultValues.phone}
+                onChange={() => clearFieldError('phone')}
+              />
+              {fieldErrors.phone && <span className={styles.fieldErrorMsg}>{fieldErrors.phone}</span>}
             </div>
-            <div className="input-group">
-              <label className="input-label">বিকল্প মোবাইল নম্বর</label>
-              <input name="alt_phone" className="input" placeholder="01XXXXXXXXX (ঐচ্ছিক)" />
+
+            {/* Alt Phone */}
+            <div className={styles.formField}>
+              <label className={styles.fieldLabel}>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                বিকল্প মোবাইল <span style={{ color: '#94a3b8', fontSize: '12px' }}>(ঐচ্ছিক)</span>
+              </label>
+              <input name="alt_phone" className={styles.fieldInput} placeholder="01XXXXXXXXX" />
             </div>
-            <div className="input-group">
-              <label className="input-label">জেলা *</label>
+
+            {/* District */}
+            <div className={styles.formField} ref={districtRef}>
+              <label className={styles.fieldLabel}>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                জেলা <span className={styles.required}>*</span>
+              </label>
               <select 
                 name="district" 
-                className="input" 
-                required 
+                className={`${styles.fieldInput} ${fieldErrors.district ? styles.fieldInputError : ''}`}
                 value={defaultValues.district} 
-                onChange={(e) => setDefaultValues({...defaultValues, district: e.target.value, thana: ''})}
+                onChange={(e) => {
+                  setDefaultValues({...defaultValues, district: e.target.value, thana: ''});
+                  clearFieldError('district');
+                }}
               >
                 <option value="">জেলা নির্বাচন করুন</option>
                 {Object.keys(bdGeodata).sort().map(d => <option key={d} value={d}>{d}</option>)}
               </select>
+              {fieldErrors.district && <span className={styles.fieldErrorMsg}>{fieldErrors.district}</span>}
             </div>
+
+            {/* Thana */}
             {defaultValues.district && bdGeodata[defaultValues.district] && (
-              <div className="input-group">
-                <label className="input-label">থানা / উপজেলা *</label>
+              <div className={styles.formField} ref={thanaRef}>
+                <label className={styles.fieldLabel}>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  থানা / উপজেলা <span className={styles.required}>*</span>
+                </label>
                 <select 
                   name="thana" 
-                  className="input" 
-                  required 
+                  className={`${styles.fieldInput} ${fieldErrors.thana ? styles.fieldInputError : ''}`}
                   value={defaultValues.thana} 
-                  onChange={(e) => setDefaultValues({...defaultValues, thana: e.target.value})}
+                  onChange={(e) => {
+                    setDefaultValues({...defaultValues, thana: e.target.value});
+                    clearFieldError('thana');
+                  }}
                 >
                   <option value="">থানা নির্বাচন করুন</option>
                   {bdGeodata[defaultValues.district].map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
+                {fieldErrors.thana && <span className={styles.fieldErrorMsg}>{fieldErrors.thana}</span>}
               </div>
             )}
           </div>
-          <div className="input-group" style={{ marginTop: 'var(--space-4)' }}>
-            <label className="input-label">গ্রাম / এলাকা / বাড়ির ঠিকানা *</label>
+
+          {/* Address */}
+          <div className={styles.formField} ref={addressRef} style={{ marginTop: 'var(--space-4)' }}>
+            <label className={styles.fieldLabel}>
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              গ্রাম / এলাকা / বাড়ির ঠিকানা <span className={styles.required}>*</span>
+            </label>
             <textarea 
               name="address" 
-              className="input" 
+              className={`${styles.fieldInput} ${styles.fieldTextarea} ${fieldErrors.address ? styles.fieldInputError : ''}`}
               rows="2" 
-              required 
-              placeholder="বাড়ি, রোড, এলাকা" 
-              style={{ resize: 'vertical' }} 
-              defaultValue={defaultValues.address} 
+              placeholder="বাড়ি নং, রোড নং, গ্রাম/মহল্লা, পোস্ট অফিস" 
+              defaultValue={defaultValues.address}
+              onChange={() => clearFieldError('address')}
             />
+            {fieldErrors.address && <span className={styles.fieldErrorMsg}>{fieldErrors.address}</span>}
           </div>
           
-          <div className="input-group" style={{ marginTop: 'var(--space-4)' }}>
-            <label className="input-label">অতিরিক্ত কোনো নির্দেশনা (ঐচ্ছিক)</label>
+          {/* Customer Note */}
+          <div className={styles.formField} style={{ marginTop: 'var(--space-4)' }}>
+            <label className={styles.fieldLabel}>
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              অতিরিক্ত নির্দেশনা <span style={{ color: '#94a3b8', fontSize: '12px' }}>(ঐচ্ছিক)</span>
+            </label>
             <textarea 
               name="customer_note" 
-              className="input" 
+              className={`${styles.fieldInput} ${styles.fieldTextarea}`}
               rows="2" 
               placeholder="বই প্যাকেট করার কোনো বিশেষ নির্দেশনা থাকলে লিখতে পারেন..." 
-              style={{ resize: 'vertical' }} 
             />
           </div>
           
           {!user && (
-            <div style={{ marginTop: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: '500' }}>
+            <div className={styles.saveInfoBox}>
+              <label className={styles.saveInfoLabel}>
                 <input 
                   type="checkbox" 
                   checked={createAccount} 
                   onChange={(e) => setCreateAccount(e.target.checked)} 
-                  style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)' }}
+                  className={styles.saveInfoCheckbox}
                 />
                 আমার তথ্য সেভ করুন (পরবর্তীতে এক ক্লিকে অর্ডারের জন্য)
               </label>
@@ -337,17 +472,13 @@ export default function CheckoutPage() {
           )}
 
           {/* Payment */}
-          <h2 className={styles.sectionTitle} style={{ marginTop: 'var(--space-8)' }}>পেমেন্ট মেথড</h2>
+          <h2 className={styles.sectionTitle} style={{ marginTop: 'var(--space-8)' }}>
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            পেমেন্ট মেথড
+          </h2>
           <div className={styles.paymentMethods}>
             <label className={`${styles.paymentCard} ${paymentMethod === 'cod' ? styles.paymentActive : ''}`}>
-              <input 
-                type="radio" 
-                name="payment" 
-                value="cod" 
-                checked={paymentMethod === 'cod'}
-                onChange={() => setPaymentMethod('cod')}
-                className={styles.paymentRadio} 
-              />
+              <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className={styles.paymentRadio} />
               <div>
                 <strong>ক্যাশ অন ডেলিভারি</strong>
                 <span>পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন</span>
@@ -355,14 +486,7 @@ export default function CheckoutPage() {
             </label>
 
             <label className={`${styles.paymentCard} ${paymentMethod === 'bkash' ? styles.paymentActive : ''}`}>
-              <input 
-                type="radio" 
-                name="payment" 
-                value="bkash" 
-                checked={paymentMethod === 'bkash'}
-                onChange={() => setPaymentMethod('bkash')}
-                className={styles.paymentRadio} 
-              />
+              <input type="radio" name="payment" value="bkash" checked={paymentMethod === 'bkash'} onChange={() => setPaymentMethod('bkash')} className={styles.paymentRadio} />
               <div>
                 <strong>bKash</strong>
                 <span>নিরাপদে বিকাশ পেমেন্ট করুন</span>
@@ -370,14 +494,7 @@ export default function CheckoutPage() {
             </label>
 
             <label className={`${styles.paymentCard} ${paymentMethod === 'nagad' ? styles.paymentActive : ''}`}>
-              <input 
-                type="radio" 
-                name="payment" 
-                value="nagad" 
-                checked={paymentMethod === 'nagad'}
-                onChange={() => setPaymentMethod('nagad')}
-                className={styles.paymentRadio} 
-              />
+              <input type="radio" name="payment" value="nagad" checked={paymentMethod === 'nagad'} onChange={() => setPaymentMethod('nagad')} className={styles.paymentRadio} />
               <div>
                 <strong>Nagad</strong>
                 <span>নিরাপদে নগদ পেমেন্ট করুন</span>
@@ -385,14 +502,7 @@ export default function CheckoutPage() {
             </label>
             
             <label className={`${styles.paymentCard} ${paymentMethod === 'card' ? styles.paymentActive : ''}`}>
-              <input 
-                type="radio" 
-                name="payment" 
-                value="card" 
-                checked={paymentMethod === 'card'}
-                onChange={() => setPaymentMethod('card')}
-                className={styles.paymentRadio} 
-              />
+              <input type="radio" name="payment" value="card" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className={styles.paymentRadio} />
               <div>
                 <strong>Cards (Visa/Mastercard)</strong>
                 <span>ডেবিট বা ক্রেডিট কার্ড পেমেন্ট</span>
@@ -439,7 +549,7 @@ export default function CheckoutPage() {
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input 
                   type="text" 
-                  className="input" 
+                  className={styles.fieldInput}
                   placeholder="প্রোমো কোড (যদি থাকে)" 
                   value={couponCodeInput}
                   onChange={(e) => setCouponCodeInput(e.target.value)}
@@ -461,7 +571,7 @@ export default function CheckoutPage() {
             </div>
             
             <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: 'var(--space-4)', lineHeight: '1.5', textAlign: 'center' }}>
-              💡 পরবর্তীতে সহজে অর্ডার ট্র্যাক করার জন্য আপনার দেওয়া নাম্বার দিয়ে একটি একাউন্ট তৈরি করা হবে।
+              💡 পরবর্তীতে সহজে অর্ডার ট্র্যাক করার জন্য আপনার দেওয়া নাম্বার দিয়ে একটি একাউন্ট তৈরি করা হবে।
             </p>
 
             <button type="submit" disabled={loading} className="btn btn-primary btn-lg" style={{ width: '100%', marginTop: 'var(--space-2)' }}>

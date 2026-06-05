@@ -63,15 +63,15 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Popular Authors */}
+      {/* Popular Authors — Compact Horizontal Strip */}
       {popularAuthors.length > 0 && (
-        <section className="section" style={{ background: '#f0fdf4' }}>
+        <section className="section">
           <div className="container">
             <div className="section-header">
               <h2 className="section-title">জনপ্রিয় লেখক</h2>
               <Link href="/books" className="section-link">সকল লেখক →</Link>
             </div>
-            <div className={styles.authorsGrid}>
+            <div className={styles.authorsStrip}>
               {popularAuthors.map((author, i) => {
                 const authorImage = author.image_url || getImageUrl(author.image) || author.image;
                 const initial = author.name ? author.name.trim().charAt(0) : '?';
@@ -79,18 +79,16 @@ export default async function Home() {
                   <Link
                     key={author.slug}
                     href={`/books?author=${author.slug}`}
-                    className={styles.authorCard}
-                    style={{ animationDelay: `${i * 0.05}s` }}
+                    className={styles.authorChip}
                   >
-                    <div className={styles.authorAvatar}>
+                    <div className={styles.authorChipAvatar}>
                       {authorImage ? (
                         <img src={authorImage} alt={author.name} />
                       ) : (
-                        <span className={styles.authorInitial}>{initial}</span>
+                        <span className={styles.authorChipInitial}>{initial}</span>
                       )}
                     </div>
-                    <span className={styles.authorName}>{author.name}</span>
-                    <span className={styles.authorBooks}>{author.book_count || 0}টি বই</span>
+                    <span className={styles.authorChipName}>{author.name}</span>
                   </Link>
                 );
               })}

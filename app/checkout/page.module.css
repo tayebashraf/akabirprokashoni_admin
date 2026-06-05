@@ -2,18 +2,160 @@
 
 .checkoutGrid { display: grid; grid-template-columns: 1fr 380px; gap: var(--space-8); align-items: start; }
 
-.sectionTitle { font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-5); padding-bottom: var(--space-2); border-bottom: 2px solid var(--color-primary-50); }
+.sectionTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--color-primary-50);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-primary-dark);
+}
+.sectionTitle svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
 
-.formGrid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.formGrid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+
+/* ===== Premium Form Fields ===== */
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fieldLabel svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+.required {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.fieldInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: var(--text-sm);
+  font-family: var(--font-bangla);
+  color: var(--color-text);
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+  outline: none;
+}
+.fieldInput:hover {
+  border-color: #cbd5e1;
+}
+.fieldInput:focus {
+  border-color: var(--color-primary);
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(13, 107, 63, 0.1);
+}
+.fieldInput::placeholder {
+  color: #94a3b8;
+}
+.fieldTextarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+/* Error state */
+.fieldInputError {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+  animation: shake 0.3s ease;
+}
+.fieldInputError:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important;
+}
+.fieldErrorMsg {
+  font-size: 12px;
+  color: #ef4444;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: fadeInDown 0.25s ease;
+}
+.fieldErrorMsg::before {
+  content: '⚠';
+  font-size: 13px;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Alert Error */
+.alertError {
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #fecaca;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  font-size: 14px;
+}
+.alertError svg {
+  flex-shrink: 0;
+}
+
+/* Save Info Box */
+.saveInfoBox {
+  margin-top: 1.5rem;
+  background: #f0fdf4;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid #bbf7d0;
+}
+.saveInfoLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-text);
+}
+.saveInfoCheckbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+  flex-shrink: 0;
+}
 
 /* Payment */
 .paymentMethods { display: flex; flex-direction: column; gap: var(--space-3); }
 .paymentCard {
   display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4);
-  border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer;
-  transition: all var(--transition-fast);
+  border: 2px solid var(--color-border); border-radius: 10px; cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
 }
-.paymentCard:hover { border-color: var(--color-primary-light); }
+.paymentCard:hover { border-color: var(--color-primary-light); background: #fafffe; }
 .paymentActive { border-color: var(--color-primary); background: var(--color-primary-50); }
 .paymentRadio { accent-color: var(--color-primary); width: 18px; height: 18px; }
 .paymentCard strong { display: block; font-size: var(--text-sm); }

@@ -1,17 +1,19 @@
 import Link from 'next/link';
 import BookCard from '@/components/BookCard';
 import HeroSlider from '@/components/HeroSlider';
-import { getCategories, getTrendingBooks, getNewReleases, getBooks, getHeroSlides, getAuthors, getImageUrl } from '@/lib/api';
+import OfferBanner from '@/components/OfferBanner';
+import { getCategories, getTrendingBooks, getNewReleases, getBooks, getHeroSlides, getAuthors, getOfferBanners, getImageUrl } from '@/lib/api';
 import styles from './page.module.css';
 
 export default async function Home() {
-  const [categoriesData, trendingBooksData, newBooksData, allBooksData, slidesData, authorsData] = await Promise.all([
+  const [categoriesData, trendingBooksData, newBooksData, allBooksData, slidesData, authorsData, offerBannersData] = await Promise.all([
     getCategories().catch(() => ({ results: [] })),
     getTrendingBooks().catch(() => []),
     getNewReleases().catch(() => []),
     getBooks({ preorder: 'true' }).catch(() => ({ results: [] })),
     getHeroSlides().catch(() => ({ results: [] })),
-    getAuthors().catch(() => ({ results: [] }))
+    getAuthors().catch(() => ({ results: [] })),
+    getOfferBanners().catch(() => ({ results: [] }))
   ]);
 
   const categories = Array.isArray(categoriesData?.results) ? categoriesData.results : (Array.isArray(categoriesData) ? categoriesData : []);
@@ -23,6 +25,8 @@ export default async function Home() {
   // Filter active slides and sort by order
   let heroSlides = Array.isArray(slidesData?.results) ? slidesData.results : (Array.isArray(slidesData) ? slidesData : []);
   heroSlides = heroSlides.filter(s => s.is_active).sort((a, b) => a.order - b.order);
+  
+  const offerBanners = Array.isArray(offerBannersData?.results) ? offerBannersData.results : (Array.isArray(offerBannersData) ? offerBannersData : []);
   
   // Pad trending books with new books if there aren't enough, to keep the UI looking full
   if (trendingBooks.length < 5 && newBooks.length > 0) {
@@ -39,6 +43,8 @@ export default async function Home() {
       {/* Hero Banner */}
       <HeroSlider slides={heroSlides} />
 
+      {/* Offer Banner */}
+      <OfferBanner banners={offerBanners} />
 
       {/* Trending Books */}
       <section className="section" style={{ background: 'var(--color-bg-secondary)' }}>
@@ -65,21 +71,29 @@ export default async function Home() {
               <h2 className="section-title">জনপ্রিয় লেখক</h2>
               <Link href="/books" className="section-link">সকল লেখক →</Link>
             </div>
-            <div className={styles.catGrid}>
-              {popularAuthors.map((author, i) => (
-                <Link
-                  key={author.slug}
-                  href={`/books?author=${author.slug}`}
-                  className={styles.catCard}
-                  style={{ animationDelay: `${i * 0.05}s`, '--cat-color': '#10b981' }}
-                >
-                  {author.image && (
-                    <img src={author.image_url || getImageUrl(author.image) || author.image} alt={author.name} style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', marginBottom: '8px' }} />
-                  )}
-                  <span className={styles.catName}>{author.name}</span>
-                  <span className={styles.catCount}>{author.book_count || 0} বই</span>
-                </Link>
-              ))}
+            <div className={styles.authorsGrid}>
+              {popularAuthors.map((author, i) => {
+                const authorImage = author.image_url || getImageUrl(author.image) || author.image;
+                const initial = author.name ? author.name.trim().charAt(0) : '?';
+                return (
+                  <Link
+                    key={author.slug}
+                    href={`/books?author=${author.slug}`}
+                    className={styles.authorCard}
+                    style={{ animationDelay: `${i * 0.05}s` }}
+                  >
+                    <div className={styles.authorAvatar}>
+                      {authorImage ? (
+                        <img src={authorImage} alt={author.name} />
+                      ) : (
+                        <span className={styles.authorInitial}>{initial}</span>
+                      )}
+                    </div>
+                    <span className={styles.authorName}>{author.name}</span>
+                    <span className={styles.authorBooks}>{author.book_count || 0}টি বই</span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>

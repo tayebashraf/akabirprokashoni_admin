@@ -1,0 +1,32 @@
+.bannerWrapper {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  background-color: var(--color-bg-secondary);
+}
+
+.bannerLink {
+  display: block;
+  text-decoration: none;
+}
+
+.bannerLink:hover .bannerWrapper {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.bannerImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  max-height: 400px; /* Optional: limit max height so it doesn't get too large on wide screens */
+}
+
+@media (max-width: 768px) {
+  .bannerImage {
+    max-height: 250px;
+  }
+}

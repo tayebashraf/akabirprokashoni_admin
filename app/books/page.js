@@ -19,6 +19,8 @@ export default async function BooksPage({ searchParams }) {
   const viewMode = resolvedParams.view || 'grid';
   const filter = resolvedParams.filter || ''; // new, preorder, offer
   const searchQuery = resolvedParams.search || '';
+  const minPrice = resolvedParams.min_price || '';
+  const maxPrice = resolvedParams.max_price || '';
 
   // Fetch categories and authors for sidebar
   const [categoriesResult, authorsResult] = await Promise.all([
@@ -33,6 +35,8 @@ export default async function BooksPage({ searchParams }) {
   if (selectedCat !== 'all') apiParams.category = selectedCat;
   if (selectedAuthor !== 'all') apiParams.author = selectedAuthor;
   if (searchQuery) apiParams.search = searchQuery;
+  if (minPrice) apiParams.min_price = minPrice;
+  if (maxPrice) apiParams.max_price = maxPrice;
   if (sortBy === 'new') apiParams.new_release = 'true';
   // Note: API doesn't support 'price-low' sort natively yet, this is basic mapping
   if (filter === 'new') apiParams.new_release = 'true';

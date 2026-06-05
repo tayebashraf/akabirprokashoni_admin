@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import styles from './login.module.css';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,12 +12,33 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    
+    // Simple validation
+    if (!phone.trim()) {
+      setError('মোবাইল নম্বর আবশ্যক।');
+      return;
+    }
+    if (phone.trim().length < 11) {
+      setError('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন।');
+      return;
+    }
+    if (!password || password.length < 6) {
+      setError('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।');
+      return;
+    }
+    if (!isLogin && !name.trim()) {
+      setError('আপনার নাম আবশ্যক।');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -30,7 +52,7 @@ export default function LoginPage() {
         });
         
         if (!res.ok) {
-          throw new Error('ফোন নম্বর বা পাসওয়ার্ড ভুল।');
+          throw new Error('মোবাইল নম্বর বা পাসওয়ার্ড ভুল।');
         }
         
         const data = await res.json();
@@ -43,6 +65,11 @@ export default function LoginPage() {
           is_superuser: false
         };
         login(user, data.access, data.refresh);
+        
+        // Save to localStorage if rememberMe is selected
+        if (typeof window !== 'undefined' && rememberMe) {
+          localStorage.setItem('remember_phone', phone);
+        }
         
         // Admin users go to admin panel, regular users go to account
         if (user.is_staff || user.is_superuser) {
@@ -65,7 +92,7 @@ export default function LoginPage() {
         
         if (!res.ok) {
           const errData = await res.json();
-          throw new Error(errData.phone ? errData.phone[0] : 'রেজিস্ট্রেশন ব্যর্থ হয়েছে।');
+          throw new Error(errData.phone ? errData.phone[0] : 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। মোবাইল নম্বরটি ইতিমধ্যে ব্যবহৃত হয়ে থাকতে পারে।');
         }
         
         const data = await res.json();
@@ -80,73 +107,93 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container section" style={{ maxWidth: '400px', margin: '0 auto', padding: '4rem 1rem' }}>
-      <div style={{ background: 'white', padding: '2rem', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--color-primary)' }}>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h2 className={styles.title}>
           {isLogin ? 'লগইন করুন' : 'নতুন একাউন্ট খুলুন'}
         </h2>
         
         {error && (
-          <div className="alert alert-error" style={{ background: '#fee2e2', color: '#b91c1c', padding: '0.75rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.9rem' }}>
-            {error}
+          <div className={styles.errorAlert}>
+            ⚠️ {error}
           </div>
         )}
         
         <form onSubmit={handleSubmit}>
           {!isLogin && (
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label>আপনার নাম</label>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>আপনার নাম</label>
               <input 
                 type="text" 
-                className="form-control" 
+                className={styles.formControl} 
                 required 
+                placeholder="যেমন: আরিয়ান রহমান"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
               />
             </div>
           )}
           
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label>মোবাইল নম্বর</label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>মোবাইল নম্বর</label>
             <input 
               type="tel" 
-              className="form-control" 
+              className={styles.formControl} 
               required 
-              placeholder="01XXXXXXXXX"
+              placeholder="যেমন: 01718XXXXXX"
               value={phone}
               onChange={e => setPhone(e.target.value)}
-              style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
             />
           </div>
           
-          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-            <label>পাসওয়ার্ড</label>
-            <input 
-              type="password" 
-              className="form-control" 
-              required 
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
-            />
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>পাসওয়ার্ড</label>
+            <div className={styles.passwordWrapper}>
+              <input 
+                type={showPassword ? "text" : "password"} 
+                className={styles.formControl} 
+                required 
+                placeholder="কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className={styles.toggleBtn}
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? 'লুকান' : 'দেখুন'}
+              </button>
+            </div>
           </div>
+          
+          {isLogin && (
+            <div className={styles.rememberRow}>
+              <label className={styles.checkboxLabel}>
+                <input 
+                  type="checkbox" 
+                  checked={rememberMe} 
+                  onChange={e => setRememberMe(e.target.checked)} 
+                />
+                <span>আমাকে মনে রাখুন</span>
+              </label>
+            </div>
+          )}
           
           <button 
             type="submit" 
-            className="btn btn-primary" 
-            style={{ width: '100%', padding: '0.75rem', fontSize: '1.1rem' }}
+            className={styles.submitBtn} 
             disabled={loading}
           >
-            {loading ? 'অপেক্ষা করুন...' : (isLogin ? 'লগইন' : 'রেজিস্টার')}
+            {loading ? 'প্রসেস করা হচ্ছে...' : (isLogin ? 'লগইন' : 'রেজিস্টার')}
           </button>
         </form>
         
-        <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem' }}>
+        <div className={styles.switchText}>
           {isLogin ? (
-            <p>একাউন্ট নেই? <span onClick={() => setIsLogin(false)} style={{ color: 'var(--color-primary)', cursor: 'pointer', fontWeight: 'bold' }}>রেজিস্টার করুন</span></p>
+            <p>একাউন্ট নেই? <span onClick={() => { setIsLogin(false); setError(''); }} className={styles.switchBtn}>রেজিস্টার করুন</span></p>
           ) : (
-            <p>আগে থেকেই একাউন্ট আছে? <span onClick={() => setIsLogin(true)} style={{ color: 'var(--color-primary)', cursor: 'pointer', fontWeight: 'bold' }}>লগইন করুন</span></p>
+            <p>আগে থেকেই একাউন্ট আছে? <span onClick={() => { setIsLogin(true); setError(''); }} className={styles.switchBtn}>লগইন করুন</span></p>
           )}
         </div>
       </div>

@@ -1,10 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useCart } from '@/lib/CartContext';
+import { useFavorites } from '@/lib/FavoriteContext';
 import styles from './BookCard.module.css';
 
 export default function BookCard({ book }) {
   const { addToCart } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorited = isFavorite(book.id);
 
   // Normalize API field names (handle both API formats)
   const title = book.title || '';
@@ -36,6 +39,20 @@ export default function BookCard({ book }) {
         <span className={styles.discountBadge}>-{discount}%</span>
       )}
 
+      <button 
+        className={`${styles.favoriteBtn} ${favorited ? styles.favorited : ''}`} 
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleFavorite(book);
+        }}
+        aria-label={favorited ? "ফেভারিট থেকে বাদ দিন" : "ফেভারিটে যোগ করুন"}
+      >
+        <svg width="16" height="16" fill={favorited ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </button>
+
       <Link href={`/books/${slug}`} className={styles.imageWrap}>
         {finalCoverImage ? (
           <img
@@ -57,6 +74,13 @@ export default function BookCard({ book }) {
         </Link>
         {authorName && (
           <span className={styles.author}>{authorName}</span>
+        )}
+
+        {rating > 0 && (
+          <div className={styles.ratingRow}>
+            <span className={styles.stars}>{'★'.repeat(Math.round(rating))}{'☆'.repeat(5 - Math.round(rating))}</span>
+            <span className={styles.ratingScore}>({reviewCount})</span>
+          </div>
         )}
 
         <div className={styles.priceRow}>

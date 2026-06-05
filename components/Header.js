@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { useCart } from '@/lib/CartContext';
 import { getCategories, getAuthors } from '@/lib/api';
@@ -18,6 +18,9 @@ export default function Header() {
   const [categories, setCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
   const router = useRouter();
+
+  const categoriesRef = useRef(null);
+  const authorsRef = useRef(null);
 
   // Helper function to determine if a link is active
   const isActive = (path) => {
@@ -62,6 +65,29 @@ export default function Header() {
         setAuthors(auts);
       })
       .catch(() => setAuthors([]));
+  }, []);
+
+  // Close menu and dropdowns on route/query change
+  useEffect(() => {
+    setCategoriesOpen(false);
+    setAuthorsOpen(false);
+    setMenuOpen(false);
+  }, [pathname, searchParams]);
+
+  // Handle click outside to close dropdowns
+  useEffect(() => {
+    function handleOutsideClick(event) {
+      if (categoriesRef.current && !categoriesRef.current.contains(event.target)) {
+        setCategoriesOpen(false);
+      }
+      if (authorsRef.current && !authorsRef.current.contains(event.target)) {
+        setAuthorsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
   }, []);
 
   const closeMenu = () => setMenuOpen(false);
@@ -164,13 +190,14 @@ export default function Header() {
             <Link href="/" className={`${styles.navLink} ${isActive('/') ? styles.navLinkHighlight : ''}`} onClick={closeMenu}>হোম</Link>
             <Link href="/books" className={`${styles.navLink} ${isActive('/books') ? styles.navLinkHighlight : ''}`} onClick={closeMenu}>সকল বই</Link>
 
-            <div className={styles.navDropdown}>
+            <div className={styles.navDropdown} ref={categoriesRef}>
               <span 
                 className={`${styles.navLink} ${searchParams?.has('category') ? styles.navLinkHighlight : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setCategoriesOpen(!categoriesOpen);
+                  setAuthorsOpen(false);
                 }}
               >
                 বিষয় <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ transform: categoriesOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path d="M6 9l6 6 6-6"/></svg>
@@ -187,13 +214,14 @@ export default function Header() {
               </div>
             </div>
 
-            <div className={styles.navDropdown}>
+            <div className={styles.navDropdown} ref={authorsRef}>
               <span 
                 className={`${styles.navLink} ${searchParams?.has('author') ? styles.navLinkHighlight : ''}`}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setAuthorsOpen(!authorsOpen);
+                  setCategoriesOpen(false);
                 }}
               >
                 লেখক <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ transform: authorsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path d="M6 9l6 6 6-6"/></svg>

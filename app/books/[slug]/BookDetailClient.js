@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/CartContext';
 import BookCard from '@/components/BookCard';
+import { submitReview } from '@/lib/api';
 import styles from './page.module.css';
 
 export default function BookDetailClient({ book, relatedBooks }) {
@@ -13,6 +14,68 @@ export default function BookDetailClient({ book, relatedBooks }) {
   const [activeTab, setActiveTab] = useState('description');
   const [addedToCart, setAddedToCart] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+
+  const [reviewName, setReviewName] = useState('');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState(null);
+  const [reviewError, setReviewError] = useState(null);
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!reviewName.trim() || !reviewComment.trim()) {
+      setReviewError('নাম এবং মন্তব্য আবশ্যক।');
+      return;
+    }
+    setSubmittingReview(true);
+    setReviewError(null);
+    setReviewMessage(null);
+    try {
+      await submitReview(book.slug, {
+        customer_name: reviewName.trim(),
+        rating: reviewRating,
+        comment: reviewComment.trim()
+      });
+      setReviewMessage('রিভিউ সফলভাবে জমা দেওয়া হয়েছে এবং অনুমোদনের অপেক্ষায় আছে। ধন্যবাদ!');
+      setReviewName('');
+      setReviewComment('');
+      setReviewRating(5);
+    } catch (err) {
+      setReviewError(err.message || 'রিভিউ জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const renderStars = (score) => {
+    const stars = [];
+    const val = Math.round(score || 0);
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <span key={i} style={{ color: i <= val ? '#f39c12' : '#ccc', fontSize: '18px', marginRight: '2px' }}>
+          ★
+        </span>
+      );
+    }
+    return stars;
+  };
+
+  const renderInteractiveStars = () => {
+    return (
+      <div style={{ display: 'flex', gap: '8px', fontSize: '24px', cursor: 'pointer', margin: '8px 0' }}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            onClick={() => setReviewRating(star)}
+            style={{ color: star <= reviewRating ? '#f39c12' : '#ccc' }}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+    );
+  };
 
   if (!book) return null;
 
@@ -153,13 +216,13 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
           {/* Right: Book Info */}
           <div className={styles.infoSection}>
-            <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1a1a1a', lineHeight: '1.3', margin: 0 }}>{title}</h1>
+            <h1 className={styles.bookTitle}>{title}</h1>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className={styles.metaInfoRow}>
               <div style={{ fontSize: '16px', color: '#444' }}>
                 <span style={{ color: '#555' }}>লেখক: </span>
                 {authorName ? (
-                  <Link href={`/books?author=${authorSlug}`} style={{ color: '#d12027', textDecoration: 'none' }}>
+                  <Link href={`/books?author=${authorSlug}`} className={styles.authorLink}>
                     {authorName}
                   </Link>
                 ) : 'অজানা'}
@@ -168,73 +231,152 @@ export default function BookDetailClient({ book, relatedBooks }) {
               <div style={{ fontSize: '16px', color: '#444' }}>
                 <span style={{ color: '#555' }}>বিষয়: </span>
                 {categoryName ? (
-                  <Link href={`/books?category=${categorySlug}`} style={{ color: '#d12027', textDecoration: 'none' }}>
+                  <Link href={`/books?category=${categorySlug}`} className={styles.authorLink}>
                     {categoryName}
                   </Link>
                 ) : 'সাধারণ'}
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ color: '#f39c12', fontSize: '18px', letterSpacing: '2px' }}>
-                  ☆☆☆☆☆
+                <div style={{ display: 'flex' }}>
+                  {renderStars(book.rating)}
                 </div>
-                <span style={{ color: '#777', fontSize: '14px' }}>({book.review_count || 0} review)</span>
+                <span style={{ color: '#777', fontSize: '14px', marginLeft: '4px' }}>({book.review_count || 0} রিভিউ)</span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <span style={{ fontSize: '28px', fontWeight: 'bold', color: '#111' }}>
-                  {price.toLocaleString('bn-BD')} টাকা
-                </span>
-                {discount > 0 && (
-                  <span style={{ color: '#d12027', fontSize: '16px', fontWeight: 'bold', background: '#ffebee', padding: '4px 10px', borderRadius: '4px' }}>
-                    {discount}% ছাড়
-                  </span>
-                )}
-              </div>
-              
+            <div className={styles.priceBlock}>
+              <span className={styles.currentPrice}>
+                ৳{price.toLocaleString('bn-BD')}
+              </span>
               {originalPrice > price && (
-                <div style={{ color: '#888', fontSize: '18px', textDecoration: 'line-through' }}>
-                  {originalPrice.toLocaleString('bn-BD')} টাকা
-                </div>
+                <span className={styles.originalPrice}>
+                  ৳{originalPrice.toLocaleString('bn-BD')}
+                </span>
+              )}
+              {discount > 0 && (
+                <span className={styles.saveBadge}>
+                  ({discount}% ছাড়)
+                </span>
               )}
             </div>
 
-            <div style={{ borderBottom: '1px dotted #ccc', margin: '10px 0' }}></div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              {/* Quantity Control */}
-              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '4px', height: '44px', background: '#fff' }}>
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ width: '40px', height: '100%', background: '#f8f8f8', border: 'none', borderRight: '1px solid #ddd', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#333', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px' }}>−</button>
-                <div style={{ width: '45px', textAlign: 'center', fontSize: '16px', color: '#333', fontWeight: '500' }}>{quantity}</div>
-                <button onClick={() => setQuantity(quantity + 1)} style={{ width: '40px', height: '100%', background: '#f8f8f8', border: 'none', borderLeft: '1px solid #ddd', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#333', borderTopRightRadius: '4px', borderBottomRightRadius: '4px' }}>+</button>
+            {/* Action Area Card */}
+            <div className={styles.actionArea}>
+              <div className={styles.quantityRow}>
+                <span className={styles.qtyLabel}>পরিমাণ:</span>
+                <div className={styles.qtyControl}>
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>−</button>
+                  <span>{quantity}</span>
+                  <button onClick={() => setQuantity(quantity + 1)}>+</button>
+                </div>
+                
+                <div className={styles.stockInfo}>
+                  {stock > 0 ? (
+                    <span className={styles.inStock}>● স্টকে আছে</span>
+                  ) : (
+                    <span className={styles.outOfStock}>● স্টক শেষ</span>
+                  )}
+                </div>
               </div>
 
-              {/* Action Buttons */}
-              <button
-                onClick={handleAddToCart}
-                disabled={stock <= 0}
-                style={{ background: '#e32636', color: '#fff', border: 'none', borderRadius: '4px', height: '44px', padding: '0 28px', fontSize: '16px', fontWeight: '600', cursor: stock > 0 ? 'pointer' : 'not-allowed', opacity: stock > 0 ? 1 : 0.6, transition: 'background 0.2s' }}
-                onMouseOver={(e) => e.target.style.background = '#cc2230'}
-                onMouseOut={(e) => e.target.style.background = '#e32636'}
-              >
-                {addedToCart ? '✓ যোগ করা হয়েছে' : 'কার্টে যোগ করুন'}
-              </button>
-              <button
-                onClick={handleBuyNow}
-                disabled={stock <= 0}
-                style={{ background: '#e32636', color: '#fff', border: 'none', borderRadius: '4px', height: '44px', padding: '0 28px', fontSize: '16px', fontWeight: '600', cursor: stock > 0 ? 'pointer' : 'not-allowed', opacity: stock > 0 ? 1 : 0.6, transition: 'background 0.2s' }}
-                onMouseOver={(e) => e.target.style.background = '#cc2230'}
-                onMouseOut={(e) => e.target.style.background = '#e32636'}
-              >
-                এখনই কিনুন
-              </button>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={stock <= 0}
+                  className={styles.cartBtn}
+                >
+                  {addedToCart ? '✓ যোগ করা হয়েছে' : 'কার্টে যোগ করুন'}
+                </button>
+                <button
+                  onClick={handleBuyNow}
+                  disabled={stock <= 0}
+                  className={styles.buyBtn}
+                >
+                  এখনই কিনুন
+                </button>
+              </div>
             </div>
 
-            {stock <= 0 && <div style={{ color: '#e32636', marginTop: '15px', fontWeight: 'bold' }}>দুঃখিত, বইটি বর্তমানে স্টকে নেই।</div>}
+            {/* Trust Badges */}
+            <div className={styles.trustBadges}>
+              <div className={styles.badgeItem}>
+                <span className={styles.badgeIcon}>🚚</span>
+                <span>সারা দেশে ক্যাশ অন ডেলিভারি</span>
+              </div>
+              <div className={styles.badgeItem}>
+                <span className={styles.badgeIcon}>🛡️</span>
+                <span>১০০% অরিজিনাল বই</span>
+              </div>
+              <div className={styles.badgeItem}>
+                <span className={styles.badgeIcon}>🔄</span>
+                <span>৩ দিনে সহজ রিটার্ন সুবিধা</span>
+              </div>
+            </div>
 
-            <div style={{ borderBottom: '1px dotted #ccc', margin: '35px 0 20px 0' }}></div>
+            {/* Specs Table Shown Inline */}
+            <div className={styles.specsTable}>
+              <h3 className={styles.specsTitle}>বইয়ের বিবরণ</h3>
+              <table className={styles.specTable}>
+                <tbody>
+                  <tr>
+                    <td className={styles.specLabel}>শিরোনাম</td>
+                    <td className={styles.specValue}>{title}</td>
+                  </tr>
+                  <tr>
+                    <td className={styles.specLabel}>লেখক</td>
+                    <td className={styles.specValue}>
+                      {authorName ? (
+                        <Link href={`/books?author=${authorSlug}`} className={styles.specLink}>
+                          {authorName}
+                        </Link>
+                      ) : 'অজানা'}
+                    </td>
+                  </tr>
+                  {book.publisher && (
+                    <tr>
+                      <td className={styles.specLabel}>প্রকাশক</td>
+                      <td className={styles.specValue}>{book.publisher}</td>
+                    </tr>
+                  )}
+                  {book.isbn && (
+                    <tr>
+                      <td className={styles.specLabel}>ISBN</td>
+                      <td className={styles.specValue}>{book.isbn}</td>
+                    </tr>
+                  )}
+                  {book.edition && (
+                    <tr>
+                      <td className={styles.specLabel}>সংস্করণ</td>
+                      <td className={styles.specValue}>{book.edition}</td>
+                    </tr>
+                  )}
+                  {book.pages > 0 && (
+                    <tr>
+                      <td className={styles.specLabel}>পৃষ্ঠা সংখ্যা</td>
+                      <td className={styles.specValue}>{book.pages}</td>
+                    </tr>
+                  )}
+                  <tr>
+                    <td className={styles.specLabel}>ভাষা</td>
+                    <td className={styles.specValue}>
+                      {book.language === 'bangla' ? 'বাংলা' : book.language === 'english' ? 'English' : 'আরবি'}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Share Section */}
+            <div className={styles.shareSection}>
+              <span className={styles.shareTitle}>শেয়ার করুন:</span>
+              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`} target="_blank" rel="noopener noreferrer" className={styles.shareFb}>
+                Facebook
+              </a>
+              <a href={`https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' ' + (typeof window !== 'undefined' ? window.location.href : ''))}`} target="_blank" rel="noopener noreferrer" className={styles.shareWa}>
+                WhatsApp
+              </a>
+            </div>
 
           </div>
         </div>
@@ -247,13 +389,13 @@ export default function BookDetailClient({ book, relatedBooks }) {
               onClick={() => setActiveTab('description')}
             >সারসংক্ষেপ</button>
             <button
-              className={`${styles.tab} ${activeTab === 'specification' ? styles.tabActive : ''}`}
-              onClick={() => setActiveTab('specification')}
-            >বিস্তারিত বিবরণ</button>
-            <button
               className={`${styles.tab} ${activeTab === 'author' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('author')}
             >লেখক পরিচিতি</button>
+            <button
+              className={`${styles.tab} ${activeTab === 'reviews' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('reviews')}
+            >গ্রাহক রিভিউ ({book.review_count || 0})</button>
           </div>
           <div className={styles.tabContent}>
             {activeTab === 'description' && (
@@ -262,83 +404,95 @@ export default function BookDetailClient({ book, relatedBooks }) {
                 <p>{book.description || 'বিবরণ পাওয়া যায়নি।'}</p>
               </div>
             )}
-            
-            {activeTab === 'specification' && (
-              <div className={styles.specificationTable}>
-                <h3 className={styles.contentTitle}>বিস্তারিত বিবরণ</h3>
-                <table className={styles.specTable}>
-                  <tbody>
-                    <tr>
-                      <td className={styles.specLabel}>শিরোনাম</td>
-                      <td className={styles.specValue}>{title}</td>
-                    </tr>
-                    <tr>
-                      <td className={styles.specLabel}>লেখক</td>
-                      <td className={styles.specValue}>
-                        <Link href={`/books?author=${authorSlug}`} className={styles.specLink}>
-                          {authorName}
-                        </Link>
-                      </td>
-                    </tr>
-                    {book.book_type === 'translated' && (
-                      <tr>
-                        <td className={styles.specLabel}>বইয়ের ধরন</td>
-                        <td className={styles.specValue}>অনুবাদ</td>
-                      </tr>
-                    )}
-                    {book.translator && (
-                      <tr>
-                        <td className={styles.specLabel}>অনুবাদক</td>
-                        <td className={styles.specValue}>{book.translator}</td>
-                      </tr>
-                    )}
-                    {book.editor && (
-                      <tr>
-                        <td className={styles.specLabel}>সম্পাদক</td>
-                        <td className={styles.specValue}>{book.editor}</td>
-                      </tr>
-                    )}
-                    {book.publisher && (
-                      <tr>
-                        <td className={styles.specLabel}>প্রকাশক</td>
-                        <td className={styles.specValue}>{book.publisher}</td>
-                      </tr>
-                    )}
-                    {book.isbn && (
-                      <tr>
-                        <td className={styles.specLabel}>ISBN</td>
-                        <td className={styles.specValue}>{book.isbn}</td>
-                      </tr>
-                    )}
-                    {book.edition && (
-                      <tr>
-                        <td className={styles.specLabel}>সংস্করণ</td>
-                        <td className={styles.specValue}>{book.edition}</td>
-                      </tr>
-                    )}
-                    {book.pages > 0 && (
-                      <tr>
-                        <td className={styles.specLabel}>পৃষ্ঠা সংখ্যা</td>
-                        <td className={styles.specValue}>{book.pages}</td>
-                      </tr>
-                    )}
-                    <tr>
-                      <td className={styles.specLabel}>দেশ</td>
-                      <td className={styles.specValue}>বাংলাদেশ</td>
-                    </tr>
-                    <tr>
-                      <td className={styles.specLabel}>ভাষা</td>
-                      <td className={styles.specValue}>{book.language === 'bangla' ? 'বাংলা' : book.language === 'english' ? 'English' : 'আরবি'}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
 
             {activeTab === 'author' && (
               <div className={styles.authorBio}>
                 <h3 className={styles.contentTitle}>লেখক পরিচিতি</h3>
                 <p>{book.author_bio || book.author_details?.bio || book.author?.bio || 'লেখকের তথ্য পাওয়া যায়নি।'}</p>
+              </div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <div className={styles.reviewsTab}>
+                <h3 className={styles.contentTitle}>গ্রাহক রিভিউ ও রেটিং</h3>
+                
+                {/* Rating Summary */}
+                <div className={styles.ratingSummaryCard}>
+                  <div className={styles.ratingSummaryScore}>
+                    <div className={styles.averageScore}>{book.rating || '0.0'}</div>
+                    <div className={styles.averageStars}>{renderStars(book.rating)}</div>
+                    <div className={styles.totalReviewsCount}>{book.review_count || 0}টি রিভিউ</div>
+                  </div>
+                  <div className={styles.ratingInfoText}>
+                    আমাদের সকল রিভিউ যাচাইকৃত ক্রেতাদের থেকে প্রাপ্ত। বইটির ব্যাপারে আপনার মূল্যবান মতামত শেয়ার করুন।
+                  </div>
+                </div>
+
+                {/* Reviews List */}
+                <div className={styles.reviewsList}>
+                  {Array.isArray(book.reviews) && book.reviews.length > 0 ? (
+                    book.reviews.map((rev, idx) => (
+                      <div key={rev.id || idx} className={styles.reviewCard}>
+                        <div className={styles.reviewHeader}>
+                          <span className={styles.reviewAuthor}>{rev.customer_name}</span>
+                          <span className={styles.reviewDate}>
+                            {rev.created_at ? new Date(rev.created_at).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
+                          </span>
+                        </div>
+                        <div className={styles.reviewStars}>{renderStars(rev.rating)}</div>
+                        <p className={styles.reviewComment}>{rev.comment}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.noReviews}>বইটির কোনো রিভিউ এখনো দেওয়া হয়নি। প্রথম রিভিউটি আপনি দিন!</div>
+                  )}
+                </div>
+
+                {/* Review Form */}
+                <div className={styles.reviewFormContainer}>
+                  <h4 className={styles.formTitle}>রিভিউ লিখুন</h4>
+                  {reviewMessage && <div className={styles.successAlert}>{reviewMessage}</div>}
+                  {reviewError && <div className={styles.errorAlert}>{reviewError}</div>}
+                  
+                  <form onSubmit={handleReviewSubmit} className={styles.reviewForm}>
+                    <div className={styles.formGroup}>
+                      <label>আপনার নাম:</label>
+                      <input
+                        type="text"
+                        value={reviewName}
+                        onChange={(e) => setReviewName(e.target.value)}
+                        className={styles.formInput}
+                        placeholder="যেমন: আরিয়ান রহমান"
+                        required
+                      />
+                    </div>
+                    
+                    <div className={styles.formGroup}>
+                      <label>রেটিং দিন:</label>
+                      {renderInteractiveStars()}
+                    </div>
+                    
+                    <div className={styles.formGroup}>
+                      <label>আপনার মতামত:</label>
+                      <textarea
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        className={styles.formTextarea}
+                        placeholder="বইটি কেমন লেগেছে? আপনার অনুভূতি বিস্তারিত লিখুন..."
+                        rows={4}
+                        required
+                      />
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      disabled={submittingReview}
+                      className={styles.submitReviewBtn}
+                    >
+                      {submittingReview ? 'জমা দেওয়া হচ্ছে...' : 'রিভিউ জমা দিন'}
+                    </button>
+                  </form>
+                </div>
               </div>
             )}
           </div>

@@ -73,6 +73,7 @@
   flex-direction: column;
   gap: 3px;
   flex: 1;
+  min-width: 0;
 }
 .title {
   font-size: 14px;
@@ -94,6 +95,21 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  margin-top: 2px;
+}
+.stars {
+  color: #f39c12;
+  letter-spacing: 1px;
+}
+.ratingScore {
+  color: #718096;
+  font-weight: 600;
 }
 
 /* Price Row */
@@ -133,6 +149,35 @@
   background: var(--color-primary-dark);
 }
 
+.favoriteBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: white;
+  color: #718096;
+  border: 1px solid #eaeaea;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.favoriteBtn:hover {
+  transform: scale(1.1);
+  color: #e53e3e;
+  border-color: #fca5a5;
+}
+.favorited {
+  color: #e53e3e !important;
+  border-color: #fecaca !important;
+  background: #fff5f5 !important;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .card { border-radius: 8px; }
@@ -143,6 +188,8 @@
   .originalPrice { font-size: 10px; }
   .addBtn { padding: 6px; font-size: 11px; margin-top: 4px; border-radius: 5px; }
   .discountBadge { top: 6px; left: 6px; padding: 1px 6px; font-size: 11px; }
+  .favoriteBtn { top: 6px; right: 6px; width: 28px; height: 28px; }
+  .favoriteBtn svg { width: 14px; height: 14px; }
   .imageWrap {
     aspect-ratio: 5/7;
   }

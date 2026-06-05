@@ -9,6 +9,8 @@ export default function FilterSidebarClient({ categories, authors, getUrl }) {
   const searchParams = useSearchParams();
   const selectedCat = searchParams.get('category') || 'all';
   const selectedAuthor = searchParams.get('author') || 'all';
+  const minPrice = searchParams.get('min_price') || '';
+  const maxPrice = searchParams.get('max_price') || '';
 
   // We need a way to generate URL on client since we can't pass a server function directly if it depends on request.
   // Actually, we can just use the current searchParams to generate the URL.
@@ -86,6 +88,45 @@ export default function FilterSidebarClient({ categories, authors, getUrl }) {
               {author.name}
             </Link>
           ))}
+        </div>
+
+        <div className={styles.filterGroup} style={{ marginTop: '24px' }}>
+          <h3 className={styles.filterTitle}>মূল্য</h3>
+          <Link
+            href={createUrl({ min_price: null, max_price: null })}
+            className={`${styles.filterBtn} ${minPrice === '' && maxPrice === '' ? styles.filterActive : ''}`}
+            onClick={() => setIsOpen(false)}
+          >
+            সব মূল্য
+          </Link>
+          <Link
+            href={createUrl({ min_price: '0', max_price: '100' })}
+            className={`${styles.filterBtn} ${minPrice === '0' && maxPrice === '100' ? styles.filterActive : ''}`}
+            onClick={() => setIsOpen(false)}
+          >
+            ০ - ১০০ টাকা
+          </Link>
+          <Link
+            href={createUrl({ min_price: '100', max_price: '200' })}
+            className={`${styles.filterBtn} ${minPrice === '100' && maxPrice === '200' ? styles.filterActive : ''}`}
+            onClick={() => setIsOpen(false)}
+          >
+            ১০০ - ২০০ টাকা
+          </Link>
+          <Link
+            href={createUrl({ min_price: '200', max_price: '500' })}
+            className={`${styles.filterBtn} ${minPrice === '200' && maxPrice === '500' ? styles.filterActive : ''}`}
+            onClick={() => setIsOpen(false)}
+          >
+            ২০০ - ৫০০ টাকা
+          </Link>
+          <Link
+            href={createUrl({ min_price: '500', max_price: null })}
+            className={`${styles.filterBtn} ${minPrice === '500' && maxPrice === '' ? styles.filterActive : ''}`}
+            onClick={() => setIsOpen(false)}
+          >
+            ৫০০+ টাকা
+          </Link>
         </div>
       </aside>
     </>

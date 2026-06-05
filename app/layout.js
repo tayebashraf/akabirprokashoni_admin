@@ -1,6 +1,7 @@
 import './globals.css';
 import { CartProvider } from '@/lib/CartContext';
 import { AuthProvider } from '@/lib/AuthContext';
+import { FavoriteProvider } from '@/lib/FavoriteContext';
 import ClientLayoutWrapper from '@/components/ClientLayoutWrapper';
 
 export const metadata = {
@@ -56,11 +57,13 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         <AuthProvider>
-          <CartProvider>
-            <ClientLayoutWrapper>
-              {children}
-            </ClientLayoutWrapper>
-          </CartProvider>
+          <FavoriteProvider>
+            <CartProvider>
+              <ClientLayoutWrapper>
+                {children}
+              </ClientLayoutWrapper>
+            </CartProvider>
+          </FavoriteProvider>
         </AuthProvider>
       </body>
     </html>

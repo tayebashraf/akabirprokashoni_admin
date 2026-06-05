@@ -71,6 +71,38 @@ export default function AdminOrders() {
     }
   }, [orderToPrint]);
 
+  const fetchTrackingStatus = async (orderId) => {
+    setTrackingLoading(true);
+    setTrackingError('');
+    try {
+      const { getAdminSteadfastTracking } = await import('@/lib/api');
+      const res = await getAdminSteadfastTracking(orderId);
+      if (res.success) {
+        setSteadfastStatus({
+          status: res.steadfast_status,
+          details: res.steadfast_details
+        });
+        
+        // Auto update order status locally if changed in DB
+        const statusLower = res.steadfast_status.toLowerCase();
+        let matchedStatus = null;
+        if (statusLower.includes('deliver')) matchedStatus = 'delivered';
+        else if (statusLower.includes('cancel')) matchedStatus = 'cancelled';
+        else if (statusLower.includes('return')) matchedStatus = 'returned';
+
+        if (matchedStatus) {
+          setOrders(prev => prev.map(o => o.order_id === orderId ? { ...o, status: matchedStatus } : o));
+          setFormData(prev => ({ ...prev, status: matchedStatus }));
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setTrackingError(err.message || 'কুরিয়ার স্ট্যাটাস লোড করা যায়নি।');
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+
   const openOrderModal = (order) => {
     setSelectedOrder(order);
     setFormData({
@@ -81,6 +113,12 @@ export default function AdminOrders() {
       steadfast_tracking_code: order.steadfast_tracking_code || '',
       steadfast_consignment_id: order.steadfast_consignment_id || '',
     });
+    setSteadfastStatus(null);
+    setTrackingError('');
+    
+    if (order.steadfast_consignment_id || order.steadfast_tracking_code) {
+      fetchTrackingStatus(order.order_id);
+    }
   };
 
   const handleUpdateOrder = async (e) => {
@@ -259,11 +297,17 @@ export default function AdminOrders() {
                       
                       {order.steadfast_consignment_id ? (
                         <span style={{ 
-                          padding: '6px 12px', fontSize: '13px', borderRadius: '4px',
+                          padding: '4px 8px', fontSize: '12px', borderRadius: '4px',
                           backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0',
-                          display: 'flex', alignItems: 'center', fontWeight: 'bold'
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', fontWeight: 'bold',
+                          lineHeight: '1.2'
                         }}>
-                          ✅ পাঠানো হয়েছে
+                          <span>✅ পাঠানো হয়েছে</span>
+                          {order.steadfast_tracking_code && (
+                            <span style={{ fontSize: '10px', marginTop: '2px', color: '#15803d', fontFamily: 'monospace' }}>
+                              {order.steadfast_tracking_code}
+                            </span>
+                          )}
                         </span>
                       ) : (
                         <button 
@@ -342,6 +386,109 @@ export default function AdminOrders() {
                 <p style={{ margin: '4px 0' }}><strong>ডেলিভারি চার্জ:</strong> ৳{selectedOrder.delivery_charge}</p>
                 <p style={{ margin: '4px 0', fontSize: '18px', fontWeight: 'bold' }}><strong>সর্বমোট:</strong> ৳{selectedOrder.total}</p>
               </div>
+            </div>
+
+            {/* SteadFast Integration Section */}
+            <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '12px' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  🚚 SteadFast কুরিয়ার ট্র্যাকিং
+                </h3>
+                {selectedOrder.steadfast_consignment_id && (
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    style={{ padding: '4px 10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#e2e8f0', border: 'none', color: '#1e293b', cursor: 'pointer', borderRadius: '4px' }}
+                    onClick={() => fetchTrackingStatus(selectedOrder.order_id)}
+                    disabled={trackingLoading}
+                  >
+                    🔄 {trackingLoading ? 'আপডেট হচ্ছে...' : 'আপডেট চেক করুন'}
+                  </button>
+                )}
+              </div>
+
+              {selectedOrder.steadfast_consignment_id ? (
+                <div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                    <p style={{ margin: 0 }}><strong>কনসাইনমেন্ট আইডি:</strong> {selectedOrder.steadfast_consignment_id}</p>
+                    <p style={{ margin: 0 }}>
+                      <strong>ট্র্যাকিং কোড:</strong> {selectedOrder.steadfast_tracking_code}
+                      {selectedOrder.steadfast_tracking_code && (
+                        <a 
+                          href={`https://portal.steadfast.com.bd/tracking?tracking_code=${selectedOrder.steadfast_tracking_code}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          style={{ marginLeft: '8px', color: '#ff5722', fontWeight: 'bold', textDecoration: 'underline' }}
+                        >
+                          অনুসরণ করুন ↗
+                        </a>
+                      )}
+                    </p>
+                  </div>
+
+                  <div style={{ padding: '12px', borderRadius: '6px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <strong>লাইভ কুরিয়ার স্ট্যাটাস:</strong>{' '}
+                    {trackingLoading ? (
+                      <span style={{ color: '#64748b' }}>লোড হচ্ছে...</span>
+                    ) : trackingError ? (
+                      <span style={{ color: '#ef4444' }}>{trackingError}</span>
+                    ) : steadfastStatus ? (
+                      <span style={{ 
+                        fontWeight: 'bold', 
+                        color: steadfastStatus.status.toLowerCase().includes('deliver') ? '#166534' : 
+                               (steadfastStatus.status.toLowerCase().includes('cancel') ? '#991b1b' : '#1e3a8a')
+                      }}>
+                        {steadfastStatus.status}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#64748b' }}>কোনো তথ্য পাওয়া যায়নি। আপডেট চেক বাটনে ক্লিক করুন।</span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff7ed', border: '1px solid #ffedd5', padding: '12px', borderRadius: '6px', flexWrap: 'wrap', gap: '12px' }}>
+                  <p style={{ margin: 0, color: '#c2410c', fontSize: '14px' }}>
+                    এই অর্ডারটি এখনো SteadFast কুরিয়ার সার্ভিসে বুকিং করা হয়নি।
+                  </p>
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{ backgroundColor: '#ff5722', color: 'white', fontSize: '13px', padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    onClick={async () => {
+                      if (confirm('আপনি কি নিশ্চিত যে এই অর্ডারটি SteadFast-এ পাঠাতে চান?')) {
+                        try {
+                          const { sendOrderToSteadfast } = await import('@/lib/api');
+                          const res = await sendOrderToSteadfast(selectedOrder.order_id);
+                          alert('সফলভাবে SteadFast-এ বুকিং করা হয়েছে!');
+                          
+                          // Update local state and current modal view
+                          const updatedOrder = { 
+                            ...selectedOrder, 
+                            steadfast_consignment_id: res.consignment_id || 'sent',
+                            steadfast_tracking_code: res.tracking_code || '',
+                            status: 'shipped'
+                          };
+                          setSelectedOrder(updatedOrder);
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            steadfast_consignment_id: res.consignment_id || 'sent',
+                            steadfast_tracking_code: res.tracking_code || '',
+                            status: 'shipped'
+                          }));
+                          setOrders(prev => prev.map(o => o.order_id === selectedOrder.order_id ? updatedOrder : o));
+                          
+                          // Load initial tracking status immediately
+                          fetchTrackingStatus(selectedOrder.order_id);
+                        } catch (err) {
+                          alert(err.message || 'SteadFast-এ বুকিং করতে ব্যর্থ হয়েছে।');
+                        }
+                      }
+                    }}
+                  >
+                    🚀 SteadFast-এ বুক করুন
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Update Form */}

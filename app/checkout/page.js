@@ -94,7 +94,12 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (user) {
-      setDefaultValues(prev => ({ ...prev, name: user.name || '', phone: user.phone || '', email: user.email || prev.email }));
+      setDefaultValues(prev => ({ 
+        ...prev, 
+        name: user.name || '', 
+        phone: (user.phone && /^01[3-9]\d{8}$/.test(user.phone)) ? user.phone : '', 
+        email: user.email || prev.email 
+      }));
       if (token) {
         fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/accounts/profile/`, {
           headers: { 'Authorization': `Bearer ${token}` }

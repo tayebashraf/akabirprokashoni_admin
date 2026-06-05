@@ -12,7 +12,8 @@ export default function AdminSettings() {
     facebook_url: '', youtube_url: '', instagram_url: '',
     footer_text: '', announcement: '',
     delivery_charge_dhaka: 60, delivery_charge_outside: 120,
-    extra_charge_per_kg_dhaka: 15, extra_charge_per_kg_outside: 20
+    extra_charge_per_kg_dhaka: 15, extra_charge_per_kg_outside: 20,
+    steadfast_api_key: '', steadfast_secret_key: ''
   });
   const [files, setFiles] = useState({
     logo: null,
@@ -38,7 +39,9 @@ export default function AdminSettings() {
           delivery_charge_dhaka: data.delivery_charge_dhaka !== undefined ? data.delivery_charge_dhaka : 60,
           delivery_charge_outside: data.delivery_charge_outside !== undefined ? data.delivery_charge_outside : 120,
           extra_charge_per_kg_dhaka: data.extra_charge_per_kg_dhaka !== undefined ? data.extra_charge_per_kg_dhaka : 15,
-          extra_charge_per_kg_outside: data.extra_charge_per_kg_outside !== undefined ? data.extra_charge_per_kg_outside : 20
+          extra_charge_per_kg_outside: data.extra_charge_per_kg_outside !== undefined ? data.extra_charge_per_kg_outside : 20,
+          steadfast_api_key: data.steadfast_api_key || '',
+          steadfast_secret_key: data.steadfast_secret_key || ''
         });
       }
     } catch (error) {
@@ -171,6 +174,18 @@ export default function AdminSettings() {
             <div>
               <label>ঢাকার বাইরে অতিরিক্ত প্রতি কেজি (৳)</label>
               <input type="number" name="extra_charge_per_kg_outside" value={formData.extra_charge_per_kg_outside} onChange={handleInputChange} className="form-control" />
+            </div>
+          </div>
+
+          <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginTop: '20px' }}>🚚 SteadFast API কনফিগারেশন</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div>
+              <label>Steadfast API Key</label>
+              <input type="text" name="steadfast_api_key" value={formData.steadfast_api_key} onChange={handleInputChange} className="form-control" placeholder="Steadfast API Key লিখুন" />
+            </div>
+            <div>
+              <label>Steadfast Secret Key</label>
+              <input type="text" name="steadfast_secret_key" value={formData.steadfast_secret_key} onChange={handleInputChange} className="form-control" placeholder="Steadfast Secret Key লিখুন" />
             </div>
           </div>
 

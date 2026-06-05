@@ -2,6 +2,21 @@ import { getBookBySlug, getRelatedBooks } from '@/lib/api';
 import BookDetailClient from './BookDetailClient';
 import { notFound } from 'next/navigation';
 
+function getAbsoluteImageUrl(url) {
+  if (!url) return 'https://www.akabirprokashoni.com/default-book.png';
+  if (url.startsWith('http')) return url;
+  
+  const apiBase = process.env.NEXT_PUBLIC_API_URL 
+    ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') 
+    : 'https://api.akabirprokashoni.com';
+    
+  if (url.startsWith('/media/')) {
+    return `${apiBase}${url}`;
+  }
+  
+  return `https://www.akabirprokashoni.com${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const book = await getBookBySlug(resolvedParams.slug);
@@ -12,6 +27,8 @@ export async function generateMetadata({ params }) {
   const description = book.meta_description || book.description?.substring(0, 160) || `Buy ${book.title} from Akabir Prokashoni.`;
   const keywords = book.meta_keywords || book.tags_list?.join(', ') || '';
 
+  const absoluteImageUrl = getAbsoluteImageUrl(book.cover);
+
   return {
     title,
     description,
@@ -19,7 +36,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title,
       description,
-      images: [book.cover || '/default-book.png'],
+      images: [absoluteImageUrl],
       type: 'book',
       authors: [book.author?.name || book.author_details?.name],
     },
@@ -27,7 +44,7 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title,
       description,
-      images: [book.cover || '/default-book.png'],
+      images: [absoluteImageUrl],
     }
   };
 }

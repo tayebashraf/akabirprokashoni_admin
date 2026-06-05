@@ -557,21 +557,29 @@
 .shareSection {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   font-size: 14px;
-  margin-top: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
 }
 .shareTitle {
   font-weight: 700;
   color: #475569;
+  margin-right: 4px;
 }
-.shareFb, .shareWa {
-  padding: 6px 16px;
+.shareFb, .shareWa, .shareTg, .shareTw, .shareCopy, .shareNative {
+  padding: 8px 14px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 700;
   color: white !important;
-  transition: opacity 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
 }
 .shareFb {
   background: #1877f2;
@@ -579,8 +587,54 @@
 .shareWa {
   background: #25d366;
 }
-.shareFb:hover, .shareWa:hover {
-  opacity: 0.9;
+.shareTg {
+  background: #0088cc;
+}
+.shareTw {
+  background: #000000;
+}
+.shareCopy {
+  background: #64748b;
+  position: relative;
+}
+.shareNative {
+  background: #ff5722;
+}
+.shareFb:hover, .shareWa:hover, .shareTg:hover, .shareTw:hover, .shareCopy:hover, .shareNative:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+.shareFb:active, .shareWa:active, .shareTg:active, .shareTw:active, .shareCopy:active, .shareNative:active {
+  transform: translateY(0);
+}
+.copiedTooltip {
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  animation: fadeIn 0.2s ease;
+}
+.copiedTooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1e293b;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, 4px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 
 /* Reviews Tab */

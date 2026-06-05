@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/CartContext';
@@ -21,6 +21,40 @@ export default function BookDetailClient({ book, relatedBooks }) {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewMessage, setReviewMessage] = useState(null);
   const [reviewError, setReviewError] = useState(null);
+
+  const [copied, setCopied] = useState(false);
+  const [isShareSupported, setIsShareSupported] = useState(false);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      setIsShareSupported(true);
+    }
+  }, []);
+
+  const copyToClipboard = () => {
+    const bookUrl = `https://www.akabirprokashoni.com/books/${book.slug}`;
+    navigator.clipboard.writeText(bookUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy link: ', err);
+    });
+  };
+
+  const handleNativeShare = async () => {
+    const bookUrl = `https://www.akabirprokashoni.com/books/${book.slug}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: book.title,
+          text: `দ্বীনি ও ইসলামিক বইয়ের নির্ভরযোগ্য অনলাইন বুকশপ আকাবির প্রকাশনী থেকে "${book.title}" বইটি দেখুন।`,
+          url: bookUrl,
+        });
+      } catch (err) {
+        console.log("Error sharing:", err);
+      }
+    }
+  };
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -370,12 +404,83 @@ export default function BookDetailClient({ book, relatedBooks }) {
             {/* Share Section */}
             <div className={styles.shareSection}>
               <span className={styles.shareTitle}>শেয়ার করুন:</span>
-              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`} target="_blank" rel="noopener noreferrer" className={styles.shareFb}>
+              
+              {/* Facebook */}
+              <a 
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.akabirprokashoni.com/books/${book.slug}`)}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className={styles.shareFb}
+                title="ফেসবুকে শেয়ার করুন"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                 Facebook
               </a>
-              <a href={`https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' ' + (typeof window !== 'undefined' ? window.location.href : ''))}`} target="_blank" rel="noopener noreferrer" className={styles.shareWa}>
+
+              {/* WhatsApp */}
+              <a 
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`*${title}* - ${authorName}\nদ্বীনি ও ইসলামিক বইয়ের নির্ভরযোগ্য অনলাইন বুকশপ আকাবির প্রকাশনী থেকে বইটি সংগ্রহ করতে ভিজিট করুন: https://www.akabirprokashoni.com/books/${book.slug}`)}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className={styles.shareWa}
+                title="হোয়াটসঅ্যাপে শেয়ার করুন"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.59 1.97 14.12 .95 11.5 1.05c-5.432 0-9.858 4.37-9.862 9.8-.001 1.748.484 3.454 1.411 4.967l-.962 3.512 3.6-.926zm12.39-3.793c-.272-.136-1.613-.797-1.863-.888-.25-.09-.432-.136-.613.136-.182.273-.705.888-.864 1.07-.159.18-.318.203-.59.067-.272-.135-1.15-.423-2.186-1.348-.806-.717-1.35-1.607-1.508-1.88-.159-.272-.017-.419.12-.556.122-.122.272-.318.408-.477.136-.16.182-.272.272-.455.09-.181.045-.34-.023-.477-.068-.136-.613-1.477-.838-2.023-.22-.53-.44-.457-.613-.466-.159-.008-.34-.01-.522-.01-.182 0-.477.067-.727.34-.25.272-.954.933-.954 2.273s.977 2.636 1.114 2.818c.136.182 1.92 2.93 4.65 4.113.65.28 1.157.447 1.553.573.654.207 1.25.177 1.719.108.524-.078 1.613-.659 1.84-1.295.228-.636.228-1.182.16-1.295-.069-.114-.25-.205-.523-.341z"/></svg>
                 WhatsApp
               </a>
+
+              {/* Telegram */}
+              <a 
+                href={`https://t.me/share/url?url=${encodeURIComponent(`https://www.akabirprokashoni.com/books/${book.slug}`)}&text=${encodeURIComponent(`*${title}* — ${authorName}`)}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className={styles.shareTg}
+                title="টেলিগ্রামে শেয়ার করুন"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-1-.65-.35-1 .22-1.58.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.24-5.54 3.65-.52.36-1 .54-1.43.53-.48-.01-1.4-.27-2.08-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.03-.75 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.6 4.64-1.88 5.17-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.03.2z"/></svg>
+                Telegram
+              </a>
+
+              {/* Twitter / X */}
+              <a 
+                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://www.akabirprokashoni.com/books/${book.slug}`)}&text=${encodeURIComponent(`আকাবির প্রকাশনী থেকে পড়ুন "${title}" - ${authorName}`)}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className={styles.shareTw}
+                title="টুইটারে শেয়ার করুন"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                X
+              </a>
+
+              {/* Copy Link */}
+              <button 
+                type="button"
+                onClick={copyToClipboard}
+                className={styles.shareCopy}
+                title="লিংক কপি করুন"
+              >
+                {copied ? (
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                )}
+                <span>কপি লিংক</span>
+                {copied && <span className={styles.copiedTooltip}>লিংক কপি হয়েছে!</span>}
+              </button>
+
+              {/* Native System Share on Mobile */}
+              {isShareSupported && (
+                <button
+                  type="button"
+                  onClick={handleNativeShare}
+                  className={styles.shareNative}
+                  title="অন্যান্য মাধ্যমে শেয়ার করুন"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                  <span>শেয়ার</span>
+                </button>
+              )}
             </div>
 
           </div>

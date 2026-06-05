@@ -1,5 +1,5 @@
 import api from './client';
-import type { LoginResponse, DashboardStats, Order, PaginatedResponse, Review } from '../types';
+import type { LoginResponse, DashboardStats, Order, PaginatedResponse, Review, SteadfastTestResult } from '../types';
 
 // ============================================
 // অথেনটিকেশন
@@ -181,6 +181,10 @@ export const siteSettingsApi = {
     const { data } = await api.patch('/site-settings/1/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return data;
+  },
+  testSteadfast: async (): Promise<SteadfastTestResult> => {
+    const { data } = await api.get('/orders/admin/steadfast/test/');
     return data;
   },
 };

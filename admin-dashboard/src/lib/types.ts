@@ -170,6 +170,22 @@ export interface SiteSettings {
   instagram_url: string;
   footer_text: string;
   announcement: string;
+  steadfast_api_key?: string;
+  steadfast_secret_key?: string;
+}
+
+// Steadfast কানেকশন ডায়াগনস্টিক রেসপন্স
+export interface SteadfastTestResult {
+  db_api_key_present: boolean;
+  db_api_key_first4: string;
+  db_secret_key_present: boolean;
+  db_secret_key_first4: string;
+  final_api_key_present: boolean;
+  final_secret_key_present: boolean;
+  base_url: string;
+  test_url: string;
+  test_status_code: number | null;
+  test_response: unknown;
 }
 
 // ড্যাশবোর্ড পরিসংখ্যান

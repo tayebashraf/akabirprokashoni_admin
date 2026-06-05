@@ -73,7 +73,17 @@ export default function AdminSettings() {
     
     try {
       const data = new FormData();
-      Object.keys(formData).forEach(key => data.append(key, formData[key]));
+      Object.keys(formData).forEach(key => {
+        // Steadfast keys are write-only on the backend, so they always load
+        // empty here. Only send them when the admin actually typed a value,
+        // otherwise an empty submit would wipe the saved key (-> 401 Unauthorized).
+        if (key === 'steadfast_api_key' || key === 'steadfast_secret_key') {
+          const trimmed = (formData[key] || '').trim();
+          if (trimmed) data.append(key, trimmed);
+          return;
+        }
+        data.append(key, formData[key]);
+      });
       
       if (files.logo) data.append('logo', files.logo);
       if (files.favicon) data.append('favicon', files.favicon);
@@ -181,11 +191,11 @@ export default function AdminSettings() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div>
               <label>Steadfast API Key</label>
-              <input type="text" name="steadfast_api_key" value={formData.steadfast_api_key} onChange={handleInputChange} className="form-control" placeholder="Steadfast API Key লিখুন" />
+              <input type="text" name="steadfast_api_key" value={formData.steadfast_api_key} onChange={handleInputChange} className="form-control" placeholder="নতুন কী দিন (খালি রাখলে আগেরটি থাকবে)" />
             </div>
             <div>
               <label>Steadfast Secret Key</label>
-              <input type="text" name="steadfast_secret_key" value={formData.steadfast_secret_key} onChange={handleInputChange} className="form-control" placeholder="Steadfast Secret Key লিখুন" />
+              <input type="text" name="steadfast_secret_key" value={formData.steadfast_secret_key} onChange={handleInputChange} className="form-control" placeholder="নতুন কী দিন (খালি রাখলে আগেরটি থাকবে)" />
             </div>
           </div>
 

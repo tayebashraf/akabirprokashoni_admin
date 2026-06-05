@@ -8,7 +8,7 @@ import styles from './layout.module.css';
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
-  const { user, login, loading } = useAuth();
+  const { user, login, logout, loading } = useAuth();
   
   // Inline admin login form state
   const [phone, setPhone] = useState('');
@@ -145,6 +145,13 @@ export default function AdminLayout({ children }) {
           <Link href="/admin/settings" className={`${styles.navLink} ${pathname.includes('/settings') ? styles.navActive : ''}`}>
             ⚙️ সাইট সেটিংস
           </Link>
+          <button 
+            type="button" 
+            onClick={logout} 
+            className={styles.logoutBtn}
+          >
+            🔒 লগআউট
+          </button>
         </nav>
         <Link href="/" className={styles.backLink}>← ওয়েবসাইটে ফিরুন</Link>
       </aside>

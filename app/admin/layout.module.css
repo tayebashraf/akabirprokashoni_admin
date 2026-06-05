@@ -92,6 +92,30 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+.logoutBtn {
+  background: none;
+  border: none;
+  color: #fca5a5 !important;
+  text-decoration: none;
+  padding: 12px 16px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.93rem;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.logoutBtn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5 !important;
+  transform: translateX(3px);
+}
+
 /* --- Main Content --- */
 .mainContent {
   flex: 1;
@@ -126,6 +150,16 @@
     padding: 8px 12px;
     font-size: 0.82rem;
     gap: 6px;
+  }
+  .logoutBtn {
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    gap: 6px;
+    width: auto;
+  }
+  .logoutBtn:hover {
+    transform: none;
+    background: rgba(239, 68, 68, 0.15);
   }
   .mainContent {
     padding: 16px;

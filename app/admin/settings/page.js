@@ -1,12 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getSiteSettings, updateSiteSettings } from '@/lib/api';
+import { getSiteSettings, updateSiteSettings, testSteadfastConnection } from '@/lib/api';
 import styles from './page.module.css'; // Reusing similar CSS
 
 export default function AdminSettings() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [keyStatus, setKeyStatus] = useState({ api_set: false, secret_set: false });
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+
   const [formData, setFormData] = useState({
     site_name: '', site_tagline: '', phone: '', email: '', address: '',
     facebook_url: '', youtube_url: '', instagram_url: '',
@@ -40,8 +43,12 @@ export default function AdminSettings() {
           delivery_charge_outside: data.delivery_charge_outside !== undefined ? data.delivery_charge_outside : 120,
           extra_charge_per_kg_dhaka: data.extra_charge_per_kg_dhaka !== undefined ? data.extra_charge_per_kg_dhaka : 15,
           extra_charge_per_kg_outside: data.extra_charge_per_kg_outside !== undefined ? data.extra_charge_per_kg_outside : 20,
-          steadfast_api_key: data.steadfast_api_key || '',
-          steadfast_secret_key: data.steadfast_secret_key || ''
+          steadfast_api_key: '',
+          steadfast_secret_key: ''
+        });
+        setKeyStatus({
+          api_set: !!data.steadfast_api_key_set,
+          secret_set: !!data.steadfast_secret_key_set,
         });
       }
     } catch (error) {
@@ -89,12 +96,32 @@ export default function AdminSettings() {
       if (files.favicon) data.append('favicon', files.favicon);
 
       await updateSiteSettings(data);
+      // Optimistically mark keys as set if the admin just typed them, so the
+      // status reflects reality even if the refetch is served from cache.
+      setKeyStatus(prev => ({
+        api_set: prev.api_set || !!(formData.steadfast_api_key || '').trim(),
+        secret_set: prev.secret_set || !!(formData.steadfast_secret_key || '').trim(),
+      }));
+      setTestResult(null);
       alert('সাইট সেটিংস সফলভাবে আপডেট হয়েছে!');
       fetchData();
     } catch (error) {
       alert(`সমস্যা হয়েছে: ${error.message}`);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await testSteadfastConnection();
+      setTestResult(res);
+    } catch (error) {
+      setTestResult({ error: error.message });
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -188,16 +215,67 @@ export default function AdminSettings() {
           </div>
 
           <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginTop: '20px' }}>🚚 SteadFast API কনফিগারেশন</h3>
+          <p style={{ fontSize: '13px', color: '#666', margin: '0 0 5px' }}>
+            পোর্টাল থেকে Key কপি করে বসিয়ে সেভ করুন। সেভ করার পর নিরাপত্তার জন্য ফিল্ড খালি দেখাবে — এটাই স্বাভাবিক।
+            নিচের স্ট্যাটাস ও <b>টেস্ট</b> বাটন দিয়ে নিশ্চিত করুন।
+          </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div>
-              <label>Steadfast API Key</label>
+              <label>
+                Steadfast API Key{' '}
+                <span style={{ fontSize: '12px', fontWeight: 600, color: keyStatus.api_set ? '#16a34a' : '#dc2626' }}>
+                  {keyStatus.api_set ? '✓ সংরক্ষিত আছে' : '✗ সেট করা নেই'}
+                </span>
+              </label>
               <input type="text" name="steadfast_api_key" value={formData.steadfast_api_key} onChange={handleInputChange} className="form-control" placeholder="নতুন কী দিন (খালি রাখলে আগেরটি থাকবে)" />
             </div>
             <div>
-              <label>Steadfast Secret Key</label>
+              <label>
+                Steadfast Secret Key{' '}
+                <span style={{ fontSize: '12px', fontWeight: 600, color: keyStatus.secret_set ? '#16a34a' : '#dc2626' }}>
+                  {keyStatus.secret_set ? '✓ সংরক্ষিত আছে' : '✗ সেট করা নেই'}
+                </span>
+              </label>
               <input type="text" name="steadfast_secret_key" value={formData.steadfast_secret_key} onChange={handleInputChange} className="form-control" placeholder="নতুন কী দিন (খালি রাখলে আগেরটি থাকবে)" />
             </div>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '5px' }}>
+            <button type="button" onClick={handleTestConnection} disabled={testing}
+                    className="btn btn-secondary" style={{ whiteSpace: 'nowrap' }}>
+              {testing ? 'টেস্ট হচ্ছে...' : '🔌 কানেকশন টেস্ট করুন'}
+            </button>
+            <span style={{ fontSize: '12px', color: '#888' }}>Key সেভ করার পর টেস্ট করুন</span>
+          </div>
+          {testResult && (
+            <div style={{
+              marginTop: '10px', padding: '12px 15px', borderRadius: '8px', fontSize: '13px',
+              border: `1px solid ${testResult.test_status_code === 200 ? '#86efac' : '#fca5a5'}`,
+              background: testResult.test_status_code === 200 ? '#f0fdf4' : '#fef2f2',
+            }}>
+              {testResult.error ? (
+                <div style={{ color: '#dc2626', fontWeight: 600 }}>❌ {testResult.error}</div>
+              ) : (
+                <>
+                  <div style={{ fontWeight: 700, color: testResult.test_status_code === 200 ? '#15803d' : '#b91c1c' }}>
+                    {testResult.test_status_code === 200 ? '✅ কানেকশন সফল' : '❌ কানেকশন ব্যর্থ'}
+                  </div>
+                  <div style={{ marginTop: '6px', color: '#444', lineHeight: 1.8, fontFamily: 'monospace', fontSize: '12px' }}>
+                    Status Code: <b>{testResult.test_status_code ?? 'N/A'}</b><br />
+                    API Key: {testResult.db_api_key_present ? `${testResult.db_api_key_first4} ✓` : 'অনুপস্থিত ✗'}<br />
+                    Secret Key: {testResult.db_secret_key_present ? `${testResult.db_secret_key_first4} ✓` : 'অনুপস্থিত ✗'}<br />
+                    Base URL: {testResult.base_url}
+                  </div>
+                  {testResult.test_status_code !== 200 && (
+                    <div style={{ marginTop: '6px', color: '#b91c1c' }}>
+                      {testResult.test_status_code === 401 || testResult.test_status_code === 403
+                        ? 'Key ভুল বা নিষ্ক্রিয়। portal.packzy.com এ গিয়ে সঠিক API Key ও Secret Key নিশ্চিত করুন, তারপর এখানে আবার বসিয়ে সেভ করুন।'
+                        : 'Steadfast সার্ভার থেকে অপ্রত্যাশিত উত্তর এসেছে।'}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginTop: '20px' }}>ফুটার</h3>
           <div>

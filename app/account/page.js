@@ -205,7 +205,7 @@ export default function AccountPage() {
   }
 
   const userDisplayName = profile?.first_name 
-    ? `${profile.first_name} ${profile.last_name || ''}`.strip() 
+    ? `${profile.first_name} ${profile.last_name || ''}`.trim() 
     : user.name || 'গ্রাহক';
 
   return (

@@ -1,7 +1,174 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { getBooks, deleteBook, createBook, updateBook, getCategories, getAuthors, getBookBySlug, createAuthor, getImageUrl } from '@/lib/api';
 import styles from './page.module.css';
+
+
+/* ─────────────────────────────────────────────────────────────
+   AuthorAutocomplete — reusable autocomplete with chip tags
+   ───────────────────────────────────────────────────────────── */
+function AuthorAutocomplete({ label, allAuthors, selected, onChange, placeholder = 'টাইপ করুন...' }) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [highlightIdx, setHighlightIdx] = useState(-1);
+  const wrapperRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const selectedIds = new Set(selected.filter(c => c.id !== null).map(c => c.id));
+  const selectedNames = new Set(selected.map(c => c.name.trim().toLowerCase()));
+  const filtered = allAuthors.filter(a => {
+    if (selectedIds.has(a.id)) return false;
+    if (!query.trim()) return true;
+    return a.name.toLowerCase().includes(query.trim().toLowerCase());
+  });
+
+  useEffect(() => {
+    function handler(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const addChip = useCallback((chip) => {
+    if (selectedNames.has(chip.name.trim().toLowerCase())) return;
+    onChange([...selected, chip]);
+    setQuery('');
+    setOpen(false);
+    setHighlightIdx(-1);
+    inputRef.current?.focus();
+  }, [selected, selectedNames, onChange]);
+
+  const removeChip = useCallback((idx) => {
+    onChange(selected.filter((_, i) => i !== idx));
+  }, [selected, onChange]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightIdx(prev => Math.min(prev + 1, filtered.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightIdx(prev => Math.max(prev - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightIdx >= 0 && highlightIdx < filtered.length) {
+        addChip({ id: filtered[highlightIdx].id, name: filtered[highlightIdx].name });
+      } else if (query.trim()) {
+        const exact = allAuthors.find(a => a.name.trim().toLowerCase() === query.trim().toLowerCase());
+        if (exact) addChip({ id: exact.id, name: exact.name });
+        else addChip({ id: null, name: query.trim() });
+      }
+    } else if (e.key === 'Backspace' && !query && selected.length > 0) {
+      removeChip(selected.length - 1);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div>
+      <label>{label}</label>
+      <div ref={wrapperRef} style={{ position: 'relative' }}>
+        <div
+          onClick={() => inputRef.current?.focus()}
+          style={{
+            display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center',
+            padding: '8px 12px', minHeight: '44px',
+            border: '1.5px solid #d1d5db', borderRadius: '10px',
+            background: '#fff', cursor: 'text', transition: 'border-color 0.2s',
+          }}
+        >
+          {selected.map((chip, idx) => (
+            <span
+              key={`${chip.id ?? chip.name}-${idx}`}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                padding: '4px 10px', borderRadius: '20px',
+                fontSize: '13px', fontWeight: 500,
+                background: '#dcfce7', color: '#166534',
+                border: '1px solid #bbf7d0',
+              }}
+            >
+              {chip.name}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); removeChip(idx); }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#dc2626', fontSize: '14px', lineHeight: 1,
+                  padding: '0 2px', marginLeft: '2px',
+                }}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setOpen(true); setHighlightIdx(-1); }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={handleKeyDown}
+            placeholder={selected.length === 0 ? placeholder : 'আরো যোগ করুন...'}
+            style={{
+              flex: 1, minWidth: '120px', border: 'none', outline: 'none',
+              fontSize: '14px', background: 'transparent',
+            }}
+          />
+        </div>
+
+        {open && (query.trim() || filtered.length > 0) && (
+          <div style={{
+            position: 'absolute', zIndex: 100, marginTop: '4px',
+            width: '100%', maxHeight: '200px', overflowY: 'auto',
+            borderRadius: '10px', border: '1px solid #e5e7eb',
+            background: '#fff', boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
+          }}>
+            {filtered.length === 0 && query.trim() && (
+              <button
+                type="button"
+                onClick={() => {
+                  const exact = allAuthors.find(a => a.name.trim().toLowerCase() === query.trim().toLowerCase());
+                  if (exact) addChip({ id: exact.id, name: exact.name });
+                  else addChip({ id: null, name: query.trim() });
+                }}
+                style={{
+                  width: '100%', textAlign: 'left', padding: '10px 14px',
+                  border: 'none', background: 'none', cursor: 'pointer',
+                  fontSize: '14px', color: '#16a34a',
+                }}
+              >
+                ✨ &quot;{query.trim()}&quot; নতুন হিসেবে যোগ করুন
+              </button>
+            )}
+            {filtered.map((a, idx) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => addChip({ id: a.id, name: a.name })}
+                onMouseEnter={() => setHighlightIdx(idx)}
+                style={{
+                  width: '100%', textAlign: 'left', padding: '8px 14px',
+                  border: 'none', cursor: 'pointer', fontSize: '14px',
+                  background: idx === highlightIdx ? '#f0fdf4' : 'transparent',
+                  color: idx === highlightIdx ? '#166534' : '#374151',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {a.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 export default function AdminBooks() {
   const [books, setBooks] = useState([]);
@@ -16,8 +183,11 @@ export default function AdminBooks() {
   const [editingSlug, setEditingSlug] = useState(null);
   const [showNewAuthor, setShowNewAuthor] = useState(false);
   const [newAuthorName, setNewAuthorName] = useState('');
+  const [bookType, setBookType] = useState('original');
+  const [authorChips, setAuthorChips] = useState([]);
+  const [translatorChips, setTranslatorChips] = useState([]);
   const [formData, setFormData] = useState({
-    title: '', slug: '', author: '', category: '', publisher: '',
+    title: '', slug: '', category: '', publisher: '',
     price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
     edition: '', weight: '', dimensions: '', stock: '',
     is_trending: false, is_new_release: true, is_preorder: false,
@@ -68,8 +238,11 @@ export default function AdminBooks() {
 
   const openAddForm = () => {
     setEditingSlug(null);
+    setBookType('original');
+    setAuthorChips([]);
+    setTranslatorChips([]);
     setFormData({
-      title: '', slug: '', author: '', category: '', publisher: '',
+      title: '', slug: '', category: '', publisher: '',
       price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
       edition: '', weight: '', dimensions: '', stock: '',
       is_trending: false, is_new_release: true, is_preorder: false,
@@ -84,15 +257,33 @@ export default function AdminBooks() {
   const openEditForm = async (slug) => {
     try {
       setEditingSlug(slug);
-      setShowForm(true); // Open early, will populate when loaded
+      setShowForm(true);
       const bookData = await getBookBySlug(slug);
+      
+      // Set book type
+      setBookType(bookData.book_type === 'translated' ? 'translation' : (bookData.book_type || 'original'));
+      
+      // Set author chips from author_details
+      if (bookData.author_details && bookData.author_details.length > 0) {
+        setAuthorChips(bookData.author_details.map(a => ({ id: a.id, name: a.name })));
+      } else {
+        setAuthorChips([]);
+      }
+      
+      // Set translator chips from translator string
+      if (bookData.translator) {
+        const translatorNames = bookData.translator.split(',').map(n => n.trim()).filter(Boolean);
+        setTranslatorChips(translatorNames.map(name => {
+          const matchingAuthor = (authors || []).find(a => a.name.trim().toLowerCase() === name.toLowerCase());
+          return { id: matchingAuthor ? matchingAuthor.id : null, name };
+        }));
+      } else {
+        setTranslatorChips([]);
+      }
       
       setFormData({
         title: bookData.title || '',
         slug: bookData.slug || '',
-        author: (bookData.author_details && bookData.author_details.length > 0) 
-          ? bookData.author_details[0].id 
-          : (bookData.author?.id || bookData.author || ''),
         category: bookData.category_details?.id 
           || bookData.category?.id 
           || bookData.category 
@@ -117,8 +308,6 @@ export default function AdminBooks() {
         meta_description: bookData.meta_description || '',
         meta_keywords: bookData.meta_keywords || ''
       });
-      // Existing files can't be populated into input type="file" for security reasons
-      // We just leave files empty, and only send if user selects new ones
     } catch (error) {
       alert("বইয়ের তথ্য লোড করতে সমস্যা হয়েছে");
       setShowForm(false);
@@ -136,18 +325,25 @@ export default function AdminBooks() {
       // Add all text fields
       Object.keys(formData).forEach(key => {
         const val = formData[key];
-        // Skip null/undefined
         if (val === null || val === undefined) return;
-        // Skip empty strings (but not booleans or zero)
         if (val === '' && typeof val === 'string') return;
-        
-        if (key === 'author') {
-          // author -> authors for ManyToMany
-          data.append('authors', val);
-        } else {
-          data.append(key, val);
+        data.append(key, val);
+      });
+      
+      // Book type
+      data.set('book_type', bookType === 'translation' ? 'translated' : bookType);
+      
+      // Authors (ManyToMany) — only IDs of existing authors
+      authorChips.forEach(chip => {
+        if (chip.id !== null) {
+          data.append('authors', String(chip.id));
         }
       });
+      
+      // Translator (CharField) — combine names
+      if (bookType === 'translation' && translatorChips.length > 0) {
+        data.set('translator', translatorChips.map(c => c.name).join(', '));
+      }
       
       if (force) {
         data.append('force_upload', 'true');
@@ -156,12 +352,6 @@ export default function AdminBooks() {
       // Add files if selected
       if (files.cover) data.append('cover', files.cover);
       if (files.sample_pdf) data.append('sample_pdf', files.sample_pdf);
-
-      // Debug: log what's being sent
-      console.log('Sending FormData:');
-      for (const [k, v] of data.entries()) {
-        console.log(`  ${k}:`, v instanceof File ? `[File: ${v.name}]` : v);
-      }
 
       if (editingSlug) {
         await updateBook(editingSlug, data);
@@ -172,11 +362,10 @@ export default function AdminBooks() {
       }
       
       setShowForm(false);
-      fetchData(); // Refresh list
+      fetchData();
     } catch (error) {
       console.error('Book save error:', error);
-      let errMsg = error.message || 'অজানা ত্রুটি দেখা দিয়েছে।';
-      // Clean up the DRF formatted error (e.g. "[400] title: ...")
+      let errMsg = error.message || 'অজানা ত্রুটি দেখা দিয়েছে।';
       errMsg = errMsg.replace(/^\[\d+\]\s*(.*?:\s*)?/, '');
       setUploadError(errMsg);
     } finally {
@@ -189,9 +378,9 @@ export default function AdminBooks() {
       try {
         await deleteBook(slug);
         setBooks(prev => prev.filter(b => b.slug !== slug));
-        alert('বইটি সফলভাবে ডিলিট হয়েছে!');
+        alert('বইটি সফলভাবে ডিলিট হয়েছে!');
       } catch (error) {
-        alert('ডিলিট করতে সমস্যা হয়েছে।');
+        alert('ডিলিট করতে সমস্যা হয়েছে।');
       }
     }
   };
@@ -267,7 +456,7 @@ export default function AdminBooks() {
                     </tr>
                   ))}
                   {books.length === 0 && (
-                    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>কোনো বই পাওয়া যায়নি</td></tr>
+                    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>কোনো বই পাওয়া যায়নি</td></tr>
                   )}
                 </tbody>
               </table>
@@ -297,14 +486,28 @@ export default function AdminBooks() {
                     <input type="text" name="slug" value={formData.slug} onChange={handleInputChange} className="form-control" placeholder="ফাঁকা রাখলে স্বয়ংক্রিয়ভাবে তৈরি হবে" />
                   </div>
                   <div>
-                    <label>লেখক *</label>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <select name="author" required value={formData.author} onChange={handleInputChange} className="form-control" style={{ flex: 1 }}>
-                        <option value="">লেখক নির্বাচন করুন</option>
-                        {authors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                      </select>
-                      <button type="button" onClick={() => setShowNewAuthor(!showNewAuthor)} style={{ padding: '8px 14px', background: 'var(--color-primary)', color: '#fff', borderRadius: '8px', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer', border: 'none' }}>
-                        + নতুন
+                    <label>বইয়ের ধরন *</label>
+                    <select value={bookType} onChange={(e) => setBookType(e.target.value)} className="form-control">
+                      <option value="original">মূল কিতাব</option>
+                      <option value="translation">অনুবাদ</option>
+                    </select>
+                  </div>
+                  
+                  {/* মূল লেখক — Autocomplete */}
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <AuthorAutocomplete
+                      label="মূল লেখক * (একাধিক নির্বাচন সম্ভব)"
+                      allAuthors={authors}
+                      selected={authorChips}
+                      onChange={setAuthorChips}
+                      placeholder="লেখকের নাম টাইপ করুন..."
+                    />
+                    {authorChips.length === 0 && (
+                      <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>কমপক্ষে একজন লেখক নির্বাচন করুন</p>
+                    )}
+                    <div style={{ marginTop: '6px' }}>
+                      <button type="button" onClick={() => setShowNewAuthor(!showNewAuthor)} style={{ padding: '6px 14px', background: 'var(--color-primary)', color: '#fff', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', border: 'none' }}>
+                        + নতুন লেখক যোগ করুন
                       </button>
                     </div>
                     {showNewAuthor && (
@@ -322,7 +525,7 @@ export default function AdminBooks() {
                           try {
                             const created = await createAuthor({ name: newAuthorName.trim() });
                             setAuthors(prev => [...prev, created]);
-                            setFormData(prev => ({ ...prev, author: created.id }));
+                            setAuthorChips(prev => [...prev, { id: created.id, name: created.name }]);
                             setNewAuthorName('');
                             setShowNewAuthor(false);
                           } catch (err) {
@@ -334,6 +537,20 @@ export default function AdminBooks() {
                       </div>
                     )}
                   </div>
+
+                  {/* অনুবাদক — Autocomplete (শুধুমাত্র অনুবাদ বই হলে) */}
+                  {bookType === 'translation' && (
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <AuthorAutocomplete
+                        label="অনুবাদক (একাধিক নির্বাচন সম্ভব)"
+                        allAuthors={authors}
+                        selected={translatorChips}
+                        onChange={setTranslatorChips}
+                        placeholder="অনুবাদকের নাম টাইপ করুন..."
+                      />
+                    </div>
+                  )}
+
                   <div>
                     <label>ক্যাটাগরি</label>
                     <select name="category" value={formData.category} onChange={handleInputChange} className="form-control">
@@ -348,7 +565,7 @@ export default function AdminBooks() {
                 </div>
 
                 {/* Book Details */}
-                <h3>বইয়ের বিস্তারিত</h3>
+                <h3>বইয়ের বিস্তারিত</h3>
                 <div className={styles.formGrid}>
                   <div>
                     <label>পৃষ্ঠা সংখ্যা</label>
@@ -452,7 +669,7 @@ export default function AdminBooks() {
                 
                 {uploadError && (
                   <div style={{ marginTop: '20px', padding: '15px', border: '1px solid #f5c6cb', borderRadius: '8px', backgroundColor: '#f8d7da', color: '#721c24' }}>
-                    <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>⚠️ আপলোডে সমস্যা দেখা দিয়েছে!</h4>
+                    <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>⚠️ আপলোডে সমস্যা দেখা দিয়েছে!</h4>
                     <p style={{ margin: '0 0 15px 0', fontSize: '14px' }}>{uploadError}</p>
                     
                     <div style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '5px', border: '1px solid #f5c6cb' }}>
@@ -472,7 +689,7 @@ export default function AdminBooks() {
 
                 <div className={styles.formActions}>
                   <button type="button" className="btn btn-outline" onClick={() => setShowForm(false)}>বাতিল</button>
-                  <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                  <button type="submit" className="btn btn-primary" disabled={isSubmitting || authorChips.length === 0}>
                     {isSubmitting ? 'সেভ হচ্ছে...' : 'সেভ করুন'}
                   </button>
                 </div>

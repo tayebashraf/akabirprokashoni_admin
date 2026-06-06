@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { API_URL } from '@/lib/api';
 
 export default function AccountSettingsPage() {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const [profileLoading, setProfileLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -25,7 +25,13 @@ export default function AccountSettingsPage() {
           'Authorization': `Bearer ${token}`
         }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          logout();
+          throw new Error('Unauthorized');
+        }
+        return res.json();
+      })
       .then(data => {
         setFormData({
           first_name: data.first_name || '',
@@ -41,7 +47,7 @@ export default function AccountSettingsPage() {
         setProfileLoading(false);
       });
     }
-  }, [token]);
+  }, [token, logout]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,6 +69,11 @@ export default function AccountSettingsPage() {
         },
         body: JSON.stringify(formData)
       });
+
+      if (res.status === 401) {
+        logout();
+        return;
+      }
 
       if (!res.ok) {
         throw new Error('প্রোফাইল আপডেট করতে সমস্যা হয়েছে।');

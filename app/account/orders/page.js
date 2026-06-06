@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { API_URL } from '@/lib/api';
 
 export default function AccountOrdersPage() {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
 
@@ -16,9 +16,19 @@ export default function AccountOrdersPage() {
           'Authorization': `Bearer ${token}`
         }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          logout();
+          throw new Error('Unauthorized');
+        }
+        return res.json();
+      })
       .then(data => {
-        setOrders(data);
+        if (Array.isArray(data)) {
+          setOrders(data);
+        } else {
+          setOrders([]);
+        }
         setOrdersLoading(false);
       })
       .catch(err => {
@@ -26,7 +36,7 @@ export default function AccountOrdersPage() {
         setOrdersLoading(false);
       });
     }
-  }, [token]);
+  }, [token, logout]);
 
   if (!user) return null;
 

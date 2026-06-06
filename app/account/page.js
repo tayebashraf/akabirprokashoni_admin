@@ -51,7 +51,13 @@ export default function AccountPage() {
       fetch(`${API_URL}/accounts/profile/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          logout();
+          throw new Error('Unauthorized');
+        }
+        return res.json();
+      })
       .then(data => {
         setProfile(data);
         setFirstName(data.first_name || '');
@@ -63,9 +69,19 @@ export default function AccountPage() {
       fetch(`${API_URL}/orders/my-orders/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          logout();
+          throw new Error('Unauthorized');
+        }
+        return res.json();
+      })
       .then(data => {
-        setOrders(data);
+        if (Array.isArray(data)) {
+          setOrders(data);
+        } else {
+          setOrders([]);
+        }
         setOrdersLoading(false);
       })
       .catch(err => {

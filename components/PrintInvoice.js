@@ -47,7 +47,16 @@ export default function PrintInvoice({ order }) {
           <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>অর্ডার বিবরণ:</h3>
           <p style={{ margin: '0 0 5px 0' }}><strong>পেমেন্ট মেথড:</strong> {order.payment_method === 'cod' ? 'ক্যাশ অন ডেলিভারি (COD)' : order.payment_method}</p>
           <p style={{ margin: '0 0 5px 0' }}><strong>পেমেন্ট স্ট্যাটাস:</strong> {order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}</p>
-          <p style={{ margin: '0' }}><strong>স্টেডফাস্ট ট্র্যাকিং:</strong> {order.steadfast_tracking_code || 'N/A'}</p>
+          <p style={{ margin: '0 0 5px 0' }}><strong>স্টেডফাস্ট ট্র্যাকিং:</strong> {order.steadfast_tracking_code || 'N/A'}</p>
+          {order.steadfast_tracking_code && (
+            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <img 
+                src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${order.steadfast_tracking_code}&scale=2&rotate=N&includetext=false`} 
+                alt="Barcode" 
+                style={{ height: '40px', width: 'auto' }}
+              />
+            </div>
+          )}
         </div>
       </div>
 

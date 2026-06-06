@@ -670,10 +670,96 @@ ul, ol {
   }
 }
 
+@media (max-width: 768px) {
+  .account-sidebar {
+    background: white;
+    padding: 1rem !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    border-radius: 0 !important;
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .account-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left !important;
+    margin-bottom: 1rem !important;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 10px;
+  }
+  
+  .account-profile-header .avatar {
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 1.5rem !important;
+    margin: 0 !important;
+    flex-shrink: 0;
+  }
+  
+  .account-profile-header .details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .account-profile-header h3 {
+    margin: 0 !important;
+    font-size: 1.1rem !important;
+  }
+  
+  .account-menu-list {
+    flex-direction: row !important;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    gap: 8px !important;
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .account-menu-list::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+  
+  .account-menu-button {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    border-radius: 9999px !important; /* Capsule style on mobile */
+    flex-shrink: 0;
+  }
+  
+  .account-menu-button svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+}
+
 @media (max-width: 600px) {
   .dashboard-stats-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+  .dashboard-stat-card {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 0.75rem 0.5rem !important;
+    gap: 6px !important;
+  }
+  .dashboard-icon-wrap {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .dashboard-icon-wrap svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .dashboard-stat-card strong {
+    font-size: 1.1rem !important;
   }
 }
 

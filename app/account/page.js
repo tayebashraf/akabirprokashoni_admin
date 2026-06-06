@@ -228,18 +228,21 @@ export default function AccountPage() {
     <div className="container section">
       <div className="accountGrid">
         {/* Sidebar */}
-        <div style={{ background: 'white', padding: '1.75rem', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.04)', border: '1px solid #f0f0f0', alignSelf: 'start' }}>
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div style={{ width: '85px', height: '85px', borderRadius: '50%', background: 'linear-gradient(135deg, #f0fdf4, #e2efe9)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem', margin: '0 auto 1.25rem', fontWeight: 'bold', border: '3px solid #fff', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
+        <div className="account-sidebar">
+          <div className="account-profile-header">
+            <div className="avatar" style={{ width: '85px', height: '85px', borderRadius: '50%', background: 'linear-gradient(135deg, #f0fdf4, #e2efe9)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem', margin: '0 auto 1.25rem', fontWeight: 'bold', border: '3px solid #fff', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
               {userDisplayName.charAt(0)}
             </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '0.3rem', color: '#1a1a1a' }}>{userDisplayName}</h3>
-            <span style={{ display: 'inline-block', background: '#f1f5f9', color: '#64748b', fontSize: '0.8rem', padding: '2px 10px', borderRadius: '9999px', fontWeight: '600' }}>{user.phone}</span>
+            <div className="details">
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '0.3rem', color: '#1a1a1a' }}>{userDisplayName}</h3>
+              <span style={{ display: 'inline-block', background: '#f1f5f9', color: '#64748b', fontSize: '0.8rem', padding: '2px 10px', borderRadius: '9999px', fontWeight: '600' }}>{user.phone}</span>
+            </div>
           </div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="account-menu-list">
             <button 
               onClick={() => setActiveTab('dashboard')}
+              className="account-menu-button"
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.8rem 1.25rem', color: activeTab === 'dashboard' ? 'white' : '#475569', background: activeTab === 'dashboard' ? '#C21A1A' : 'transparent', borderRadius: '8px', fontWeight: activeTab === 'dashboard' ? '700' : '500', textAlign: 'left', cursor: 'pointer', border: 'none', fontSize: '14px', transition: 'all 0.2s' }}
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -247,6 +250,7 @@ export default function AccountPage() {
             </button>
             <button 
               onClick={() => setActiveTab('favorites')}
+              className="account-menu-button"
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.8rem 1.25rem', color: activeTab === 'favorites' ? 'white' : '#475569', background: activeTab === 'favorites' ? '#C21A1A' : 'transparent', borderRadius: '8px', fontWeight: activeTab === 'favorites' ? '700' : '500', textAlign: 'left', cursor: 'pointer', border: 'none', fontSize: '14px', transition: 'all 0.2s' }}
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -254,6 +258,7 @@ export default function AccountPage() {
             </button>
             <button 
               onClick={() => setActiveTab('orders')}
+              className="account-menu-button"
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.8rem 1.25rem', color: activeTab === 'orders' ? 'white' : '#475569', background: activeTab === 'orders' ? '#C21A1A' : 'transparent', borderRadius: '8px', fontWeight: activeTab === 'orders' ? '700' : '500', textAlign: 'left', cursor: 'pointer', border: 'none', fontSize: '14px', transition: 'all 0.2s' }}
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
@@ -261,6 +266,7 @@ export default function AccountPage() {
             </button>
             <button 
               onClick={() => setActiveTab('addresses')}
+              className="account-menu-button"
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.8rem 1.25rem', color: activeTab === 'addresses' ? 'white' : '#475569', background: activeTab === 'addresses' ? '#C21A1A' : 'transparent', borderRadius: '8px', fontWeight: activeTab === 'addresses' ? '700' : '500', textAlign: 'left', cursor: 'pointer', border: 'none', fontSize: '14px', transition: 'all 0.2s' }}
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -268,6 +274,7 @@ export default function AccountPage() {
             </button>
             <button 
               onClick={() => setActiveTab('settings')}
+              className="account-menu-button"
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.8rem 1.25rem', color: activeTab === 'settings' ? 'white' : '#475569', background: activeTab === 'settings' ? '#C21A1A' : 'transparent', borderRadius: '8px', fontWeight: activeTab === 'settings' ? '700' : '500', textAlign: 'left', cursor: 'pointer', border: 'none', fontSize: '14px', transition: 'all 0.2s' }}
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -275,6 +282,7 @@ export default function AccountPage() {
             </button>
             <button 
               onClick={logout} 
+              className="account-menu-button"
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.8rem 1.25rem', color: '#dc2626', background: 'transparent', borderRadius: '8px', fontWeight: '600', textAlign: 'left', cursor: 'pointer', border: 'none', fontSize: '14px', transition: 'all 0.2s', marginTop: '1rem' }}
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -332,34 +340,6 @@ export default function AccountPage() {
 
               {/* Main Split Grid */}
               <div className="dashboard-split-grid">
-                {/* Profile Summary Card */}
-                <div className="dashboard-card">
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '1.25rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem', color: '#1e293b' }}>আমার প্রোফাইল</h3>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                    <div>
-                      <span style={{ color: '#64748b', fontSize: '0.85rem', display: 'block', marginBottom: '0.2rem', fontWeight: '600' }}>নাম</span>
-                      <strong style={{ fontSize: '1.05rem', color: '#1e293b' }}>{userDisplayName}</strong>
-                    </div>
-                    <div>
-                      <span style={{ color: '#64748b', fontSize: '0.85rem', display: 'block', marginBottom: '0.2rem', fontWeight: '600' }}>মোবাইল নম্বর</span>
-                      <strong style={{ fontSize: '1.05rem', color: '#1e293b' }}>{user.phone}</strong>
-                    </div>
-                    <div>
-                      <span style={{ color: '#64748b', fontSize: '0.85rem', display: 'block', marginBottom: '0.2rem', fontWeight: '600' }}>ডিফল্ট ঠিকানা</span>
-                      <strong style={{ fontSize: '1.05rem', color: '#1e293b', fontWeight: profile?.profile?.address ? '600' : 'normal' }}>
-                        {profile?.profile?.address || 'কোনো ঠিকানা সেট করা হয়নি'}
-                      </strong>
-                    </div>
-                    <div>
-                      <span style={{ color: '#64748b', fontSize: '0.85rem', display: 'block', marginBottom: '0.2rem', fontWeight: '600' }}>শহর</span>
-                      <strong style={{ fontSize: '1.05rem', color: '#1e293b' }}>{profile?.profile?.city || 'সেট করা হয়নি'}</strong>
-                    </div>
-                  </div>
-                  
-                  <button onClick={() => setActiveTab('settings')} className="btn btn-outline" style={{ marginTop: '1.75rem', width: '100%' }}>প্রোফাইল আপডেট করুন</button>
-                </div>
-
                 {/* Recent Orders Card */}
                 <div className="dashboard-card">
                   <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '1.25rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem', color: '#1e293b' }}>সাম্প্রতিক অর্ডার</h3>
@@ -374,7 +354,7 @@ export default function AccountPage() {
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {orders.slice(0, 2).map(order => (
+                      {orders.slice(0, 3).map(order => (
                         <div key={order.order_id} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
                             <h4 style={{ margin: 0, color: 'var(--color-primary)', fontSize: '0.95rem', fontWeight: '700' }}>#{order.order_id}</h4>
@@ -394,8 +374,45 @@ export default function AccountPage() {
                           </div>
                         </div>
                       ))}
-                      {orders.length > 2 && (
+                      {orders.length > 3 && (
                         <button onClick={() => setActiveTab('orders')} className="btn btn-outline" style={{ marginTop: '0.5rem', width: '100%' }}>সকল অর্ডার দেখুন</button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Recent Favorites Card */}
+                <div className="dashboard-card">
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '1.25rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem', color: '#1e293b' }}>❤️ পছন্দের বইসমূহ</h3>
+                  
+                  {favorites.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--color-text-secondary)' }}>
+                      <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '0.75rem' }}>❤️</span>
+                      <p style={{ fontSize: '0.9rem' }}>আপনার পছন্দের তালিকায় কোনো বই নেই।</p>
+                      <Link href="/books" className="btn btn-outline" style={{ marginTop: '1rem', display: 'inline-block', fontSize: '0.85rem' }}>পছন্দের বই খুঁজুন</Link>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {favorites.slice(0, 3).map(book => (
+                        <div key={book.id} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.85rem', display: 'flex', gap: '12px', alignItems: 'center' }}>
+                          <div style={{ width: '45px', height: '60px', borderRadius: '4px', background: '#f1f5f9', overflow: 'hidden', flexShrink: 0 }}>
+                            {book.coverImage ? (
+                              <img src={book.coverImage} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '20px' }}>📖</div>
+                            )}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: '700', color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{book.title}</h4>
+                            <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>{book.authorName}</p>
+                          </div>
+                          <Link href={`/books/${book.slug}`} className="btn btn-outline" style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', textDecoration: 'none', flexShrink: 0 }}>
+                            দেখুন
+                          </Link>
+                        </div>
+                      ))}
+                      {favorites.length > 3 && (
+                        <button onClick={() => setActiveTab('favorites')} className="btn btn-outline" style={{ marginTop: '0.5rem', width: '100%' }}>সব পছন্দের বই দেখুন</button>
                       )}
                     </div>
                   )}

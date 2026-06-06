@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/AuthContext';
 import confetti from 'canvas-confetti';
 
 export default function CheckoutPage() {
-  const { cart, totalPrice, clearCart } = useCart();
+  const { cart, totalPrice, clearCart, removeFromCart } = useCart();
   const { user, token } = useAuth();
   
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -19,6 +19,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [invalidCartItem, setInvalidCartItem] = useState(null);
   
   const [createAccount, setCreateAccount] = useState(false);
   const [couponCodeInput, setCouponCodeInput] = useState('');
@@ -329,9 +330,53 @@ export default function CheckoutPage() {
           </h2>
           
           {error && (
-            <div className={styles.alertError}>
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-              {error}
+            <div className={styles.alertError} style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                <span>{error}</span>
+              </div>
+              {(() => {
+                // Find if any book slug/title/id is mentioned in single quotes in the error message
+                const match = error.match(/'([^']+)'/);
+                if (match) {
+                  const identifier = match[1];
+                  const itemToRemove = cart.find(item => 
+                    item.slug === identifier || 
+                    String(item.id) === identifier || 
+                    item.title === identifier
+                  );
+                  if (itemToRemove) {
+                    return (
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        style={{
+                          fontSize: '13px',
+                          padding: '6px 12px',
+                          color: '#e74c3c',
+                          borderColor: '#e74c3c',
+                          marginTop: '4px',
+                          height: 'auto',
+                          lineHeight: '1.4',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          borderRadius: '6px',
+                          background: 'white'
+                        }}
+                        onClick={() => {
+                          removeFromCart(itemToRemove.id);
+                          setError('');
+                        }}
+                      >
+                        🗑️ কার্ট থেকে "{itemToRemove.title}" বইটি বাদ দিন
+                      </button>
+                    );
+                  }
+                }
+                return null;
+              })()}
             </div>
           )}
           

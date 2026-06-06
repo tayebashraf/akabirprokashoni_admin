@@ -12,6 +12,11 @@ export default function ClientLayoutWrapper({ children }) {
   return (
     <>
       {!isAdmin && (
+        <head>
+          <link rel="manifest" href="/manifest.json" />
+        </head>
+      )}
+      {!isAdmin && (
         <Suspense fallback={<div style={{ height: '70px', background: '#F8F9FA' }}></div>}>
           <Header />
         </Suspense>

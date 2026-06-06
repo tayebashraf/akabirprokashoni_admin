@@ -61,6 +61,12 @@ export default function AdminOrders() {
       } catch (e) {
         console.error(e);
       }
+
+      const params = new URLSearchParams(window.location.search);
+      const filterParam = params.get('filter');
+      if (filterParam) {
+        setFilter(filterParam);
+      }
     }
   }, []);
 

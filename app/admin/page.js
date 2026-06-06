@@ -63,6 +63,30 @@ export default function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [steadfastBalance, setSteadfastBalance] = useState(null);
+  const [readOrderIds, setReadOrderIds] = useState([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('read_order_ids');
+        if (stored) {
+          setReadOrderIds(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  const markAsRead = (orderId) => {
+    if (!readOrderIds.includes(orderId)) {
+      const updated = [...readOrderIds, orderId];
+      setReadOrderIds(updated);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('read_order_ids', JSON.stringify(updated));
+      }
+    }
+  };
 
   const loadData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -204,7 +228,7 @@ export default function AdminDashboard() {
       {/* ===== Main Stats Grid ===== */}
       <div className={styles.statsGrid}>
         {/* Revenue Card */}
-        <div className={`${styles.statCard} ${styles.statCardRevenue}`}>
+        <Link href="/admin/daily-sales" className={`${styles.statCard} ${styles.statCardRevenue}`} style={{ textDecoration: 'none' }}>
           <div className={`${styles.statIcon} ${styles.statIconRevenue}`}>💰</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>৳{(stats?.revenue?.today || 0).toLocaleString('bn-BD')}</span>
@@ -213,10 +237,10 @@ export default function AdminDashboard() {
               📈 সাপ্তাহিক: ৳{(stats?.revenue?.this_week || 0).toLocaleString('bn-BD')}
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Orders Card */}
-        <div className={`${styles.statCard} ${styles.statCardOrders}`}>
+        <Link href="/admin/orders" className={`${styles.statCard} ${styles.statCardOrders}`} style={{ textDecoration: 'none' }}>
           <div className={`${styles.statIcon} ${styles.statIconOrders}`}>📦</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>{(stats?.orders?.today || 0).toLocaleString('bn-BD')}</span>
@@ -225,10 +249,10 @@ export default function AdminDashboard() {
               📋 মোট: {(stats?.orders?.total || 0).toLocaleString('bn-BD')}
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Pending Card */}
-        <div className={`${styles.statCard} ${styles.statCardPending}`}>
+        <Link href="/admin/orders?filter=pending" className={`${styles.statCard} ${styles.statCardPending}`} style={{ textDecoration: 'none' }}>
           <div className={`${styles.statIcon} ${styles.statIconPending}`}>🚚</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>{(stats?.orders?.pending || 0).toLocaleString('bn-BD')}</span>
@@ -239,10 +263,10 @@ export default function AdminDashboard() {
               </span>
             )}
           </div>
-        </div>
+        </Link>
 
         {/* Customers Card */}
-        <div className={`${styles.statCard} ${styles.statCardCustomers}`}>
+        <Link href="/admin/customers" className={`${styles.statCard} ${styles.statCardCustomers}`} style={{ textDecoration: 'none' }}>
           <div className={`${styles.statIcon} ${styles.statIconCustomers}`}>👥</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>{(stats?.catalog?.total_users || 0).toLocaleString('bn-BD')}</span>
@@ -251,10 +275,10 @@ export default function AdminDashboard() {
               🎉 নিবন্ধিত ব্যবহারকারী
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Steadfast Balance Card */}
-        <div className={`${styles.statCard}`} style={{ '--card-accent': '#FF5722' }}>
+        <Link href="/admin/settings" className={styles.statCard} style={{ '--card-accent': '#FF5722', textDecoration: 'none' }}>
           <div className={`${styles.statIcon}`} style={{ background: '#FFECE5', color: '#FF5722' }}>🚚</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>
@@ -265,7 +289,7 @@ export default function AdminDashboard() {
               কুরিয়ার পেমেন্ট
             </span>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* ===== Quick Stats Row ===== */}
@@ -314,18 +338,36 @@ export default function AdminDashboard() {
                 কোন অর্ডার পাওয়া যায়নি।
               </div>
             ) : (
-              recentOrders.map(order => (
-                <div key={order.order_id} className={styles.orderItem}>
-                  <div className={styles.orderItemLeft}>
-                    <div className={styles.orderId}>{order.order_id}</div>
-                    <div className={styles.orderDate}>{formatDate(order.created_at)}</div>
+              recentOrders.map(order => {
+                const isNew = !readOrderIds.includes(order.order_id);
+                return (
+                  <div 
+                    key={order.order_id} 
+                    className={styles.orderItem}
+                    onClick={() => {
+                      markAsRead(order.order_id);
+                      window.location.href = `/admin/orders?search=${order.order_id}`;
+                    }}
+                    style={{ 
+                      cursor: 'pointer',
+                      borderLeft: isNew ? '4px solid #ef4444' : '1px solid transparent',
+                      background: isNew ? '#ecfdf5' : '#fafbfc'
+                    }}
+                  >
+                    <div className={styles.orderItemLeft}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div className={styles.orderId}>{order.order_id}</div>
+                        {isNew && <span className={styles.newIndicator}>NEW</span>}
+                      </div>
+                      <div className={styles.orderDate}>{formatDate(order.created_at)}</div>
+                    </div>
+                    <div className={styles.orderAmount}>৳{order.total}</div>
+                    <div className={`${styles.orderStatus} ${getStatusClass(order.status)}`}>
+                      {getStatusText(order.status)}
+                    </div>
                   </div>
-                  <div className={styles.orderAmount}>৳{order.total}</div>
-                  <div className={`${styles.orderStatus} ${getStatusClass(order.status)}`}>
-                    {getStatusText(order.status)}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
           <Link href="/admin/orders" className={styles.viewAllBtn}>

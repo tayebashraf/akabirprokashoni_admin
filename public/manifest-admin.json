@@ -1,0 +1,22 @@
+{
+  "name": "আকাবির প্রকাশনী অ্যাডমিন",
+  "short_name": "আকাবির অ্যাডমিন",
+  "description": "আকাবির প্রকাশনী (Akabir Prokashoni) অ্যাডমিন ম্যানেজমেন্ট পোর্টাল",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0d6b3f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

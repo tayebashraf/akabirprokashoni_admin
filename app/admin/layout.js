@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
@@ -15,6 +15,40 @@ export default function AdminLayout({ children }) {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
+
+  // PWA Install Prompt State
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
+
+  useEffect(() => {
+    // Register sw.js for PWA eligibility
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => console.log('Admin Service Worker registered', reg))
+        .catch((err) => console.error('Admin Service Worker registration failed', err));
+    }
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`Admin PWA install choice: ${outcome}`);
+    setDeferredPrompt(null);
+    setShowInstallBtn(false);
+  };
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
@@ -115,6 +149,9 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className={styles.adminContainer}>
+      <head>
+        <link rel="manifest" href="/manifest-admin.json" />
+      </head>
       {/* Sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarLogo}>
@@ -148,6 +185,32 @@ export default function AdminLayout({ children }) {
           <Link href="/admin/settings" className={`${styles.navLink} ${pathname.includes('/settings') ? styles.navActive : ''}`}>
             ⚙️ সাইট সেটিংস
           </Link>
+          {showInstallBtn && (
+            <button 
+              type="button" 
+              onClick={handleInstallClick} 
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                background: 'linear-gradient(135deg, #0d6b3f, #1e3a8a)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                fontSize: '13px',
+                textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '12px',
+                marginBottom: '12px',
+                boxShadow: '0 4px 12px rgba(13, 107, 63, 0.2)'
+              }}
+            >
+              📱 অ্যাপ ইনস্টল করুন
+            </button>
+          )}
           <button 
             type="button" 
             onClick={logout} 

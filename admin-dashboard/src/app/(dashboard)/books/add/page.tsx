@@ -627,8 +627,13 @@ export default function AddBookPage() {
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-zinc-800">
                         <SelectItem value="bangla" className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>বাংলা</SelectItem>
-                        <SelectItem value="english" className="text-zinc-300">English</SelectItem>
                         <SelectItem value="arabic" className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>আরবি</SelectItem>
+                        <SelectItem value="urdu" className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>উর্দু</SelectItem>
+                        <SelectItem value="farsi" className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>ফার্সি</SelectItem>
+                        <SelectItem value="english" className="text-zinc-300">English</SelectItem>
+                        <SelectItem value="turkish" className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>তুর্কি</SelectItem>
+                        <SelectItem value="hindi" className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>হিন্দি</SelectItem>
+                        <SelectItem value="malay" className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>মালয়/ইন্দোনেশীয়</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

@@ -581,7 +581,16 @@ export default function AdminBooks() {
                   </div>
                   <div>
                     <label>ভাষা</label>
-                    <input type="text" name="language" value={formData.language} onChange={handleInputChange} className="form-control" />
+                    <select name="language" value={formData.language} onChange={handleInputChange} className="form-control">
+                      <option value="bangla">বাংলা</option>
+                      <option value="arabic">আরবি</option>
+                      <option value="urdu">উর্দু</option>
+                      <option value="farsi">ফার্সি</option>
+                      <option value="english">English</option>
+                      <option value="turkish">তুর্কি</option>
+                      <option value="hindi">হিন্দি</option>
+                      <option value="malay">মালয়/ইন্দোনেশীয়</option>
+                    </select>
                   </div>
                   <div>
                     <label>সংস্করণ (Edition)</label>

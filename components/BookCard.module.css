@@ -42,8 +42,9 @@
 .coverImg {
   width: 100% !important;
   height: 100% !important;
-  object-fit: cover !important;
-  object-position: center top !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  padding: 8px; /* Padding to give the book cover a clean framed look */
 }
 .imagePlaceholder {
   width: 100%;

@@ -86,12 +86,10 @@ export default function BookCard({ book }) {
           <span className={styles.author}>{authorName}</span>
         )}
 
-        {rating > 0 && (
-          <div className={styles.ratingRow}>
-            <span className={styles.stars}>{'★'.repeat(Math.round(rating))}{'☆'.repeat(5 - Math.round(rating))}</span>
-            <span className={styles.ratingScore}>({reviewCount})</span>
-          </div>
-        )}
+        <div className={styles.ratingRow}>
+          <span className={styles.stars}>{'★'.repeat(Math.round(rating))}{'☆'.repeat(5 - Math.round(rating))}</span>
+          <span className={styles.ratingScore}>({reviewCount})</span>
+        </div>
 
         <div className={styles.priceRow}>
           {originalPrice > price && (

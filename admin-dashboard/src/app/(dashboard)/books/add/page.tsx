@@ -17,11 +17,47 @@ import type { Author, Category, PaginatedResponse } from '@/lib/types';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
+function slugifyBengali(text: string) {
+  const map: { [key: string]: string } = {
+    'ক': 'k', 'খ': 'kh', 'গ': 'g', 'ঘ': 'gh', 'ঙ': 'ng',
+    'চ': 'ch', 'ছ': 'chh', 'জ': 'j', 'ঝ': 'jh', 'ঞ': 'ny',
+    'ট': 't', 'ঠ': 'th', 'ড': 'd', 'ঢ': 'dh', 'ণ': 'n',
+    'ত': 't', 'থ': 'th', 'দ': 'd', 'ধ': 'dh', 'ন': 'n',
+    'প': 'p', 'ফ': 'f', 'ব': 'b', 'ভ': 'bh', 'ম': 'm',
+    'য': 'z', 'র': 'r', 'ল': 'l', 'শ': 'sh', 'ষ': 'sh', 'স': 's', 'হ': 'h',
+    'ড়': 'r', 'ঢ়': 'rh', 'য়': 'y',
+    'া': 'a', 'ি': 'i', 'ী': 'ee', 'ু': 'u', 'ূ': 'oo', 'ৃ': 'ri',
+    'ে': 'e', 'ৈ': 'oi', 'ো': 'o', 'ৌ': 'ou',
+    'ৎ': 't', 'ং': 'ng', 'ঃ': 'h', 'ঁ': '',
+    '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9'
+  };
+  
+  let result = '';
+  const lowercase = (text || '').toLowerCase();
+  for (let i = 0; i < lowercase.length; i++) {
+    const char = lowercase[i];
+    if (map[char] !== undefined) {
+      result += map[char];
+    } else if (/[a-z0-9]/.test(char)) {
+      result += char;
+    } else if (/\s/.test(char) || char === '-') {
+      result += '-';
+    }
+  }
+  
+  return result
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export default function AddBookPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   // ফর্ম স্টেট
+  const [title, setTitle] = useState('');
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
   const [bookType, setBookType] = useState('original');
   const [selectedAuthors, setSelectedAuthors] = useState<number[]>([]);
   const [selectedTranslators, setSelectedTranslators] = useState<number[]>([]);
@@ -157,7 +193,15 @@ export default function AddBookPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>বইয়ের নাম *</Label>
-                  <Input name="title" required placeholder="যেমন: প্যারাডক্সিক্যাল সাজিদ" className="bg-zinc-800/50 border-zinc-700 text-white text-lg" style={{ fontFamily: "'Hind Siliguri'" }} />
+                  <Input 
+                    name="title" 
+                    required 
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="যেমন: প্যারাডক্সিক্যাল সাজিদ" 
+                    className="bg-zinc-800/50 border-zinc-700 text-white text-lg" 
+                    style={{ fontFamily: "'Hind Siliguri'" }} 
+                  />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -248,6 +292,98 @@ export default function AddBookPage() {
                 <div className="space-y-2">
                   <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>লেখক পরিচিতি (এই বইয়ের প্রেক্ষাপটে)</Label>
                   <Textarea name="author_bio" rows={4} placeholder="লেখকের সংক্ষিপ্ত পরিচিতি..." className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }} />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-zinc-900/50 border-zinc-800/50">
+              <CardHeader>
+                <CardTitle className="text-base text-zinc-300 flex items-center gap-2" style={{ fontFamily: "'Hind Siliguri'" }}>
+                  🔎 এসইও (SEO) অপটিমাইজেশন
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Google SERP Preview */}
+                <div className="bg-zinc-950/80 border border-zinc-800 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-zinc-500">
+                    <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold text-zinc-400">Google Search Preview</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-xs text-emerald-400 block truncate font-mono">
+                      https://akabirprokashoni.com <span className="text-zinc-500">&gt; books &gt; {slugifyBengali(title) || 'book-title'}</span>
+                    </span>
+                    <h3 className="text-blue-400 hover:underline text-lg font-medium leading-snug cursor-pointer truncate">
+                      {metaTitle || title || 'বইয়ের শিরোনাম — আকাবির প্রকাশনী'}
+                    </h3>
+                    <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed" style={{ fontFamily: "'Hind Siliguri'" }}>
+                      {metaDescription || (title ? `${title} বইটি আকাবির প্রকাশনী থেকে সেরা মূল্যে কিনুন। লেখক পরিচিতি, সারসংক্ষেপ ও কিছু পৃষ্ঠা পড়ে দেখতে এখনই ভিজিট করুন।` : 'বইয়ের সংক্ষিপ্ত বিবরণ এখানে প্রদর্শিত হবে...')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>SEO টাইটেল (Meta Title)</Label>
+                      <span className="text-xs text-zinc-500">{metaTitle.length}/60 chars</span>
+                    </div>
+                    <Input 
+                      name="meta_title" 
+                      value={metaTitle}
+                      onChange={(e) => setMetaTitle(e.target.value)}
+                      placeholder="খালি রাখলে বইয়ের নাম ব্যবহার করা হবে" 
+                      maxLength={60}
+                      className="bg-zinc-800/50 border-zinc-700 text-white" 
+                      style={{ fontFamily: "'Hind Siliguri'" }} 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>SEO বিবরণ (Meta Description)</Label>
+                      <span className="text-xs text-zinc-500">{metaDescription.length}/160 chars</span>
+                    </div>
+                    <Textarea 
+                      name="meta_description" 
+                      value={metaDescription}
+                      onChange={(e) => setMetaDescription(e.target.value)}
+                      rows={3}
+                      placeholder="গুগল সার্চের জন্য আকর্ষণীয় বিবরণ লিখুন (১৫০-১৬০ অক্ষরের মধ্যে)" 
+                      maxLength={160}
+                      className="bg-zinc-800/50 border-zinc-700 text-white resize-none" 
+                      style={{ fontFamily: "'Hind Siliguri'" }} 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>SEO কিওয়ার্ডস (Meta Keywords)</Label>
+                    <Input 
+                      name="meta_keywords" 
+                      placeholder="যেমন: বইয়ের নাম, লেখকের নাম, ইসলামী বই" 
+                      className="bg-zinc-800/50 border-zinc-700 text-white" 
+                      style={{ fontFamily: "'Hind Siliguri'" }} 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>SEO শর্ট ডেসক্রিপশন (Short Description)</Label>
+                    <Textarea 
+                      name="short_description" 
+                      placeholder="১-২ লাইনের বইয়ের সংক্ষিপ্ত পরিচিতি (না দিলে মূল বিবরণের প্রথম ১৬০ অক্ষর ব্যবহার হবে)" 
+                      className="bg-zinc-800/50 border-zinc-700 text-white" 
+                      style={{ fontFamily: "'Hind Siliguri'" }} 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>কভার ইমেজ অল্টার টেক্সট (Cover Alt Text)</Label>
+                    <Input 
+                      name="cover_alt_text" 
+                      placeholder="ইমেজের অল্টার টেক্সট (খালি রাখলে অটোমেটিক জেনারেট হবে)" 
+                      className="bg-zinc-800/50 border-zinc-700 text-white" 
+                      style={{ fontFamily: "'Hind Siliguri'" }} 
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>

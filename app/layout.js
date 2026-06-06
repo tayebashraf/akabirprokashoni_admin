@@ -20,6 +20,12 @@ export const metadata = {
     'ইসলাহ', 'Islah', 'ইসলাহী বই',
     'অনলাইন বুকশপ', 'বই কিনুন', 'বাংলাদেশ'
   ],
+  alternates: {
+    canonical: 'https://akabirprokashoni.com',
+    languages: {
+      'bn-BD': 'https://akabirprokashoni.com',
+    },
+  },
   openGraph: {
     type: 'website',
     locale: 'bn_BD',
@@ -27,7 +33,21 @@ export const metadata = {
     siteName: 'আকাবির প্রকাশনী',
     title: 'আকাবির প্রকাশনী | ইসলামিক ও দ্বীনি বইয়ের সেরা কালেকশন',
     description: 'আকাবির প্রকাশনী থেকে কিনুন ইসলামিক, দ্বীনি এবং আত্মশুদ্ধির বই।',
+    images: [
+      {
+        url: '/og-default.png',
+        width: 1200,
+        height: 630,
+        alt: 'আকাবির প্রকাশনী | Akabir Prokashoni',
+      }
+    ],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'আকাবির প্রকাশনী | ইসলামিক ও দ্বীনি বইয়ের সেরা কালেকশন',
+    description: 'আকাবির প্রকাশনী থেকে কিনুন ইসলামিক, দ্বীনি এবং আত্মশুদ্ধির বই।',
+    images: ['/og-default.png'],
+  }
 };
 
 export default function RootLayout({ children }) {
@@ -36,7 +56,7 @@ export default function RootLayout({ children }) {
     '@type': 'Organization',
     name: 'Akabir Prokashoni',
     url: 'https://akabirprokashoni.com',
-    logo: 'https://akabirprokashoni.com/logo.png',
+    logo: 'https://akabirprokashoni.com/images/logo.png',
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: '+8801718763978',
@@ -49,12 +69,38 @@ export default function RootLayout({ children }) {
     ]
   };
 
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'আকাবির প্রকাশনী',
+    url: 'https://akabirprokashoni.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://akabirprokashoni.com/books?search={search_term_string}'
+      },
+      'query-input': 'required name=search_term_string'
+    }
+  };
+
   return (
     <html lang="bn">
+      <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
       <body>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <AuthProvider>
           <FavoriteProvider>

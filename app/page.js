@@ -38,8 +38,66 @@ export default async function Home() {
   // Popular authors logic
   const popularAuthors = authors.slice(0, 10);
 
+  // Generate ItemList JSON-LD schemas
+  const trendingLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'আকাবির প্রকাশনী ট্রেন্ডিং বই',
+    numberOfItems: trendingBooks.length,
+    itemListElement: trendingBooks.slice(0, 10).map((book, index) => {
+      let imgUrl = 'https://akabirprokashoni.com/default-book.png';
+      const rawCover = book.cover_url || book.cover || book.cover_image;
+      if (rawCover) {
+        imgUrl = rawCover.startsWith('http') 
+          ? rawCover 
+          : `https://akabirprokashoni.com${rawCover.startsWith('/') ? '' : '/'}${rawCover}`;
+      }
+      return {
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `https://akabirprokashoni.com/books/${book.slug}`,
+        name: book.title,
+        image: imgUrl
+      };
+    })
+  };
+
+  const newReleasesLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'আকাবির প্রকাশনী নতুন প্রকাশিত বই',
+    numberOfItems: newBooks.length,
+    itemListElement: newBooks.slice(0, 10).map((book, index) => {
+      let imgUrl = 'https://akabirprokashoni.com/default-book.png';
+      const rawCover = book.cover_url || book.cover || book.cover_image;
+      if (rawCover) {
+        imgUrl = rawCover.startsWith('http') 
+          ? rawCover 
+          : `https://akabirprokashoni.com${rawCover.startsWith('/') ? '' : '/'}${rawCover}`;
+      }
+      return {
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `https://akabirprokashoni.com/books/${book.slug}`,
+        name: book.title,
+        image: imgUrl
+      };
+    })
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(trendingLd) }}
+      />
+      {newBooks.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(newReleasesLd) }}
+        />
+      )}
+
       {/* Hero Banner */}
       <HeroSlider slides={heroSlides} />
 
@@ -97,10 +155,6 @@ export default async function Home() {
         </section>
       )}
 
-
-
-
-
       {/* New Releases */}
       {newBooks.length > 0 && (
         <section className="section">
@@ -119,8 +173,6 @@ export default async function Home() {
           </div>
         </section>
       )}
-
-
 
       {/* Pre-Orders */}
       {preorderBooks.length > 0 && (
@@ -141,14 +193,12 @@ export default async function Home() {
         </section>
       )}
 
-
       {/* View All Books Button */}
       <section style={{ textAlign: 'center', marginTop: 'var(--space-16)', paddingBottom: 'var(--space-2)' }}>
         <Link href="/books" className="btn btn-outline" style={{ borderRadius: 'var(--radius-full)', padding: '10px 32px', fontSize: '15px' }}>
           সকল বই দেখুন <span>→</span>
         </Link>
       </section>
-
     </>
   );
 }

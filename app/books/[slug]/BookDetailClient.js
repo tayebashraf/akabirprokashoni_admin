@@ -32,7 +32,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
   }, []);
 
   const copyToClipboard = () => {
-    const bookUrl = `https://www.akabirprokashoni.com/books/${book.slug}`;
+    const bookUrl = `https://akabirprokashoni.com/books/${book.slug}`;
     navigator.clipboard.writeText(bookUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -42,7 +42,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
   };
 
   const handleNativeShare = async () => {
-    const bookUrl = `https://www.akabirprokashoni.com/books/${book.slug}`;
+    const bookUrl = `https://akabirprokashoni.com/books/${book.slug}`;
     if (navigator.share) {
       try {
         await navigator.share({
@@ -141,7 +141,18 @@ export default function BookDetailClient({ book, relatedBooks }) {
       : 'http://127.0.0.1:8000';
     return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
   };
-  const finalCoverImage = getFileUrl(coverImage);
+
+  const getOptimizedCloudinaryUrl = (url) => {
+    if (!url) return url;
+    if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+      if (!url.includes('/upload/f_webp') && !url.includes('/upload/q_auto')) {
+        return url.replace('/upload/', '/upload/f_webp,q_auto/');
+      }
+    }
+    return url;
+  };
+
+  const finalCoverImage = getOptimizedCloudinaryUrl(getFileUrl(coverImage));
   const samplePdfUrl = getFileUrl(book.sample_pdf_url || book.sample_pdf);
 
   // Check if sample is image (jpg/png/webp), otherwise treat as PDF since field is sample_pdf
@@ -227,7 +238,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
               {finalCoverImage ? (
                 <img
                   src={finalCoverImage}
-                  alt={title}
+                  alt={book.cover_alt_text || title}
                   className={styles.bookCover}
                 />
               ) : (
@@ -407,7 +418,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
               
               {/* Facebook */}
               <a 
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.akabirprokashoni.com/books/${book.slug}`)}`} 
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://akabirprokashoni.com/books/${book.slug}`)}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className={styles.shareFb}
@@ -419,7 +430,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
               {/* WhatsApp */}
               <a 
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`*${title}* - ${authorName}\nদ্বীনি ও ইসলামিক বইয়ের নির্ভরযোগ্য অনলাইন বুকশপ আকাবির প্রকাশনী থেকে বইটি সংগ্রহ করতে ভিজিট করুন: https://www.akabirprokashoni.com/books/${book.slug}`)}`} 
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`*${title}* - ${authorName}\nদ্বীনি ও ইসলামিক বইয়ের নির্ভরযোগ্য অনলাইন বুকশপ আকাবির প্রকাশনী থেকে বইটি সংগ্রহ করতে ভিজিট করুন: https://akabirprokashoni.com/books/${book.slug}`)}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className={styles.shareWa}
@@ -431,7 +442,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
               {/* Telegram */}
               <a 
-                href={`https://t.me/share/url?url=${encodeURIComponent(`https://www.akabirprokashoni.com/books/${book.slug}`)}&text=${encodeURIComponent(`*${title}* — ${authorName}`)}`} 
+                href={`https://t.me/share/url?url=${encodeURIComponent(`https://akabirprokashoni.com/books/${book.slug}`)}&text=${encodeURIComponent(`*${title}* — ${authorName}`)}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className={styles.shareTg}
@@ -443,7 +454,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
               {/* Twitter / X */}
               <a 
-                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://www.akabirprokashoni.com/books/${book.slug}`)}&text=${encodeURIComponent(`আকাবির প্রকাশনী থেকে পড়ুন "${title}" - ${authorName}`)}`} 
+                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://akabirprokashoni.com/books/${book.slug}`)}&text=${encodeURIComponent(`আকাবির প্রকাশনী থেকে পড়ুন "${title}" - ${authorName}`)}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className={styles.shareTw}

@@ -30,8 +30,18 @@ export default function BookCard({ book }) {
       : 'http://127.0.0.1:8000';
     return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
   };
+
+  const getOptimizedCloudinaryUrl = (url) => {
+    if (!url) return url;
+    if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+      if (!url.includes('/upload/f_webp') && !url.includes('/upload/q_auto')) {
+        return url.replace('/upload/', '/upload/f_webp,q_auto/');
+      }
+    }
+    return url;
+  };
   
-  const finalCoverImage = getImageUrl(coverImage);
+  const finalCoverImage = getOptimizedCloudinaryUrl(getImageUrl(coverImage));
 
   return (
     <div className={styles.card}>
@@ -57,7 +67,7 @@ export default function BookCard({ book }) {
         {finalCoverImage ? (
           <img
             src={finalCoverImage}
-            alt={title}
+            alt={book.cover_alt_text || title}
             className={styles.coverImg}
             loading="lazy"
           />

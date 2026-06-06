@@ -9,6 +9,9 @@ export const metadata = {
   title: 'সকল বই | ইসলামিক, দ্বীনি ও আত্মশুদ্ধির বইয়ের সংগ্রহ',
   description: 'আকাবির প্রকাশনী থেকে কিনুন সেরা সব ইসলামিক বই, দ্বীনি বই, আত্মশুদ্ধির বই এবং ইসলাহ সংক্রান্ত বই। সব ক্যাটাগরি ও লেখকের বই এখানে পাবেন।',
   keywords: ['সকল বই', 'ইসলামিক বই', 'দ্বীনি বই', 'আত্মশুদ্ধির বই', 'আত্মশুদ্ধি', 'ইসলাহ', 'Akabir Prokashoni Books', 'আকাবির প্রকাশনী বই'],
+  alternates: {
+    canonical: 'https://akabirprokashoni.com/books',
+  },
 };
 
 export default async function BooksPage({ searchParams }) {
@@ -38,7 +41,6 @@ export default async function BooksPage({ searchParams }) {
   if (minPrice) apiParams.min_price = minPrice;
   if (maxPrice) apiParams.max_price = maxPrice;
   if (sortBy === 'new') apiParams.new_release = 'true';
-  // Note: API doesn't support 'price-low' sort natively yet, this is basic mapping
   if (filter === 'new') apiParams.new_release = 'true';
   if (filter === 'preorder') apiParams.preorder = 'true';
 
@@ -61,45 +63,82 @@ export default async function BooksPage({ searchParams }) {
     return `?${params.toString()}`;
   };
 
+  // Build CollectionPage & ItemList JSON-LD Schema
+  const itemListElements = sortedBooks.slice(0, 20).map((book, index) => {
+    let imgUrl = 'https://akabirprokashoni.com/default-book.png';
+    const rawCover = book.cover_url || book.cover || book.cover_image;
+    if (rawCover) {
+      imgUrl = rawCover.startsWith('http') 
+        ? rawCover 
+        : `https://akabirprokashoni.com${rawCover.startsWith('/') ? '' : '/'}${rawCover}`;
+    }
+    return {
+      '@type': 'ListItem',
+      position: index + 1,
+      url: `https://akabirprokashoni.com/books/${book.slug}`,
+      name: book.title,
+      image: imgUrl
+    };
+  });
+
+  const collectionLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'সকল বই | আকাবির প্রকাশনী',
+    description: 'আকাবির প্রকাশনী থেকে কিনুন সেরা সব ইসলামিক বই, দ্বীনি বই, আত্মশুদ্ধির বই এবং ইসলাহ সংক্রান্ত বই।',
+    url: 'https://akabirprokashoni.com/books',
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: sortedBooks.length,
+      itemListElement: itemListElements
+    }
+  };
+
   return (
-    <div className="container section">
-      <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>সকল বই</h1>
-        <p className={styles.resultCount}>({sortedBooks.length})</p>
-      </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
+      />
+      <div className="container section">
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>সকল বই</h1>
+          <p className={styles.resultCount}>({sortedBooks.length})</p>
+        </div>
 
-      <div className={styles.pageGrid}>
-        {/* Sidebar Filters */}
-        <FilterSidebarClient categories={categories} authors={authors} />
+        <div className={styles.pageGrid}>
+          {/* Sidebar Filters */}
+          <FilterSidebarClient categories={categories} authors={authors} />
 
-        {/* Books */}
-        <div className={styles.booksSection}>
-          <div className={styles.toolbar}>
-            <div className={styles.sortGroup}>
-              <label>সাজান:</label>
-              <div className={styles.sortLinks}>
-                <Link href={getUrl({ sort: 'popular' })} className={sortBy === 'popular' ? styles.sortActive : ''}>জনপ্রিয়</Link>
-                <Link href={getUrl({ sort: 'new' })} className={sortBy === 'new' ? styles.sortActive : ''}>নতুন</Link>
-                <Link href={getUrl({ sort: 'price-low' })} className={sortBy === 'price-low' ? styles.sortActive : ''}>মূল্য কম</Link>
-                <Link href={getUrl({ sort: 'price-high' })} className={sortBy === 'price-high' ? styles.sortActive : ''}>মূল্য বেশি</Link>
+          {/* Books */}
+          <div className={styles.booksSection}>
+            <div className={styles.toolbar}>
+              <div className={styles.sortGroup}>
+                <label>সাজান:</label>
+                <div className={styles.sortLinks}>
+                  <Link href={getUrl({ sort: 'popular' })} className={sortBy === 'popular' ? styles.sortActive : ''}>জনপ্রিয়</Link>
+                  <Link href={getUrl({ sort: 'new' })} className={sortBy === 'new' ? styles.sortActive : ''}>নতুন</Link>
+                  <Link href={getUrl({ sort: 'price-low' })} className={sortBy === 'price-low' ? styles.sortActive : ''}>মূল্য কম</Link>
+                  <Link href={getUrl({ sort: 'price-high' })} className={sortBy === 'price-high' ? styles.sortActive : ''}>মূল্য বেশি</Link>
+                </div>
+              </div>
+              <div className={styles.viewToggle}>
+                <Link href={getUrl({ view: 'grid' })} className={viewMode === 'grid' ? styles.viewActive : ''}>▦</Link>
+                <Link href={getUrl({ view: 'list' })} className={viewMode === 'list' ? styles.viewActive : ''}>☰</Link>
               </div>
             </div>
-            <div className={styles.viewToggle}>
-              <Link href={getUrl({ view: 'grid' })} className={viewMode === 'grid' ? styles.viewActive : ''}>▦</Link>
-              <Link href={getUrl({ view: 'list' })} className={viewMode === 'list' ? styles.viewActive : ''}>☰</Link>
-            </div>
+
+            <InfiniteBookList initialBooks={sortedBooks} initialNextUrl={nextUrl} viewMode={viewMode} />
+
+            {sortedBooks.length === 0 && (
+              <div className={styles.noResults}>
+                <p>এই বিষয়ে কোনো বই পাওয়া যায়নি</p>
+                <Link href="/books" className="btn btn-outline">সকল বই দেখুন</Link>
+              </div>
+            )}
           </div>
-
-          <InfiniteBookList initialBooks={sortedBooks} initialNextUrl={nextUrl} viewMode={viewMode} />
-
-          {sortedBooks.length === 0 && (
-            <div className={styles.noResults}>
-              <p>এই বিষয়ে কোনো বই পাওয়া যায়নি</p>
-              <Link href="/books" className="btn btn-outline">সকল বই দেখুন</Link>
-            </div>
-          )}
         </div>
       </div>
-    </div>
+    </>
   );
 }

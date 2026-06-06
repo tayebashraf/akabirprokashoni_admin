@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Loader2, ImagePlus, FileText } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, ImagePlus, FileText, X, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ function slugifyBengali(text: string) {
     'ত': 't', 'থ': 'th', 'দ': 'd', 'ধ': 'dh', 'ন': 'n',
     'প': 'p', 'ফ': 'f', 'ব': 'b', 'ভ': 'bh', 'ম': 'm',
     'য': 'z', 'র': 'r', 'ল': 'l', 'শ': 'sh', 'ষ': 'sh', 'স': 's', 'হ': 'h',
-    'ড়': 'r', 'ঢ়': 'rh', 'য়': 'y',
+    'ড়': 'r', 'ঢ়': 'rh', 'য়': 'y',
     'া': 'a', 'ি': 'i', 'ী': 'ee', 'ু': 'u', 'ূ': 'oo', 'ৃ': 'ri',
     'ে': 'e', 'ৈ': 'oi', 'ো': 'o', 'ৌ': 'ou',
     'ৎ': 't', 'ং': 'ng', 'ঃ': 'h', 'ঁ': '',
@@ -50,6 +50,177 @@ function slugifyBengali(text: string) {
     .replace(/^-+|-+$/g, '');
 }
 
+
+/* ─────────────────────────────────────────────────────────────
+   AuthorAutocomplete — reusable autocomplete with chip tags
+   ───────────────────────────────────────────────────────────── */
+interface AuthorChip {
+  id: number | null;   // null = free-text (not in DB)
+  name: string;
+}
+
+function AuthorAutocomplete({
+  label,
+  allAuthors,
+  selected,
+  onChange,
+  placeholder = 'টাইপ করুন...',
+}: {
+  label: string;
+  allAuthors: Author[];
+  selected: AuthorChip[];
+  onChange: (chips: AuthorChip[]) => void;
+  placeholder?: string;
+}) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [highlightIdx, setHighlightIdx] = useState(-1);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Filter authors by query, exclude already-selected IDs
+  const selectedIds = new Set(selected.filter(c => c.id !== null).map(c => c.id));
+  const selectedNames = new Set(selected.map(c => c.name.trim().toLowerCase()));
+  const filtered = allAuthors.filter(a => {
+    if (selectedIds.has(a.id)) return false;
+    if (!query.trim()) return true;
+    return a.name.toLowerCase().includes(query.trim().toLowerCase());
+  });
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const addChip = useCallback((chip: AuthorChip) => {
+    // Prevent duplicate names
+    if (selectedNames.has(chip.name.trim().toLowerCase())) return;
+    onChange([...selected, chip]);
+    setQuery('');
+    setOpen(false);
+    setHighlightIdx(-1);
+    inputRef.current?.focus();
+  }, [selected, selectedNames, onChange]);
+
+  const removeChip = useCallback((idx: number) => {
+    onChange(selected.filter((_, i) => i !== idx));
+  }, [selected, onChange]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightIdx(prev => Math.min(prev + 1, filtered.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightIdx(prev => Math.max(prev - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightIdx >= 0 && highlightIdx < filtered.length) {
+        addChip({ id: filtered[highlightIdx].id, name: filtered[highlightIdx].name });
+      } else if (query.trim()) {
+        // Free text — check if exact match exists
+        const exact = allAuthors.find(a => a.name.trim().toLowerCase() === query.trim().toLowerCase());
+        if (exact) {
+          addChip({ id: exact.id, name: exact.name });
+        } else {
+          addChip({ id: null, name: query.trim() });
+        }
+      }
+    } else if (e.key === 'Backspace' && !query && selected.length > 0) {
+      removeChip(selected.length - 1);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>{label}</Label>
+      <div ref={wrapperRef} className="relative">
+        {/* Chips + input wrapper */}
+        <div
+          className="flex flex-wrap items-center gap-1.5 p-2 min-h-[44px] border border-zinc-700 rounded-lg bg-zinc-800/50 focus-within:ring-1 focus-within:ring-emerald-500/50 focus-within:border-emerald-500/50 transition-all cursor-text"
+          onClick={() => inputRef.current?.focus()}
+        >
+          {selected.map((chip, idx) => (
+            <span
+              key={`${chip.id ?? chip.name}-${idx}`}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 transition-all hover:bg-emerald-500/25"
+              style={{ fontFamily: "'Hind Siliguri'" }}
+            >
+              {chip.name}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); removeChip(idx); }}
+                className="ml-0.5 hover:text-red-400 transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+          <div className="relative flex-1 min-w-[120px] flex items-center gap-1.5">
+            <Search className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setOpen(true); setHighlightIdx(-1); }}
+              onFocus={() => setOpen(true)}
+              onKeyDown={handleKeyDown}
+              placeholder={selected.length === 0 ? placeholder : 'আরো যোগ করুন...'}
+              className="bg-transparent outline-none text-sm text-white placeholder:text-zinc-500 w-full"
+              style={{ fontFamily: "'Hind Siliguri'" }}
+            />
+          </div>
+        </div>
+
+        {/* Dropdown */}
+        {open && (query.trim() || filtered.length > 0) && (
+          <div className="absolute z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl shadow-black/30 animate-in fade-in-0 zoom-in-95 duration-150">
+            {filtered.length === 0 && query.trim() && (
+              <button
+                type="button"
+                onClick={() => {
+                  const exact = allAuthors.find(a => a.name.trim().toLowerCase() === query.trim().toLowerCase());
+                  if (exact) addChip({ id: exact.id, name: exact.name });
+                  else addChip({ id: null, name: query.trim() });
+                }}
+                className="w-full text-left px-3 py-2.5 text-sm text-emerald-400 hover:bg-zinc-800 transition-colors"
+                style={{ fontFamily: "'Hind Siliguri'" }}
+              >
+                ✨ &quot;{query.trim()}&quot; নতুন হিসেবে যোগ করুন
+              </button>
+            )}
+            {filtered.map((a, idx) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => addChip({ id: a.id, name: a.name })}
+                className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                  idx === highlightIdx
+                    ? 'bg-emerald-500/15 text-emerald-300'
+                    : 'text-zinc-300 hover:bg-zinc-800'
+                }`}
+                style={{ fontFamily: "'Hind Siliguri'" }}
+                onMouseEnter={() => setHighlightIdx(idx)}
+              >
+                {a.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 export default function AddBookPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -59,8 +230,8 @@ export default function AddBookPage() {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [bookType, setBookType] = useState('original');
-  const [selectedAuthors, setSelectedAuthors] = useState<number[]>([]);
-  const [selectedTranslators, setSelectedTranslators] = useState<number[]>([]);
+  const [authorChips, setAuthorChips] = useState<AuthorChip[]>([]);
+  const [translatorChips, setTranslatorChips] = useState<AuthorChip[]>([]);
   const [categoryId, setCategoryId] = useState('');
   const [language, setLanguage] = useState('bangla');
   const [productionStatus, setProductionStatus] = useState('published');
@@ -130,12 +301,13 @@ export default function AddBookPage() {
     const form = e.currentTarget;
     const fd = new FormData(form);
 
-    // Base UI Select/Switch components don't produce native form data,
-    // so we must explicitly set all controlled fields.
-
-    // Authors (ManyToMany)
+    // Authors (ManyToMany) — only IDs of existing authors
     fd.delete('authors');
-    selectedAuthors.forEach(id => fd.append('authors', String(id)));
+    authorChips.forEach(chip => {
+      if (chip.id !== null) {
+        fd.append('authors', String(chip.id));
+      }
+    });
 
     // Category
     if (categoryId) {
@@ -145,8 +317,11 @@ export default function AddBookPage() {
     // Book type — model expects 'translated', not 'translation'
     fd.set('book_type', bookType === 'translation' ? 'translated' : bookType);
 
-    // Translator (CharField, not M2M) — if translation, combine translator names
-    fd.delete('translators');
+    // Translator (CharField) — combine translator chip names
+    fd.delete('translator');
+    if (bookType === 'translation' && translatorChips.length > 0) {
+      fd.set('translator', translatorChips.map(c => c.name).join(', '));
+    }
 
     // Select-based fields (base-ui Select doesn't submit natively)
     fd.set('language', language);
@@ -159,7 +334,6 @@ export default function AddBookPage() {
 
     const cover = fd.get('cover') as File | null;
     if (cover && cover.size === 0) fd.delete('cover');
-    // `sample_pdf` is no longer used, so we don't need to append it.
 
     createMutation.mutate(fd);
   };
@@ -177,7 +351,7 @@ export default function AddBookPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Hind Siliguri'" }}>বই যুক্ত করুন</h1>
-          <p className="text-zinc-500 text-sm mt-1" style={{ fontFamily: "'Hind Siliguri'" }}>বিস্তারিত তথ্য দিয়ে নতুন বই যুক্ত করুন</p>
+          <p className="text-zinc-500 text-sm mt-1" style={{ fontFamily: "'Hind Siliguri'" }}>বিস্তারিত তথ্য দিয়ে নতুন বই যুক্ত করুন</p>
         </div>
       </div>
 
@@ -232,45 +406,25 @@ export default function AddBookPage() {
                   </div>
                 </div>
 
-                {/* লেখক নির্বাচন */}
-                <div className="space-y-2">
-                  <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>লেখকগণ * (একাধিক নির্বাচন সম্ভব)</Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 border border-zinc-700 rounded-lg bg-zinc-800/30 max-h-48 overflow-y-auto">
-                    {authors.map(a => (
-                      <label key={a.id} className="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-zinc-800 rounded">
-                        <input type="checkbox" className="accent-emerald-500 rounded border-zinc-600 bg-zinc-800"
-                          checked={selectedAuthors.includes(a.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) setSelectedAuthors([...selectedAuthors, a.id]);
-                            else setSelectedAuthors(selectedAuthors.filter(id => id !== a.id));
-                          }}
-                        />
-                        <span className="text-sm text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>{a.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {selectedAuthors.length === 0 && <p className="text-xs text-red-400">কমপক্ষে একজন লেখক নির্বাচন করুন</p>}
-                </div>
+                {/* মূল লেখক — Autocomplete */}
+                <AuthorAutocomplete
+                  label="মূল লেখক * (একাধিক নির্বাচন সম্ভব)"
+                  allAuthors={authors}
+                  selected={authorChips}
+                  onChange={setAuthorChips}
+                  placeholder="লেখকের নাম টাইপ করুন..."
+                />
+                {authorChips.length === 0 && <p className="text-xs text-red-400" style={{ fontFamily: "'Hind Siliguri'" }}>কমপক্ষে একজন লেখক নির্বাচন করুন</p>}
 
-                {/* অনুবাদক নির্বাচন (শুধুমাত্র অনুবাদ বই হলে) */}
+                {/* অনুবাদক — Autocomplete (শুধুমাত্র অনুবাদ বই হলে) */}
                 {bookType === 'translation' && (
-                  <div className="space-y-2">
-                    <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>অনুবাদকগণ</Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 border border-zinc-700 rounded-lg bg-zinc-800/30 max-h-40 overflow-y-auto">
-                      {authors.map(a => (
-                        <label key={a.id} className="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-zinc-800 rounded">
-                          <input type="checkbox" className="accent-emerald-500 rounded border-zinc-600 bg-zinc-800"
-                            checked={selectedTranslators.includes(a.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) setSelectedTranslators([...selectedTranslators, a.id]);
-                              else setSelectedTranslators(selectedTranslators.filter(id => id !== a.id));
-                            }}
-                          />
-                          <span className="text-sm text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>{a.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                  <AuthorAutocomplete
+                    label="অনুবাদক (একাধিক নির্বাচন সম্ভব)"
+                    allAuthors={authors}
+                    selected={translatorChips}
+                    onChange={setTranslatorChips}
+                    placeholder="অনুবাদকের নাম টাইপ করুন..."
+                  />
                 )}
                 
                 <div className="space-y-2 pt-2">
@@ -548,7 +702,7 @@ export default function AddBookPage() {
               বাতিল
             </Button>
           </Link>
-          <Button type="submit" disabled={createMutation.isPending || isUploadingImages || selectedAuthors.length === 0} className="bg-emerald-600 hover:bg-emerald-500 gap-2 min-w-[150px]" style={{ fontFamily: "'Hind Siliguri'" }}>
+          <Button type="submit" disabled={createMutation.isPending || isUploadingImages || authorChips.length === 0} className="bg-emerald-600 hover:bg-emerald-500 gap-2 min-w-[150px]" style={{ fontFamily: "'Hind Siliguri'" }}>
             {createMutation.isPending || isUploadingImages ? (
               <><Loader2 className="w-5 h-5 animate-spin" /> {isUploadingImages ? 'ছবি আপলোড হচ্ছে...' : 'সংরক্ষণ হচ্ছে...'}</>
             ) : (

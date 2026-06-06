@@ -15,6 +15,15 @@ export default function CheckoutPage() {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [placedPhone, setPlacedPhone] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(orderId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -292,9 +301,34 @@ export default function CheckoutPage() {
         <p style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>
           কিছুক্ষণের মধ্যেই আপনাকে ফোন দিয়ে অর্ডারটি নিশ্চিত করা হবে। ইনশাআল্লাহ।
         </p>
-        <div style={{ background: '#f1f5f9', padding: '1rem', borderRadius: '8px', display: 'inline-block', marginBottom: '2rem' }}>
-          <p style={{ fontSize: '1.2rem', color: 'var(--color-text)' }}>আপনার অর্ডার নাম্বার:</p>
-          <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-primary)', fontFamily: 'var(--font-english)' }}>{orderId}</p>
+        <div style={{ background: '#f1f5f9', padding: '1.25rem 2rem', borderRadius: '12px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '2rem' }}>
+          <p style={{ fontSize: '1.1rem', color: 'var(--color-text-secondary)', margin: 0 }}>আপনার অর্ডার নাম্বার:</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary)', fontFamily: 'var(--font-english)' }}>{orderId}</span>
+            <button 
+              type="button"
+              onClick={handleCopy}
+              className="btn"
+              style={{ 
+                padding: '6px 12px', 
+                fontSize: '13px', 
+                height: 'auto', 
+                backgroundColor: copied ? '#22c55e' : '#cbd5e1', 
+                color: copied ? 'white' : '#1e293b', 
+                border: 'none', 
+                borderRadius: '6px', 
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.2s',
+                fontFamily: 'var(--font-bangla)',
+                fontWeight: 'bold'
+              }}
+            >
+              {copied ? '✓ কপি হয়েছে' : '📋 কপি করুন'}
+            </button>
+          </div>
         </div>
         
         <p style={{ marginBottom: '1.5rem', color: 'var(--color-text-secondary)' }}>

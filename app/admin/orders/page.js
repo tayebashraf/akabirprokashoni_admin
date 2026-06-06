@@ -48,6 +48,32 @@ export default function AdminOrders() {
   // Printing State
   const [orderToPrint, setOrderToPrint] = useState(null);
 
+  // New Orders Tracking State
+  const [readOrderIds, setReadOrderIds] = useState([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('read_order_ids');
+        if (stored) {
+          setReadOrderIds(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  const markAsRead = (orderId) => {
+    if (!readOrderIds.includes(orderId)) {
+      const updated = [...readOrderIds, orderId];
+      setReadOrderIds(updated);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('read_order_ids', JSON.stringify(updated));
+      }
+    }
+  };
+
   useEffect(() => {
     async function loadOrders() {
       try {
@@ -106,6 +132,7 @@ export default function AdminOrders() {
   };
 
   const openOrderModal = (order) => {
+    markAsRead(order.order_id);
     setSelectedOrder(order);
     setFormData({
       status: order.status,
@@ -226,10 +253,18 @@ export default function AdminOrders() {
           </thead>
           <tbody>
             {filteredOrders.length > 0 ? filteredOrders.map(order => {
+              const isNew = !readOrderIds.includes(order.order_id);
               return (
-                <tr key={order.order_id}>
+                <tr 
+                  key={order.order_id} 
+                  className={isNew ? styles.newOrderRow : ''} 
+                  onClick={() => markAsRead(order.order_id)}
+                >
                   <td>
-                    <div style={{ fontWeight: '700', color: 'var(--color-primary)' }}>{order.order_id}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {isNew && <span className={styles.newIndicator}>NEW</span>}
+                      <div style={{ fontWeight: '700', color: 'var(--color-primary)' }}>{order.order_id}</div>
+                    </div>
                     <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>{formatDate(order.created_at)}</div>
                   </td>
                   <td>

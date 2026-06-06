@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { getAdminOrders, updateAdminOrder } from '@/lib/api';
+import { getAdminOrders, updateAdminOrder, sendOrderEmailNotification } from '@/lib/api';
 import PrintInvoice from '@/components/PrintInvoice';
 import styles from './page.module.css';
 
@@ -42,6 +42,8 @@ export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [formData, setFormData] = useState({});
+  const [selectedEmailType, setSelectedEmailType] = useState('confirmed');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   // Printing State
   const [orderToPrint, setOrderToPrint] = useState(null);
@@ -488,6 +490,59 @@ export default function AdminOrders() {
                     🚀 SteadFast-এ বুক করুন
                   </button>
                 </div>
+              )}
+            </div>
+
+            {/* Email Notification Section */}
+            <div style={{ marginTop: '24px', padding: '16px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#f0fdf4' }}>
+              <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', borderBottom: '1px solid #bbf7d0', paddingBottom: '8px', fontWeight: 'bold' }}>
+                ✉️ গ্রাহককে ইমেল আপডেট পাঠান
+              </h3>
+              
+              {selectedOrder.email ? (
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', color: '#166534' }}>
+                    গ্রাহকের ইমেল: <strong style={{ textDecoration: 'underline' }}>{selectedOrder.email}</strong>
+                  </span>
+                  
+                  <div style={{ display: 'flex', gap: '8px', flexGrow: 1, maxWidth: '450px', width: '100%' }}>
+                    <select 
+                      style={{ padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', flexGrow: 1, fontSize: '14px', outline: 'none', backgroundColor: '#fff', color: '#333' }}
+                      value={selectedEmailType}
+                      onChange={(e) => setSelectedEmailType(e.target.value)}
+                    >
+                      <option value="confirmed">📋 অর্ডার নিশ্চিতকরণ মেইল</option>
+                      <option value="packaging">📦 প্যাকেজিং মেইল</option>
+                      <option value="shipped">🚚 শিপড/কুরিয়ার মেইল</option>
+                      <option value="delivered">🏠 ডেলিভারি মেইল</option>
+                      <option value="cancelled">❌ বাতিল মেইল</option>
+                    </select>
+                    
+                    <button
+                      type="button"
+                      className="btn"
+                      style={{ backgroundColor: '#0D6B3F', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px', padding: '8px 16px', fontWeight: 'bold', fontSize: '13px', transition: 'background-color 0.2s' }}
+                      onClick={async () => {
+                        setIsSendingEmail(true);
+                        try {
+                          await sendOrderEmailNotification(selectedOrder.order_id, selectedEmailType);
+                          alert('সফলভাবে কাস্টমারের কাছে ইমেল পাঠানো হয়েছে!');
+                        } catch (err) {
+                          alert(err.message || 'ইমেল পাঠাতে ব্যর্থ হয়েছে।');
+                        } finally {
+                          setIsSendingEmail(false);
+                        }
+                      }}
+                      disabled={isSendingEmail}
+                    >
+                      {isSendingEmail ? 'পাঠানো হচ্ছে...' : 'ইমেল পাঠান'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p style={{ margin: 0, color: '#991b1b', fontSize: '14px', fontWeight: '500' }}>
+                  ⚠️ গ্রাহকের কোনো ইমেল ঠিকানা দেওয়া নেই।
+                </p>
               )}
             </div>
 

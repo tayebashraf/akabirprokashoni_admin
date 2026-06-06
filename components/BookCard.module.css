@@ -34,7 +34,7 @@
 .imageWrap {
   display: block;
   width: 100%;
-  aspect-ratio: 5/7;
+  height: 300px; /* Fixed height on desktop for perfectly uniform cards */
   overflow: hidden;
   background: #f5f5f5;
   position: relative;
@@ -192,5 +192,6 @@
   .favoriteBtn svg { width: 14px; height: 14px; }
   .imageWrap {
     aspect-ratio: 5/7;
+    height: auto; /* Allow dynamic scaling on mobile screens */
   }
 }

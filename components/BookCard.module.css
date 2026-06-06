@@ -37,19 +37,16 @@
 .imageWrap {
   display: block;
   width: 100%;
-  height: 290px; /* Fixed height on desktop for perfectly uniform cards */
+  aspect-ratio: 2 / 3; /* Standard book aspect ratio (1:1.5) for perfectly uniform cards */
   overflow: hidden;
-  background: #ffffff; /* Blends with the white card body to eliminate side gaps */
+  background: #ffffff;
   position: relative;
 }
 .coverImg {
   width: 100% !important;
   height: 100% !important;
-  object-fit: contain !important;
-  object-position: center !important;
-  padding: 12px; /* Gives space for the drop shadow to display nicely */
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.14)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08)); /* Premium 3D book shadow */
-  transition: transform 0.2s ease;
+  object-fit: fill !important; /* Squeezes/stretches slightly to standard book size without cropping text */
+  transition: transform 0.3s ease;
 }
 .imagePlaceholder {
   width: 100%;

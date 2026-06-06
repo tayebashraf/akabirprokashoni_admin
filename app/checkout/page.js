@@ -535,27 +535,27 @@ export default function CheckoutPage() {
               </div>
             </label>
 
-            <label className={`${styles.paymentCard} ${paymentMethod === 'bkash' ? styles.paymentActive : ''}`}>
-              <input type="radio" name="payment" value="bkash" checked={paymentMethod === 'bkash'} onChange={() => setPaymentMethod('bkash')} className={styles.paymentRadio} />
+            <label className={`${styles.paymentCard} ${styles.paymentDisabled}`}>
+              <input type="radio" name="payment" value="bkash" disabled className={styles.paymentRadio} />
               <div>
-                <strong>bKash</strong>
-                <span>নিরাপদে বিকাশ পেমেন্ট করুন</span>
+                <strong>bKash (কামিং সুন)</strong>
+                <span>বিকাশে পেমেন্টের জন্য যোগাযোগ করুন: ০১৭১৮৭৬৩৯৭৮</span>
               </div>
             </label>
 
-            <label className={`${styles.paymentCard} ${paymentMethod === 'nagad' ? styles.paymentActive : ''}`}>
-              <input type="radio" name="payment" value="nagad" checked={paymentMethod === 'nagad'} onChange={() => setPaymentMethod('nagad')} className={styles.paymentRadio} />
+            <label className={`${styles.paymentCard} ${styles.paymentDisabled}`}>
+              <input type="radio" name="payment" value="nagad" disabled className={styles.paymentRadio} />
               <div>
-                <strong>Nagad</strong>
-                <span>নিরাপদে নগদ পেমেন্ট করুন</span>
+                <strong>Nagad (কামিং সুন)</strong>
+                <span>নগদে পেমেন্টের জন্য যোগাযোগ করুন: ০১৭১৮৭৬৩৯৭৮</span>
               </div>
             </label>
             
-            <label className={`${styles.paymentCard} ${paymentMethod === 'card' ? styles.paymentActive : ''}`}>
-              <input type="radio" name="payment" value="card" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className={styles.paymentRadio} />
+            <label className={`${styles.paymentCard} ${styles.paymentDisabled}`}>
+              <input type="radio" name="payment" value="card" disabled className={styles.paymentRadio} />
               <div>
-                <strong>Cards (Visa/Mastercard)</strong>
-                <span>ডেবিট বা ক্রেডিট কার্ড পেমেন্ট</span>
+                <strong>Cards (Visa/Mastercard) (কামিং সুন)</strong>
+                <span>কার্ড পেমেন্টের জন্য যোগাযোগ করুন: ০১৭১৮৭৬৩৯৭৮</span>
               </div>
             </label>
           </div>

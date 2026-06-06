@@ -160,6 +160,16 @@
 .paymentRadio { accent-color: var(--color-primary); width: 18px; height: 18px; }
 .paymentCard strong { display: block; font-size: var(--text-sm); }
 .paymentCard span { font-size: var(--text-xs); color: var(--color-text-secondary); }
+.paymentDisabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+.paymentDisabled:hover {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
 
 /* Summary */
 .summaryCard {

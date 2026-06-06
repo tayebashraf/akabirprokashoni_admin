@@ -177,6 +177,9 @@ export default function LoginPage() {
                 />
                 <span>আমাকে মনে রাখুন</span>
               </label>
+              <Link href={`/track${phone.trim() ? `?phone=${phone.trim()}` : ''}`} className={styles.forgotLink}>
+                পাসওয়ার্ড ভুলে গেছেন?
+              </Link>
             </div>
           )}
           

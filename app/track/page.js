@@ -10,13 +10,50 @@ export default function TrackPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Prepopulate query if passed in URL
+  // Prepopulate query and auto track if passed in URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const phoneParam = params.get('phone');
     const orderParam = params.get('order_id');
-    if (phoneParam) setQuery(phoneParam);
-    if (orderParam) setQuery(orderParam);
+    let searchVal = '';
+    if (phoneParam) {
+      setQuery(phoneParam);
+      searchVal = phoneParam;
+    } else if (orderParam) {
+      setQuery(orderParam);
+      searchVal = orderParam;
+    }
+
+    if (searchVal) {
+      const autoTrack = async (val) => {
+        setLoading(true);
+        setError('');
+        setOrders([]);
+        try {
+          let data = [];
+          if (/[a-zA-Z\-]/.test(val)) {
+            try {
+              const singleOrder = await trackOrder(val);
+              if (singleOrder) data = [singleOrder];
+            } catch (err) {
+              // Keep data empty if error or not found
+            }
+          } else {
+            data = await trackOrdersByPhone(val);
+          }
+          if (data && data.length > 0) {
+            setOrders(data);
+          } else {
+            setError('এই নাম্বার বা আইডি দিয়ে কোনো অর্ডার পাওয়া যায়নি।');
+          }
+        } catch (err) {
+          setError('সার্ভার থেকে ডেটা আনতে সমস্যা হচ্ছে।');
+        } finally {
+          setLoading(false);
+        }
+      };
+      autoTrack(searchVal.trim());
+    }
   }, []);
 
   const handleTrack = async (e) => {

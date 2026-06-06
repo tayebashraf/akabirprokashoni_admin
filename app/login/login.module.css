@@ -120,3 +120,12 @@
 .switchBtn:hover {
   text-decoration: underline;
 }
+
+.forgotLink {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.forgotLink:hover {
+  text-decoration: underline;
+}

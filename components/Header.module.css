@@ -267,13 +267,13 @@
 }
 .navLinkHighlight {
   composes: navLink;
-  background: var(--color-accent);
-  color: #1A1A1A !important;
+  background: #C21A1A; /* Logo red background */
+  color: white !important;
   font-weight: 700;
 }
 .navLinkHighlight:hover {
-  background: var(--color-accent-dark);
-  color: #1A1A1A !important;
+  background: #A01414; /* Darker red on hover */
+  color: white !important;
 }
 
 .mobileOnlyLinks {

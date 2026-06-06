@@ -21,7 +21,7 @@
   transition: all var(--transition-fast); color: var(--color-text);
 }
 .filterBtn:hover { background: var(--color-primary-50); color: var(--color-primary); }
-.filterActive { background: var(--color-primary) !important; color: white !important; font-weight: 600; }
+.filterActive { background: #C21A1A !important; color: white !important; font-weight: 600; }
 .filterCount {
   margin-left: auto; font-size: var(--text-xs); color: var(--color-text-light);
   font-family: var(--font-english);
@@ -42,7 +42,7 @@
   transition: all var(--transition-fast); white-space: nowrap;
 }
 .sortLinks a:hover { border-color: var(--color-primary); color: var(--color-primary); }
-.sortActive { background: var(--color-primary) !important; color: white !important; border-color: var(--color-primary) !important; font-weight: 600; }
+.sortActive { background: #C21A1A !important; color: white !important; border-color: #C21A1A !important; font-weight: 600; }
 
 .viewToggle { display: flex; gap: var(--space-1); }
 .viewToggle a {

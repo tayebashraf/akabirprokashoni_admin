@@ -602,3 +602,79 @@ ul, ol {
   }
 }
 
+/* --- Premium Dashboard Styles --- */
+.dashboard-welcome-banner {
+  background: linear-gradient(135deg, #0D6B3F, #095230);
+  color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(13, 107, 63, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.dashboard-split-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+}
+
+.dashboard-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+}
+
+.dashboard-stat-card {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-light);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.dashboard-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+}
+
+.dashboard-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-green { background: #ecfdf5; color: #059669; }
+.icon-red { background: #fff5f5; color: #e53e3e; }
+.icon-blue { background: #eff6ff; color: #2563eb; }
+
+/* Responsive Dashboard */
+@media (max-width: 992px) {
+  .dashboard-split-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+

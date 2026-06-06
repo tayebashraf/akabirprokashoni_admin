@@ -16,6 +16,20 @@ export default function FilterSidebarClient({ categories, authors, getUrl }) {
   // Actually, we can just use the current searchParams to generate the URL.
   const createUrl = (updates) => {
     const params = new URLSearchParams(searchParams);
+    
+    // Mutually exclusive: if category is being updated, clear author, filter and search
+    if ('category' in updates) {
+      params.delete('author');
+      params.delete('filter');
+      params.delete('search');
+    }
+    // If author is being updated, clear category, filter and search
+    if ('author' in updates) {
+      params.delete('category');
+      params.delete('filter');
+      params.delete('search');
+    }
+
     for (const [key, value] of Object.entries(updates)) {
       if (value === null || value === 'all') params.delete(key);
       else params.set(key, value);

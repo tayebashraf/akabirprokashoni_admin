@@ -320,39 +320,54 @@
 }
 .cartBtn {
   flex: 1;
-  height: 46px;
-  border: 2px solid var(--color-primary);
-  background: white;
-  color: var(--color-primary);
+  height: 50px;
+  border: none;
+  background: #E53E3E;
+  color: white;
   font-weight: 800;
-  font-size: 15px;
-  border-radius: 8px;
+  font-size: 16px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(229, 62, 62, 0.3);
+  letter-spacing: 0.3px;
 }
 .cartBtn:hover {
-  background: var(--color-primary);
-  color: white;
+  background: #C53030;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(229, 62, 62, 0.4);
+}
+.cartBtn:active {
+  transform: translateY(0);
 }
 .buyBtn {
   flex: 1;
-  height: 46px;
+  height: 50px;
   border: none;
   background: var(--color-primary);
   color: white;
   font-weight: 800;
-  font-size: 15px;
-  border-radius: 8px;
+  font-size: 16px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(13, 107, 63, 0.3);
+  letter-spacing: 0.3px;
 }
 .buyBtn:hover {
   background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(13, 107, 63, 0.4);
+}
+.buyBtn:active {
+  transform: translateY(0);
 }
 .cartBtn:disabled,
 .buyBtn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Trust Badges - Inline */

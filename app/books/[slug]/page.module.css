@@ -1074,12 +1074,12 @@
   }
 
   .btnRow {
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
+    gap: 10px;
   }
   .cartBtn, .buyBtn {
-    height: 44px;
-    font-size: 14px;
+    height: 48px;
+    font-size: 15px;
   }
   .trustBadges {
     grid-template-columns: 1fr;

@@ -1,9 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/CartContext';
-import BookCard from '@/components/BookCard';
 import { submitReview } from '@/lib/api';
 import styles from './page.module.css';
 
@@ -14,6 +13,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
   const [activeTab, setActiveTab] = useState('description');
   const [addedToCart, setAddedToCart] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
 
   const [reviewName, setReviewName] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
@@ -24,6 +24,8 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
   const [copied, setCopied] = useState(false);
   const [isShareSupported, setIsShareSupported] = useState(false);
+
+  const descSectionRef = useRef(null);
 
   useEffect(() => {
     if (typeof navigator !== 'undefined' && navigator.share) {
@@ -47,7 +49,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
       try {
         await navigator.share({
           title: book.title,
-          text: `দ্বীনি ও ইসলামিক বইয়ের নির্ভরযোগ্য অনলাইন বুকশপ আকাবির প্রকাশনী থেকে "${book.title}" বইটি দেখুন।`,
+          text: `দ্বীনি ও ইসলামিক বইয়ের নির্ভরযোগ্য অনলাইন বুকশপ আকাবির প্রকাশনী থেকে "${book.title}" বইটি দেখুন।`,
           url: bookUrl,
         });
       } catch (err) {
@@ -76,7 +78,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
       setReviewComment('');
       setReviewRating(5);
     } catch (err) {
-      setReviewError(err.message || 'রিভিউ জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+      setReviewError(err.message || 'রিভিউ জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
     } finally {
       setSubmittingReview(false);
     }
@@ -109,6 +111,20 @@ export default function BookDetailClient({ book, relatedBooks }) {
         ))}
       </div>
     );
+  };
+
+  const handleReadMore = () => {
+    if (descExpanded) {
+      setDescExpanded(false);
+    } else {
+      setDescExpanded(true);
+      // Smooth scroll to full description tab
+      setTimeout(() => {
+        if (descSectionRef.current) {
+          descSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
   };
 
   if (!book) return null;
@@ -161,7 +177,6 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
   // Convert Cloudinary PDF URL to image URL (renders specific page)
   const getPdfAsImageUrl = (url, page = 1) => {
-    // Keep this for backwards compatibility if any old PDFs exist
     if (!url) return null;
     if (!url.includes('cloudinary.com')) return url;
     let imgUrl = url.replace('/raw/upload/', '/image/upload/');
@@ -210,6 +225,22 @@ export default function BookDetailClient({ book, relatedBooks }) {
     router.push('/checkout');
   };
 
+  // Truncated description for inline preview
+  const description = book.description || '';
+  const shortDescription = description.length > 200 
+    ? description.substring(0, 200) + '...' 
+    : description;
+  const hasLongDesc = description.length > 200;
+
+  // Get sidebar related books cover URL
+  const getRelatedBookCover = (b) => {
+    const cover = b.cover_url || b.cover || b.cover_image;
+    return getOptimizedCloudinaryUrl(getFileUrl(cover));
+  };
+
+  // Limit sidebar to 4 books
+  const sidebarBooks = (relatedBooks || []).slice(0, 4);
+
   return (
     <div className={styles.pageWrapper}>
       {/* Breadcrumb */}
@@ -230,8 +261,9 @@ export default function BookDetailClient({ book, relatedBooks }) {
       </nav>
 
       <div className="container">
-        <div className={styles.detailGrid}>
-          {/* Left: Book Cover */}
+        {/* ===== Main 3-Column Layout ===== */}
+        <div className={styles.topSection}>
+          {/* LEFT: Book Cover */}
           <div className={styles.imageSection}>
             <div className={styles.mainImage}>
               {discount > 0 && <span className={styles.discountBadge}>{discount}% ছাড়</span>}
@@ -247,49 +279,109 @@ export default function BookDetailClient({ book, relatedBooks }) {
                 </div>
               )}
             </div>
-
-            {/* "একটু পড়ে দেখুন" Button */}
-            {showPreviewBtn && (
-              <button
-                className={styles.previewBtn}
-                onClick={() => setShowPreview(true)}
-              >
-                একটু পড়ে দেখুন
-              </button>
-            )}
+            
+            {/* Buttons under image */}
+            <div className={styles.imageActions}>
+              {showPreviewBtn && (
+                <button
+                  className={styles.previewBtn}
+                  onClick={() => setShowPreview(true)}
+                >
+                  একটু পড়ে দেখুন
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Right: Book Info */}
+          {/* CENTER: Book Info */}
           <div className={styles.infoSection}>
             <h1 className={styles.bookTitle}>{title}</h1>
 
-            <div className={styles.metaInfoRow}>
-              <div style={{ fontSize: '16px', color: '#444' }}>
-                <span style={{ color: '#555' }}>লেখক: </span>
-                {authorName ? (
-                  <Link href={`/books?author=${authorSlug}`} className={styles.authorLink}>
-                    {authorName}
-                  </Link>
-                ) : 'অজানা'}
-              </div>
+            {/* Compact Meta Info Table */}
+            <table className={styles.metaTable}>
+              <tbody>
+                <tr>
+                  <td className={styles.metaLabel}>লেখক :</td>
+                  <td className={styles.metaValue}>
+                    {authorName ? (
+                      <Link href={`/books?author=${authorSlug}`} className={styles.metaLink}>
+                        {authorName}
+                      </Link>
+                    ) : 'অজানা'}
+                  </td>
+                </tr>
+                {book.publisher && (
+                  <tr>
+                    <td className={styles.metaLabel}>প্রকাশনী :</td>
+                    <td className={styles.metaValue}>{book.publisher}</td>
+                  </tr>
+                )}
+                <tr>
+                  <td className={styles.metaLabel}>বিষয় :</td>
+                  <td className={styles.metaValue}>
+                    {categoryName ? (
+                      <Link href={`/books?category=${categorySlug}`} className={styles.metaLink}>
+                        {categoryName}
+                      </Link>
+                    ) : 'সাধারণ'}
+                  </td>
+                </tr>
+                {book.pages > 0 && (
+                  <tr>
+                    <td className={styles.metaLabel}>পৃষ্ঠা :</td>
+                    <td className={styles.metaValue}>{book.pages}</td>
+                  </tr>
+                )}
+                {book.edition && (
+                  <tr>
+                    <td className={styles.metaLabel}>সংস্করণ :</td>
+                    <td className={styles.metaValue}>{book.edition}</td>
+                  </tr>
+                )}
+                {book.isbn && (
+                  <tr>
+                    <td className={styles.metaLabel}>ISBN :</td>
+                    <td className={styles.metaValue}>{book.isbn}</td>
+                  </tr>
+                )}
+                <tr>
+                  <td className={styles.metaLabel}>ভাষা :</td>
+                  <td className={styles.metaValue}>
+                    {book.language === 'bangla' ? 'বাংলা' : book.language === 'english' ? 'English' : 'আরবি'}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-              <div style={{ fontSize: '16px', color: '#444' }}>
-                <span style={{ color: '#555' }}>বিষয়: </span>
-                {categoryName ? (
-                  <Link href={`/books?category=${categorySlug}`} className={styles.authorLink}>
-                    {categoryName}
-                  </Link>
-                ) : 'সাধারণ'}
+            {/* Rating */}
+            <div className={styles.ratingRow}>
+              <div style={{ display: 'flex' }}>
+                {renderStars(book.rating)}
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ display: 'flex' }}>
-                  {renderStars(book.rating)}
-                </div>
-                <span style={{ color: '#777', fontSize: '14px', marginLeft: '4px' }}>({book.review_count || 0} রিভিউ)</span>
-              </div>
+              <span className={styles.ratingCount}>({book.review_count || 0} রিভিউ)</span>
             </div>
 
+            {/* Inline Short Description with Read More */}
+            {description && (
+              <div className={styles.inlineDesc}>
+                <div className={`${styles.descText} ${!descExpanded && hasLongDesc ? styles.descTextClamped : ''}`}>
+                  {descExpanded ? description : shortDescription}
+                </div>
+                {hasLongDesc && (
+                  <button 
+                    className={`${styles.readMoreBtn} ${descExpanded ? styles.readMoreBtnExpanded : ''}`}
+                    onClick={handleReadMore}
+                  >
+                    {descExpanded ? 'সংক্ষেপে দেখুন' : '...আরো পড়ুন'}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Price */}
             <div className={styles.priceBlock}>
               <span className={styles.currentPrice}>
                 ৳{price.toLocaleString('bn-BD')}
@@ -301,12 +393,12 @@ export default function BookDetailClient({ book, relatedBooks }) {
               )}
               {discount > 0 && (
                 <span className={styles.saveBadge}>
-                  ({discount}% ছাড়)
+                  ({discount}% ছাড়)
                 </span>
               )}
             </div>
 
-            {/* Action Area Card */}
+            {/* Action Area */}
             <div className={styles.actionArea}>
               <div className={styles.quantityRow}>
                 <span className={styles.qtyLabel}>পরিমাণ:</span>
@@ -325,7 +417,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+              <div className={styles.btnRow}>
                 <button
                   onClick={handleAddToCart}
                   disabled={stock <= 0}
@@ -359,62 +451,9 @@ export default function BookDetailClient({ book, relatedBooks }) {
               </div>
             </div>
 
-            {/* Specs Table Shown Inline */}
-            <div className={styles.specsTable}>
-              <h3 className={styles.specsTitle}>বইয়ের বিবরণ</h3>
-              <table className={styles.specTable}>
-                <tbody>
-                  <tr>
-                    <td className={styles.specLabel}>শিরোনাম</td>
-                    <td className={styles.specValue}>{title}</td>
-                  </tr>
-                  <tr>
-                    <td className={styles.specLabel}>লেখক</td>
-                    <td className={styles.specValue}>
-                      {authorName ? (
-                        <Link href={`/books?author=${authorSlug}`} className={styles.specLink}>
-                          {authorName}
-                        </Link>
-                      ) : 'অজানা'}
-                    </td>
-                  </tr>
-                  {book.publisher && (
-                    <tr>
-                      <td className={styles.specLabel}>প্রকাশক</td>
-                      <td className={styles.specValue}>{book.publisher}</td>
-                    </tr>
-                  )}
-                  {book.isbn && (
-                    <tr>
-                      <td className={styles.specLabel}>ISBN</td>
-                      <td className={styles.specValue}>{book.isbn}</td>
-                    </tr>
-                  )}
-                  {book.edition && (
-                    <tr>
-                      <td className={styles.specLabel}>সংস্করণ</td>
-                      <td className={styles.specValue}>{book.edition}</td>
-                    </tr>
-                  )}
-                  {book.pages > 0 && (
-                    <tr>
-                      <td className={styles.specLabel}>পৃষ্ঠা সংখ্যা</td>
-                      <td className={styles.specValue}>{book.pages}</td>
-                    </tr>
-                  )}
-                  <tr>
-                    <td className={styles.specLabel}>ভাষা</td>
-                    <td className={styles.specValue}>
-                      {book.language === 'bangla' ? 'বাংলা' : book.language === 'english' ? 'English' : 'আরবি'}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
             {/* Share Section */}
             <div className={styles.shareSection}>
-              <span className={styles.shareTitle}>শেয়ার করুন:</span>
+              <span className={styles.shareTitle}>শেয়ার করুন:</span>
               
               {/* Facebook */}
               <a 
@@ -422,7 +461,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className={styles.shareFb}
-                title="ফেসবুকে শেয়ার করুন"
+                title="ফেসবুকে শেয়ার করুন"
               >
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                 Facebook
@@ -430,11 +469,11 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
               {/* WhatsApp */}
               <a 
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`*${title}* - ${authorName}\nদ্বীনি ও ইসলামিক বইয়ের নির্ভরযোগ্য অনলাইন বুকশপ আকাবির প্রকাশনী থেকে বইটি সংগ্রহ করতে ভিজিট করুন: https://akabirprokashoni.com/books/${book.slug}`)}`} 
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`*${title}* - ${authorName}\nদ্বীনি ও ইসলামিক বইয়ের নির্ভরযোগ্য অনলাইন বুকশপ আকাবির প্রকাশনী থেকে বইটি সংগ্রহ করতে ভিজিট করুন: https://akabirprokashoni.com/books/${book.slug}`)}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className={styles.shareWa}
-                title="হোয়াটসঅ্যাপে শেয়ার করুন"
+                title="হোয়াটসঅ্যাপে শেয়ার করুন"
               >
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.59 1.97 14.12 .95 11.5 1.05c-5.432 0-9.858 4.37-9.862 9.8-.001 1.748.484 3.454 1.411 4.967l-.962 3.512 3.6-.926zm12.39-3.793c-.272-.136-1.613-.797-1.863-.888-.25-.09-.432-.136-.613.136-.182.273-.705.888-.864 1.07-.159.18-.318.203-.59.067-.272-.135-1.15-.423-2.186-1.348-.806-.717-1.35-1.607-1.508-1.88-.159-.272-.017-.419.12-.556.122-.122.272-.318.408-.477.136-.16.182-.272.272-.455.09-.181.045-.34-.023-.477-.068-.136-.613-1.477-.838-2.023-.22-.53-.44-.457-.613-.466-.159-.008-.34-.01-.522-.01-.182 0-.477.067-.727.34-.25.272-.954.933-.954 2.273s.977 2.636 1.114 2.818c.136.182 1.92 2.93 4.65 4.113.65.28 1.157.447 1.553.573.654.207 1.25.177 1.719.108.524-.078 1.613-.659 1.84-1.295.228-.636.228-1.182.16-1.295-.069-.114-.25-.205-.523-.341z"/></svg>
                 WhatsApp
@@ -446,7 +485,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className={styles.shareTg}
-                title="টেলিগ্রামে শেয়ার করুন"
+                title="টেলিগ্রামে শেয়ার করুন"
               >
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-1-.65-.35-1 .22-1.58.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.24-5.54 3.65-.52.36-1 .54-1.43.53-.48-.01-1.4-.27-2.08-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.03-.75 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.6 4.64-1.88 5.17-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.03.2z"/></svg>
                 Telegram
@@ -454,11 +493,11 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
               {/* Twitter / X */}
               <a 
-                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://akabirprokashoni.com/books/${book.slug}`)}&text=${encodeURIComponent(`আকাবির প্রকাশনী থেকে পড়ুন "${title}" - ${authorName}`)}`} 
+                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://akabirprokashoni.com/books/${book.slug}`)}&text=${encodeURIComponent(`আকাবির প্রকাশনী থেকে পড়ুন "${title}" - ${authorName}`)}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className={styles.shareTw}
-                title="টুইটারে শেয়ার করুন"
+                title="টুইটারে শেয়ার করুন"
               >
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                 X
@@ -477,7 +516,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                 )}
                 <span>কপি লিংক</span>
-                {copied && <span className={styles.copiedTooltip}>লিংক কপি হয়েছে!</span>}
+                {copied && <span className={styles.copiedTooltip}>লিংক কপি হয়েছে!</span>}
               </button>
 
               {/* Native System Share on Mobile */}
@@ -486,19 +525,67 @@ export default function BookDetailClient({ book, relatedBooks }) {
                   type="button"
                   onClick={handleNativeShare}
                   className={styles.shareNative}
-                  title="অন্যান্য মাধ্যমে শেয়ার করুন"
+                  title="অন্যান্য মাধ্যমে শেয়ার করুন"
                 >
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-                  <span>শেয়ার</span>
+                  <span>শেয়ার</span>
                 </button>
               )}
             </div>
-
           </div>
+
+          {/* RIGHT: Related Books Sidebar */}
+          {sidebarBooks.length > 0 && (
+            <div className={styles.sidebar}>
+              <div className={styles.sidebarHeader}>
+                <span className={styles.sidebarTitle}>আরো দেখুন...</span>
+                <Link href="/books" className={styles.sidebarViewAll}>সবগুলো দেখুন</Link>
+              </div>
+              <div className={styles.sidebarBookList}>
+                {sidebarBooks.map(b => {
+                  const bPrice = Number(b.price) || 0;
+                  const bOrigPrice = Number(b.original_price) || 0;
+                  const bDiscount = bOrigPrice > bPrice ? Math.round(((bOrigPrice - bPrice) / bOrigPrice) * 100) : 0;
+                  const bAuthor = Array.isArray(b.author_details) && b.author_details.length > 0
+                    ? b.author_details.map(a => a.name).join(', ')
+                    : b.author_name || b.author?.name || '';
+                  
+                  return (
+                    <Link key={b.id} href={`/books/${b.slug}`} className={styles.sidebarBookCard}>
+                      {getRelatedBookCover(b) ? (
+                        <img
+                          src={getRelatedBookCover(b)}
+                          alt={b.title}
+                          className={styles.sidebarBookCover}
+                        />
+                      ) : (
+                        <div className={styles.sidebarBookCover} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#999', textAlign: 'center', padding: '4px' }}>
+                          {b.title}
+                        </div>
+                      )}
+                      <div className={styles.sidebarBookInfo}>
+                        <span className={styles.sidebarBookTitle}>{b.title}</span>
+                        <span className={styles.sidebarBookAuthor}>{bAuthor}</span>
+                        <div className={styles.sidebarBookPrice}>
+                          <span className={styles.sidebarPrice}>৳{bPrice.toLocaleString('bn-BD')}</span>
+                          {bOrigPrice > bPrice && (
+                            <span className={styles.sidebarOrigPrice}>৳{bOrigPrice.toLocaleString('bn-BD')}</span>
+                          )}
+                          {bDiscount > 0 && (
+                            <span className={styles.sidebarDiscount}>({bDiscount}% ছাড়)</span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Description Tabs */}
-        <div className={styles.descSection}>
+        {/* ===== Full Description Tabs Section ===== */}
+        <div className={styles.descSection} ref={descSectionRef}>
           <div className={styles.tabBar}>
             <button
               className={`${styles.tab} ${activeTab === 'description' ? styles.tabActive : ''}`}
@@ -540,7 +627,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                     <div className={styles.totalReviewsCount}>{book.review_count || 0}টি রিভিউ</div>
                   </div>
                   <div className={styles.ratingInfoText}>
-                    আমাদের সকল রিভিউ যাচাইকৃত ক্রেতাদের থেকে প্রাপ্ত। বইটির ব্যাপারে আপনার মূল্যবান মতামত শেয়ার করুন।
+                    আমাদের সকল রিভিউ যাচাইকৃত ক্রেতাদের থেকে প্রাপ্ত। বইটির ব্যাপারে আপনার মূল্যবান মতামত শেয়ার করুন।
                   </div>
                 </div>
 
@@ -560,7 +647,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                       </div>
                     ))
                   ) : (
-                    <div className={styles.noReviews}>বইটির কোনো রিভিউ এখনো দেওয়া হয়নি। প্রথম রিভিউটি আপনি দিন!</div>
+                    <div className={styles.noReviews}>বইটির কোনো রিভিউ এখনো দেওয়া হয়নি। প্রথম রিভিউটি আপনি দিন!</div>
                   )}
                 </div>
 
@@ -578,7 +665,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                         value={reviewName}
                         onChange={(e) => setReviewName(e.target.value)}
                         className={styles.formInput}
-                        placeholder="যেমন: আরিয়ান রহমান"
+                        placeholder="যেমন: আরিয়ান রহমান"
                         required
                       />
                     </div>
@@ -605,7 +692,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                       disabled={submittingReview}
                       className={styles.submitReviewBtn}
                     >
-                      {submittingReview ? 'জমা দেওয়া হচ্ছে...' : 'রিভিউ জমা দিন'}
+                      {submittingReview ? 'জমা দেওয়া হচ্ছে...' : 'রিভিউ জমা দিন'}
                     </button>
                   </form>
                 </div>
@@ -615,20 +702,54 @@ export default function BookDetailClient({ book, relatedBooks }) {
         </div>
       </div>
 
-      {/* Related Books */}
+      {/* Related Books Bottom (Full width, visible on all screens) */}
       {relatedBooks?.length > 0 && (
-        <section style={{ marginTop: '48px', padding: '48px 0', background: '#f1f5f9' }}>
+        <section className={styles.relatedBooksBottom}>
           <div className="container">
-            <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '24px' }}>সম্পর্কিত বই</h2>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '24px' }}>সম্পর্কিত আরো বই</h2>
             <div className="grid grid-5">
               {relatedBooks.map(b => (
-                <BookCard key={b.id} book={b} />
+                <Link key={b.id} href={`/books/${b.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '1px solid #e5e5e5',
+                    transition: 'all 0.2s ease',
+                    cursor: 'pointer'
+                  }}>
+                    {getRelatedBookCover(b) ? (
+                      <img
+                        src={getRelatedBookCover(b)}
+                        alt={b.title}
+                        style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div style={{ width: '100%', aspectRatio: '3/4', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: '#999', padding: '12px', textAlign: 'center' }}>
+                        {b.title}
+                      </div>
+                    )}
+                    <div style={{ padding: '12px' }}>
+                      <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b', marginBottom: '4px', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{b.title}</h3>
+                      <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '6px' }}>
+                        {Array.isArray(b.author_details) && b.author_details.length > 0
+                          ? b.author_details.map(a => a.name).join(', ')
+                          : b.author_name || b.author?.name || ''}
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                        <span style={{ fontSize: '15px', fontWeight: '800', color: 'var(--color-primary)' }}>৳{(Number(b.price) || 0).toLocaleString('bn-BD')}</span>
+                        {Number(b.original_price) > Number(b.price) && (
+                          <span style={{ fontSize: '12px', color: '#aaa', textDecoration: 'line-through' }}>৳{(Number(b.original_price) || 0).toLocaleString('bn-BD')}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
         </section>
       )}
-
 
       {/* Preview Modal */}
       {showPreview && showPreviewBtn && (

@@ -13,7 +13,6 @@ export default function BookDetailClient({ book, relatedBooks }) {
   const [activeTab, setActiveTab] = useState('description');
   const [addedToCart, setAddedToCart] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [descExpanded, setDescExpanded] = useState(false);
 
   const [reviewName, setReviewName] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
@@ -114,17 +113,12 @@ export default function BookDetailClient({ book, relatedBooks }) {
   };
 
   const handleReadMore = () => {
-    if (descExpanded) {
-      setDescExpanded(false);
-    } else {
-      setDescExpanded(true);
-      // Smooth scroll to full description tab
-      setTimeout(() => {
-        if (descSectionRef.current) {
-          descSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-    }
+    setActiveTab('description');
+    setTimeout(() => {
+      if (descSectionRef.current) {
+        descSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
   };
 
   if (!book) return null;
@@ -364,15 +358,15 @@ export default function BookDetailClient({ book, relatedBooks }) {
             {/* Inline Short Description with Read More */}
             {description && (
               <div className={styles.inlineDesc}>
-                <div className={`${styles.descText} ${!descExpanded && hasLongDesc ? styles.descTextClamped : ''}`}>
-                  {descExpanded ? description : shortDescription}
+                <div className={`${styles.descText} ${hasLongDesc ? styles.descTextClamped : ''}`}>
+                  {shortDescription}
                 </div>
                 {hasLongDesc && (
                   <button 
-                    className={`${styles.readMoreBtn} ${descExpanded ? styles.readMoreBtnExpanded : ''}`}
+                    className={styles.readMoreBtn}
                     onClick={handleReadMore}
                   >
-                    {descExpanded ? 'সংক্ষেপে দেখুন' : '...আরো পড়ুন'}
+                    ...আরো পড়ুন
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>

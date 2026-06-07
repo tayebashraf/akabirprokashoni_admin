@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getSiteSettings, updateSiteSettings, testSteadfastConnection } from '@/lib/api';
+import { getSiteSettings, updateSiteSettings, testSteadfastConnection, API_URL } from '@/lib/api';
 import styles from './page.module.css'; // Reusing similar CSS
 
 export default function AdminSettings() {
@@ -9,6 +9,54 @@ export default function AdminSettings() {
   const [keyStatus, setKeyStatus] = useState({ api_set: false, secret_set: false });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
+
+  // Sessions & Devices management state
+  const [sessions, setSessions] = useState([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+  const [pwaTab, setPwaTab] = useState('android'); // android or ios
+
+  const fetchSessions = async () => {
+    try {
+      setLoadingSessions(true);
+      const token = localStorage.getItem('access_token');
+      const res = await fetch(`${API_URL}/accounts/admin/sessions/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSessions(data);
+      }
+    } catch (error) {
+      console.error("Error fetching admin sessions:", error);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
+
+  const handleLogoutSession = async (sessionId) => {
+    if (!window.confirm('আপনি কি নিশ্চিত যে এই ডিভাইসটি লগআউট করতে চান?')) return;
+    try {
+      const token = localStorage.getItem('access_token');
+      const res = await fetch(`${API_URL}/accounts/admin/sessions/${sessionId}/logout/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (res.ok) {
+        alert('ডিভাইসটি সফলভাবে লগআউট করা হয়েছে।');
+        fetchSessions();
+      } else {
+        alert('ডিভাইস লগআউট করতে সমস্যা হয়েছে।');
+      }
+    } catch (error) {
+      alert('ত্রুটি দেখা দিয়েছে।');
+    }
+  };
 
   const [formData, setFormData] = useState({
     site_name: '', site_tagline: '', phone: '', email: '', address: '',
@@ -60,7 +108,9 @@ export default function AdminSettings() {
 
   useEffect(() => {
     fetchData();
+    fetchSessions();
   }, []);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -290,6 +340,156 @@ export default function AdminSettings() {
           </div>
         </form>
       </div>
+
+      {/* Active Device Sessions List */}
+      <div className={styles.tableCard} style={{ padding: '30px', marginTop: '30px' }}>
+        <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>🔐 লগইন করা ডিভাইসসমূহ (Active Sessions)</span>
+          <button 
+            type="button" 
+            onClick={fetchSessions} 
+            className="btn btn-secondary" 
+            style={{ fontSize: '13px', padding: '6px 12px' }}
+          >
+            🔄 রিফ্রেশ করুন
+          </button>
+        </h3>
+        <p style={{ fontSize: '13px', color: '#666', margin: '0 0 20px' }}>
+          নিচের তালিকায় বর্তমানে আপনার এই এডমিন প্যানেলে লগইন থাকা মোবাইল ও পিসির তালিকা দেখতে পাচ্ছেন। অপরিচিত কোনো ডিভাইস দেখলে লগআউট বোতাম চাপুন।
+        </p>
+
+        {loadingSessions ? (
+          <div style={{ padding: '10px', textAlign: 'center', color: '#666' }}>সেশন ডাটা লোড হচ্ছে...</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {sessions.map((sess) => (
+              <div 
+                key={sess.id} 
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '16px 20px',
+                  background: sess.is_current ? '#f0fdf4' : '#fafafa',
+                  borderRadius: '12px',
+                  border: sess.is_current ? '1.5px solid #bbf7d0' : '1px solid #e5e7eb',
+                  gap: '12px',
+                  flexWrap: 'wrap'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <span style={{ fontSize: '1.8rem' }}>
+                    {sess.device_name.includes('Mobile') || sess.device_name.includes('iPhone') ? '📱' : '💻'}
+                  </span>
+                  <div>
+                    <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {sess.device_name}
+                      {sess.is_current && (
+                        <span style={{ background: '#16a34a', color: '#fff', fontSize: '11px', padding: '2px 8px', borderRadius: '20px', fontWeight: 600 }}>
+                          এই ডিভাইস (Current)
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                      IP Address: <b>{sess.ip_address}</b> • লগইন: {new Date(sess.created_at).toLocaleString('bn-BD', { timeZone: 'Asia/Dhaka' })}
+                    </div>
+                  </div>
+                </div>
+
+                {!sess.is_current && (
+                  <button 
+                    type="button" 
+                    onClick={() => handleLogoutSession(sess.id)}
+                    style={{
+                      background: '#fee2e2',
+                      color: '#dc2626',
+                      border: '1px solid #fca5a5',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontWeight: 'bold',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => { e.target.style.background = '#fecaca'; }}
+                    onMouseLeave={(e) => { e.target.style.background = '#fee2e2'; }}
+                  >
+                    🔒 লগআউট করে দিন
+                  </button>
+                )}
+              </div>
+            ))}
+            {sessions.length === 0 && (
+              <div style={{ textAlign: 'center', color: '#888', padding: '20px' }}>কোনো সক্রিয় সেশন পাওয়া যায়নি।</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* PWA Mobile Installation Guide */}
+      <div className={styles.tableCard} style={{ padding: '30px', marginTop: '30px' }}>
+        <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px' }}>📱 মোবাইলে এডমিন প্যানেল ইন্সটলেশন গাইড (PWA Guide)</h3>
+        <p style={{ fontSize: '13px', color: '#666', margin: '0 0 20px' }}>
+          এডমিন প্যানেলটিকে সরাসরি মোবাইলের হোমস্ক্রিনে অ্যাপের মতো (PWA) ইন্সটল করে নিতে নিচের গাইড অনুসরণ করুন।
+        </p>
+
+        {/* Tab Selection */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+          <button 
+            type="button" 
+            onClick={() => setPwaTab('android')}
+            style={{
+              flex: 1,
+              padding: '12px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              border: pwaTab === 'android' ? '2px solid #0d6b3f' : '1px solid #d1d5db',
+              background: pwaTab === 'android' ? '#eaf5ee' : '#fff',
+              color: pwaTab === 'android' ? '#0d6b3f' : '#4b5563',
+              cursor: 'pointer'
+            }}
+          >
+            🤖 অ্যান্ড্রয়েড (Android)
+          </button>
+          <button 
+            type="button" 
+            onClick={() => setPwaTab('ios')}
+            style={{
+              flex: 1,
+              padding: '12px',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              border: pwaTab === 'ios' ? '2px solid #0d6b3f' : '1px solid #d1d5db',
+              background: pwaTab === 'ios' ? '#eaf5ee' : '#fff',
+              color: pwaTab === 'ios' ? '#0d6b3f' : '#4b5563',
+              cursor: 'pointer'
+            }}
+          >
+            🍎 আইফোন (iOS / Safari)
+          </button>
+        </div>
+
+        {pwaTab === 'android' ? (
+          <div style={{ lineHeight: 1.8, fontSize: '14px', color: '#374151' }}>
+            অ্যান্ড্রয়েড ফোনে এডমিন প্যানেলটিকে অ্যাপ হিসেবে ব্যবহার করার নিয়ম:<br />
+            ১. আপনার মোবাইলের <b>Google Chrome</b> ব্রাউজার দিয়ে এডমিন প্যানেলে প্রবেশ করুন।<br />
+            ২. ব্রাউজারের উপরে বা নিচে <b>"অ্যাপ ইন্সটল করুন"</b> নোটিফিকেশন বারটি দেখতে পাবেন, সেখানে ক্লিক করুন।<br />
+            ৩. যদি নোটিফিকেশন বারটি না আসে, তবে ব্রাউজারের ডানদিকের উপরের <b>থ্রি-ডট (Three Dots)</b> আইকনে ক্লিক করুন।<br />
+            ৪. মেনু থেকে <b>"Install app"</b> (বা "Add to Home screen") অপশনটি নির্বাচন করুন।<br />
+            ৫. পপ-আপ বক্সে <b>Install</b> বাটনে চাপলেই এটি আপনার ফোনে সম্পূর্ণ অ্যাপের মতো আইকন আকারে যুক্ত হয়ে যাবে।
+          </div>
+        ) : (
+          <div style={{ lineHeight: 1.8, fontSize: '14px', color: '#374151' }}>
+            আইফোনে (iOS) সাফারি ব্রাউজার দিয়ে এডমিন প্যানেলকে হোমস্ক্রিনে অ্যাপ হিসেবে যুক্ত করার নিয়ম:<br />
+            ১. আইফোনের <b>Safari</b> ব্রাউজার দিয়ে এডমিন প্যানেল লিঙ্কে প্রবেশ করুন।<br />
+            ২. ব্রাউজারের নিচের মেনু বার থেকে <b>Share (শেয়ার)</b> আইকনে (বক্স ও তীরের মতো) ট্যাপ করুন।<br />
+            ৩. শেয়ার তালিকাটি স্ক্রল করে একটু নিচে নামুন এবং <b>"Add to Home Screen"</b> (হোম স্ক্রিনে যোগ করুন) অপশনটি নির্বাচন করুন।<br />
+            ৪. উপরের ডান কোণায় থাকা <b>"Add"</b> (যোগ করুন) বাটনে ট্যাপ করুন।<br />
+            ৫. ব্যাস! এডমিন প্যানেলটি আপনার আইফোনে অন্যান্য সাধারণ অ্যাপের মতো ইন্সটল হয়ে যাবে।
+          </div>
+        )}
+      </div>
     </>
   );
 }
+

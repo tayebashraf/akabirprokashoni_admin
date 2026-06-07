@@ -20,6 +20,13 @@ export default function AdminLayout({ children }) {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
 
+  // Mobile drawer state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   useEffect(() => {
     // Register sw.js for PWA eligibility
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
@@ -152,8 +159,31 @@ export default function AdminLayout({ children }) {
       <head>
         <link rel="manifest" href="/manifest-admin.json" />
       </head>
+
+      {/* Mobile Top Header */}
+      <header className={styles.mobileHeader}>
+        <button 
+          type="button"
+          className={styles.hamburgerBtn}
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="মেনু"
+        >
+          {isMobileMenuOpen ? '✕' : '☰'}
+        </button>
+        <div className={styles.mobileLogo}>
+          📚 আকাবির প্রকাশনী অ্যাডমিন
+        </div>
+        <div style={{ width: '24px' }}></div> {/* Spacer to balance layout */}
+      </header>
+
+      {/* Backdrop Overlay when Sidebar is open on Mobile */}
+      {isMobileMenuOpen && (
+        <div className={styles.overlay} onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className={styles.sidebar}>
+      <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpen : ''}`}>
+
         <div className={styles.sidebarLogo}>
           <span>📚</span> অ্যাডমিন
         </div>

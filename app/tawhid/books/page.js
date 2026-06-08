@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getBooks, deleteBook, createBook, updateBook, getCategories, getAuthors, getBookBySlug, createAuthor, getImageUrl } from '@/lib/api';
+import { getBooks, deleteBook, createBook, updateBook, getCategories, getAuthors, getBookBySlug, createAuthor, createCategory, getImageUrl } from '@/lib/api';
 import styles from './page.module.css';
 
 
@@ -169,6 +169,180 @@ function AuthorAutocomplete({ label, allAuthors, selected, onChange, placeholder
   );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   CategoryAutocomplete — autocomplete with chips & plus button
+   ───────────────────────────────────────────────────────────── */
+function CategoryAutocomplete({ label, allCategories, selected, onChange, placeholder = 'টাইপ করুন...', onCreateNew }) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [highlightIdx, setHighlightIdx] = useState(-1);
+  const wrapperRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const selectedIds = new Set(selected.filter(c => c.id !== null).map(c => c.id));
+  const selectedNames = new Set(selected.map(c => c.name.trim().toLowerCase()));
+  const filtered = allCategories.filter(a => {
+    if (selectedIds.has(a.id)) return false;
+    if (!query.trim()) return true;
+    return a.name.toLowerCase().includes(query.trim().toLowerCase());
+  });
+
+  useEffect(() => {
+    function handler(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const addChip = useCallback((chip) => {
+    if (selectedNames.has(chip.name.trim().toLowerCase())) return;
+    onChange([...selected, chip]);
+    setQuery('');
+    setOpen(false);
+    setHighlightIdx(-1);
+    inputRef.current?.focus();
+  }, [selected, selectedNames, onChange]);
+
+  const removeChip = useCallback((idx) => {
+    onChange(selected.filter((_, i) => i !== idx));
+  }, [selected, onChange]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightIdx(prev => Math.min(prev + 1, filtered.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightIdx(prev => Math.max(prev - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightIdx >= 0 && highlightIdx < filtered.length) {
+        addChip({ id: filtered[highlightIdx].id, name: filtered[highlightIdx].name });
+      } else if (query.trim()) {
+        const exact = allCategories.find(a => a.name.trim().toLowerCase() === query.trim().toLowerCase());
+        if (exact) addChip({ id: exact.id, name: exact.name });
+      }
+    } else if (e.key === 'Backspace' && !query && selected.length > 0) {
+      removeChip(selected.length - 1);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
+  const handleAddCategoryClick = () => {
+    const catName = prompt("নতুন ক্যাটাগরির নাম লিখুন:");
+    if (catName && catName.trim()) {
+      onCreateNew(catName.trim(), (newCat) => {
+        if (newCat) {
+          addChip({ id: newCat.id, name: newCat.name });
+        }
+      });
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: '15px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+        <label style={{ margin: 0, fontWeight: 'bold' }}>{label}</label>
+        <button
+          type="button"
+          onClick={handleAddCategoryClick}
+          style={{
+            background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534',
+            fontSize: '12px', fontWeight: 'bold', cursor: 'pointer',
+            display: 'inline-flex', alignItems: 'center', gap: '4px',
+            padding: '4px 10px', borderRadius: '6px', transition: 'all 0.2s'
+          }}
+          onMouseEnter={e => e.target.style.background = '#dcfce7'}
+          onMouseLeave={e => e.target.style.background = '#f0fdf4'}
+        >
+          ➕ নতুন বিষয় তৈরি করুন
+        </button>
+      </div>
+      <div ref={wrapperRef} style={{ position: 'relative' }}>
+        <div
+          onClick={() => inputRef.current?.focus()}
+          style={{
+            display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center',
+            padding: '8px 12px', minHeight: '44px',
+            border: '1.5px solid #d1d5db', borderRadius: '10px',
+            background: '#fff', cursor: 'text', transition: 'border-color 0.2s',
+          }}
+        >
+          {selected.map((chip, idx) => (
+            <span
+              key={`${chip.id ?? chip.name}-${idx}`}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                padding: '4px 10px', borderRadius: '20px',
+                fontSize: '13px', fontWeight: 500,
+                background: '#e0f2fe', color: '#0369a1',
+                border: '1px solid #bae6fd',
+              }}
+            >
+              {chip.name}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); removeChip(idx); }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#dc2626', fontSize: '14px', lineHeight: 1,
+                  padding: '0 2px', marginLeft: '2px',
+                }}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setOpen(true); setHighlightIdx(-1); }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={handleKeyDown}
+            placeholder={selected.length === 0 ? placeholder : 'আরো যোগ করুন...'}
+            style={{
+              flex: 1, minWidth: '120px', border: 'none', outline: 'none',
+              fontSize: '14px', background: 'transparent',
+            }}
+          />
+        </div>
+
+        {open && (query.trim() || filtered.length > 0) && (
+          <div style={{
+            position: 'absolute', zIndex: 100, marginTop: '4px',
+            width: '100%', maxHeight: '200px', overflowY: 'auto',
+            borderRadius: '10px', border: '1px solid #e5e7eb',
+            background: '#fff', boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
+          }}>
+            {filtered.map((a, idx) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => addChip({ id: a.id, name: a.name })}
+                onMouseEnter={() => setHighlightIdx(idx)}
+                style={{
+                  width: '100%', textAlign: 'left', padding: '8px 14px',
+                  border: 'none', cursor: 'pointer', fontSize: '14px',
+                  background: idx === highlightIdx ? '#f0f9ff' : 'transparent',
+                  color: idx === highlightIdx ? '#0369a1' : '#374151',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {a.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 export default function AdminBooks() {
   const [books, setBooks] = useState([]);
@@ -186,6 +360,7 @@ export default function AdminBooks() {
   const [bookType, setBookType] = useState('original');
   const [authorChips, setAuthorChips] = useState([]);
   const [translatorChips, setTranslatorChips] = useState([]);
+  const [categoryChips, setCategoryChips] = useState([]);
   const [formData, setFormData] = useState({
     title: '', slug: '', category: '', publisher: '',
     price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
@@ -243,6 +418,7 @@ export default function AdminBooks() {
     setBookType('original');
     setAuthorChips([]);
     setTranslatorChips([]);
+    setCategoryChips([]);
     setFormData({
       title: '', slug: '', category: '', publisher: '',
       price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
@@ -274,16 +450,20 @@ export default function AdminBooks() {
         setAuthorChips([]);
       }
       
-      // Set translator chips from translator string
+      // Set translator chips
       if (bookData.translator) {
-        const translatorNames = bookData.translator.split(',').map(n => n.trim()).filter(Boolean);
-        setTranslatorChips(translatorNames.map(name => {
-          const matchingAuthor = (authors || []).find(a => a.name.trim().toLowerCase() === name.toLowerCase());
-          return { id: matchingAuthor ? matchingAuthor.id : null, name };
-        }));
+        const transMapped = bookData.translator.split(',').map(name => ({ id: null, name: name.trim() }));
+        setTranslatorChips(transMapped);
       } else {
         setTranslatorChips([]);
       }
+
+      // Map categories Many-to-Many
+      const catsMapped = (bookData.categories_details || []).map(c => ({ id: c.id, name: c.name }));
+      if (catsMapped.length === 0 && bookData.category_details) {
+        catsMapped.push({ id: bookData.category_details.id, name: bookData.category_details.name });
+      }
+      setCategoryChips(catsMapped);
       
       setFormData({
         title: bookData.title || '',
@@ -324,6 +504,19 @@ export default function AdminBooks() {
     }
   };
 
+  const handleCreateCategory = async (name, callback) => {
+    try {
+      const data = new FormData();
+      data.append('name', name);
+      const newCat = await createCategory(data);
+      const catsData = await getCategories();
+      setCategories(catsData.results || catsData || []);
+      if (callback) callback(newCat);
+    } catch (error) {
+      alert(error.message || 'ক্যাটাগরি তৈরি করতে সমস্যা হয়েছে।');
+    }
+  };
+
   const handleSubmit = async (e, force = false) => {
     if (e) e.preventDefault();
     setIsSubmitting(true);
@@ -349,6 +542,16 @@ export default function AdminBooks() {
           data.append('authors', String(chip.id));
         }
       });
+
+      // Categories (ManyToMany)
+      categoryChips.forEach(chip => {
+        if (chip.id !== null) {
+          data.append('categories', String(chip.id));
+        }
+      });
+      if (categoryChips.length > 0) {
+        data.set('category', String(categoryChips[0].id));
+      }
       
       // Translator (CharField) — combine names
       if (bookType === 'translation' && translatorChips.length > 0) {
@@ -561,12 +764,15 @@ export default function AdminBooks() {
                     </div>
                   )}
 
-                  <div>
-                    <label>ক্যাটাগরি</label>
-                    <select name="category" value={formData.category} onChange={handleInputChange} className="form-control">
-                      <option value="">ক্যাটাগরি নির্বাচন করুন</option>
-                      {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <CategoryAutocomplete
+                      label="ক্যাটাগরি/বিষয়সমূহ (একাধিক নির্বাচন সম্ভব)"
+                      allCategories={categories}
+                      selected={categoryChips}
+                      onChange={setCategoryChips}
+                      placeholder="ক্যাটাগরি টাইপ করুন..."
+                      onCreateNew={handleCreateCategory}
+                    />
                   </div>
                   <div>
                     <label>প্রকাশক</label>

@@ -7,7 +7,7 @@ import styles from './page.module.css';
 /* ─────────────────────────────────────────────────────────────
    AuthorAutocomplete — reusable autocomplete with chip tags
    ───────────────────────────────────────────────────────────── */
-function AuthorAutocomplete({ label, allAuthors, selected, onChange, placeholder = 'টাইপ করুন...' }) {
+function AuthorAutocomplete({ label, allAuthors, selected, onChange, placeholder = 'টাইপ করুন...', id }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState(-1);
@@ -71,7 +71,7 @@ function AuthorAutocomplete({ label, allAuthors, selected, onChange, placeholder
   return (
     <div>
       <label>{label}</label>
-      <div ref={wrapperRef} style={{ position: 'relative' }}>
+      <div ref={wrapperRef} id={id} style={{ position: 'relative' }}>
         <div
           onClick={() => inputRef.current?.focus()}
           style={{
@@ -172,7 +172,7 @@ function AuthorAutocomplete({ label, allAuthors, selected, onChange, placeholder
 /* ─────────────────────────────────────────────────────────────
    CategoryAutocomplete — autocomplete with chips & plus button
    ───────────────────────────────────────────────────────────── */
-function CategoryAutocomplete({ label, allCategories, selected, onChange, placeholder = 'টাইপ করুন...', onCreateNew }) {
+function CategoryAutocomplete({ label, allCategories, selected, onChange, placeholder = 'টাইপ করুন...', onCreateNew, id }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState(-1);
@@ -244,7 +244,7 @@ function CategoryAutocomplete({ label, allCategories, selected, onChange, placeh
   };
 
   return (
-    <div style={{ marginBottom: '15px' }}>
+    <div id={id} style={{ marginBottom: '15px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
         <label style={{ margin: 0, fontWeight: 'bold' }}>{label}</label>
         <button
@@ -634,6 +634,49 @@ export default function AdminBooks() {
       let errMsg = error.message || 'অজানা ত্রুটি দেখা দিয়েছে।';
       errMsg = errMsg.replace(/^\[\d+\]\s*(.*?:\s*)?/, '');
       setUploadError(errMsg);
+      
+      // Auto-scroll and focus validation error field
+      setTimeout(() => {
+        let scrolled = false;
+        const segments = errMsg.split('|');
+        for (const segment of segments) {
+          const match = segment.trim().match(/^([a-zA-Z0-9_]+):\s*(.*)/);
+          if (match) {
+            const fieldName = match[1];
+            const element = document.getElementsByName(fieldName)[0] || document.getElementById(fieldName);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              try { element.focus(); } catch (e) {}
+              
+              // Apply red validation border glow effect
+              const originalBorder = element.style.borderColor;
+              const originalShadow = element.style.boxShadow;
+              const originalTransition = element.style.transition;
+              
+              element.style.transition = 'all 0.2s ease';
+              element.style.borderColor = '#ef4444';
+              element.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.3)';
+              
+              setTimeout(() => {
+                element.style.borderColor = originalBorder;
+                element.style.boxShadow = originalShadow;
+                element.style.transition = originalTransition;
+              }, 4000);
+              
+              scrolled = true;
+              break;
+            }
+          }
+        }
+        
+        // Fallback: scroll to error box at the bottom
+        if (!scrolled) {
+          const errorBox = document.getElementById('upload-error-box');
+          if (errorBox) {
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      }, 100);
     } finally {
       setIsSubmitting(false);
     }
@@ -775,6 +818,7 @@ export default function AdminBooks() {
                   {/* মূল লেখক — Autocomplete */}
                   <div style={{ gridColumn: '1 / -1' }}>
                     <AuthorAutocomplete
+                      id="authors"
                       label="মূল লেখক * (একাধিক নির্বাচন সম্ভব)"
                       allAuthors={authors}
                       selected={authorChips}
@@ -821,6 +865,7 @@ export default function AdminBooks() {
                   {bookType === 'translation' && (
                     <div style={{ gridColumn: '1 / -1' }}>
                       <AuthorAutocomplete
+                        id="translator"
                         label="অনুবাদক (একাধিক নির্বাচন সম্ভব)"
                         allAuthors={authors}
                         selected={translatorChips}
@@ -832,6 +877,7 @@ export default function AdminBooks() {
 
                   <div style={{ gridColumn: '1 / -1' }}>
                     <CategoryAutocomplete
+                      id="categories"
                       label="ক্যাটাগরি/বিষয়সমূহ (একাধিক নির্বাচন সম্ভব)"
                       allCategories={categories}
                       selected={categoryChips}
@@ -1196,7 +1242,7 @@ export default function AdminBooks() {
                 </div>
 
                 {uploadError && (
-                  <div style={{ marginTop: '20px', padding: '15px', border: '1px solid #f5c6cb', borderRadius: '8px', backgroundColor: '#f8d7da', color: '#721c24' }}>
+                  <div id="upload-error-box" style={{ marginTop: '20px', padding: '15px', border: '1px solid #f5c6cb', borderRadius: '8px', backgroundColor: '#f8d7da', color: '#721c24' }}>
                     <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>⚠️ আপলোডে সমস্যা দেখা দিয়েছে!</h4>
                     <p style={{ margin: '0 0 15px 0', fontSize: '14px' }}>{uploadError}</p>
                     

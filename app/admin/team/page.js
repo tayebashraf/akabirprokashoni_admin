@@ -185,7 +185,7 @@ export default function TeamManagementPage() {
             <h2 className={styles.cardTitle}>
               {editingId ? '✏️ সাব-অ্যাডমিন এডিট করুন' : '➕ নতুন সাব-অ্যাডমিন যোগ করুন'}
             </h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} autoComplete="off">
               <div className={styles.formGroup}>
                 <label>পূর্ণ নাম (Full Name)</label>
                 <input 
@@ -195,6 +195,7 @@ export default function TeamManagementPage() {
                   value={fullName} 
                   onChange={e => setFullName(e.target.value)} 
                   placeholder="যেমন: ইসমাইল হোসাইন"
+                  autoComplete="off"
                 />
               </div>
 
@@ -207,6 +208,7 @@ export default function TeamManagementPage() {
                   value={email} 
                   onChange={e => setEmail(e.target.value)} 
                   placeholder="যেমন: admin@example.com"
+                  autoComplete="new-email"
                 />
               </div>
 
@@ -223,6 +225,7 @@ export default function TeamManagementPage() {
                     onChange={e => setPassword(e.target.value)} 
                     placeholder="কমপক্ষে ৮ অক্ষরের পাসওয়ার্ড"
                     style={{ paddingRight: '45px' }}
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"

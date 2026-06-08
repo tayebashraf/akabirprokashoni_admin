@@ -939,7 +939,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                   {sampleImages.map((img, idx) => (
                     <img
                       key={img.id || idx}
-                      src={getFileUrl(img.image)}
+                      src={img.image_url || getFileUrl(img.image)}
                       alt={`${title} - পৃষ্ঠা ${idx + 1}`}
                       className={styles.pdfPageImage}
                       onError={(e) => e.target.style.display = 'none'}

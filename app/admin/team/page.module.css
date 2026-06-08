@@ -284,3 +284,34 @@
   margin-bottom: 1.5rem;
   font-size: 0.9rem;
 }
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.2s, transform 0.1s;
+}
+
+.passwordToggle:hover {
+  color: #38bdf8;
+  transform: scale(1.08);
+}
+
+.passwordToggle:active {
+  transform: scale(0.95);
+}
+

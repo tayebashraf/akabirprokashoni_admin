@@ -20,10 +20,10 @@ export default function TeamManagementPage() {
 
   // Form State
   const [editingId, setEditingId] = useState(null);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showFormPassword, setShowFormPassword] = useState(false);
   const [selectedPermissions, setSelectedPermissions] = useState({});
 
   useEffect(() => {
@@ -63,10 +63,10 @@ export default function TeamManagementPage() {
 
   const resetForm = () => {
     setEditingId(null);
-    setFirstName('');
-    setLastName('');
+    setFullName('');
     setEmail('');
     setPassword('');
+    setShowFormPassword(false);
     
     const resetPerms = {};
     permissionOptions.forEach(p => {
@@ -81,7 +81,7 @@ export default function TeamManagementPage() {
     setSuccess('');
     
     // Validations
-    if (!firstName || !lastName || !email) {
+    if (!fullName.trim() || !email) {
       setError('অনুগ্রহ করে নাম এবং ইমেইল প্রদান করুন।');
       return;
     }
@@ -91,9 +91,11 @@ export default function TeamManagementPage() {
     }
 
     try {
+      const [firstName, ...lastNameArr] = fullName.trim().split(' ');
+      const lastName = lastNameArr.join(' ');
       const payload = {
-        first_name: firstName,
-        last_name: lastName,
+        first_name: firstName || fullName.trim(),
+        last_name: lastName || '',
         email: email,
         permissions: selectedPermissions
       };
@@ -123,10 +125,10 @@ export default function TeamManagementPage() {
     setError('');
     setSuccess('');
     setEditingId(subadmin.id);
-    setFirstName(subadmin.first_name || '');
-    setLastName(subadmin.last_name || '');
+    setFullName(`${subadmin.first_name || ''} ${subadmin.last_name || ''}`.trim());
     setEmail(subadmin.email || '');
     setPassword(''); // Leave password blank on edit
+    setShowFormPassword(false);
     
     const perms = {};
     permissionOptions.forEach(p => {
@@ -185,26 +187,14 @@ export default function TeamManagementPage() {
             </h2>
             <form onSubmit={handleSubmit}>
               <div className={styles.formGroup}>
-                <label>নামের প্রথম অংশ (First Name)</label>
+                <label>পূর্ণ নাম (Full Name)</label>
                 <input 
                   type="text" 
                   className={styles.input} 
                   required 
-                  value={firstName} 
-                  onChange={e => setFirstName(e.target.value)} 
-                  placeholder="যেমন: ইসমাইল"
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>নামের শেষ অংশ (Last Name)</label>
-                <input 
-                  type="text" 
-                  className={styles.input} 
-                  required 
-                  value={lastName} 
-                  onChange={e => setLastName(e.target.value)} 
-                  placeholder="যেমন: হোসাইন"
+                  value={fullName} 
+                  onChange={e => setFullName(e.target.value)} 
+                  placeholder="যেমন: ইসমাইল হোসাইন"
                 />
               </div>
 
@@ -224,14 +214,34 @@ export default function TeamManagementPage() {
                 <label>
                   পাসওয়ার্ড {editingId && <span style={{ color: '#64748b', fontWeight: 'normal' }}>(পরিবর্তন না করতে চাইলে খালি রাখুন)</span>}
                 </label>
-                <input 
-                  type="password" 
-                  className={styles.input} 
-                  required={!editingId}
-                  value={password} 
-                  onChange={e => setPassword(e.target.value)} 
-                  placeholder="কমপক্ষে ৮ অক্ষরের পাসওয়ার্ড"
-                />
+                <div className={styles.passwordWrapper}>
+                  <input 
+                    type={showFormPassword ? "text" : "password"} 
+                    className={styles.input} 
+                    required={!editingId}
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    placeholder="কমপক্ষে ৮ অক্ষরের পাসওয়ার্ড"
+                    style={{ paddingRight: '45px' }}
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => setShowFormPassword(!showFormPassword)}
+                    title={showFormPassword ? "পাসওয়ার্ড লুকান" : "পাসওয়ার্ড দেখুন"}
+                  >
+                    {showFormPassword ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className={styles.permissionSection}>

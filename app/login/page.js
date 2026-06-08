@@ -90,8 +90,12 @@ export default function LoginPage() {
           localStorage.setItem('remember_phone', phone);
         }
         
-        // Admin users go to admin panel, regular users go to account
-        if (user.is_staff || user.is_superuser) {
+        // Admin users go to admin panel on admin domains/localhost, regular users (and admins on main storefront) go to account
+        const isClient = typeof window !== 'undefined';
+        const isLocalhost = isClient && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        const isVercelAdmin = isClient && (window.location.hostname.includes('admin') || window.location.hostname.includes('control') || window.location.hostname.includes('manager'));
+        
+        if ((user.is_staff || user.is_superuser) && (isVercelAdmin || isLocalhost)) {
           router.push('/tawhid');
         } else {
           router.push('/account');

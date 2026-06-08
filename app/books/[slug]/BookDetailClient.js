@@ -585,6 +585,18 @@ export default function BookDetailClient({ book, relatedBooks }) {
               className={`${styles.tab} ${activeTab === 'description' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('description')}
             >সারসংক্ষেপ</button>
+            {book.table_of_contents && (
+              <button
+                className={`${styles.tab} ${activeTab === 'toc' ? styles.tabActive : ''}`}
+                onClick={() => setActiveTab('toc')}
+              >সূচিপত্র</button>
+            )}
+            {book.faq && (
+              <button
+                className={`${styles.tab} ${activeTab === 'faq' ? styles.tabActive : ''}`}
+                onClick={() => setActiveTab('faq')}
+              >প্রশ্ন ও উত্তর</button>
+            )}
             <button
               className={`${styles.tab} ${activeTab === 'author' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('author')}
@@ -597,10 +609,94 @@ export default function BookDetailClient({ book, relatedBooks }) {
           <div className={styles.tabContent}>
             {activeTab === 'description' && (
               <div className={styles.descriptionText}>
-                <h3 className={styles.contentTitle}>সারসংক্ষেপ</h3>
-                <p>{book.description || 'বিবরণ পাওয়া যায়নি।'}</p>
+                <h3 className={styles.contentTitle}>বইয়ের বিবরণ</h3>
+                <div className={styles.formattedText}>
+                  {book.long_description ? book.long_description : (book.description || 'বিবরণ পাওয়া যায়নি।')}
+                </div>
+                
+                {book.why_read && (
+                  <div className={styles.seoBlock}>
+                    <h4 className={styles.seoBlockTitle}>💡 বইটি কেন পড়বেন?</h4>
+                    <div className={styles.seoBlockContent}>
+                      {book.why_read.split('\n').filter(Boolean).map((line, idx) => (
+                        <div key={idx} className={styles.seoBulletPoint}>
+                          <span className={styles.bulletIcon}>✓</span>
+                          <span className={styles.bulletText}>{line}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {book.key_takeaways && (
+                  <div className={styles.seoBlock}>
+                    <h4 className={styles.seoBlockTitle}>🔑 বইটির মূল শিক্ষা</h4>
+                    <div className={styles.seoBlockContent}>
+                      {book.key_takeaways.split('\n').filter(Boolean).map((line, idx) => (
+                        <div key={idx} className={styles.seoBulletPoint}>
+                          <span className={styles.bulletIcon}>•</span>
+                          <span className={styles.bulletText}>{line}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {book.target_audience && (
+                  <div className={styles.seoBlock}>
+                    <h4 className={styles.seoBlockTitle}>🎯 বইটি কাদের জন্য?</h4>
+                    <p className={styles.seoBlockParagraph}>{book.target_audience}</p>
+                  </div>
+                )}
               </div>
             )}
+
+            {activeTab === 'toc' && book.table_of_contents && (
+              <div className={styles.tocSection}>
+                <h3 className={styles.contentTitle}>সূচিপত্র</h3>
+                <div className={styles.tocList}>
+                  {book.table_of_contents.split('\n').filter(Boolean).map((chapter, idx) => (
+                    <div key={idx} className={styles.tocItem}>
+                      <span className={styles.tocNumber}>{(idx + 1).toLocaleString('bn-BD')}.</span>
+                      <span className={styles.tocText}>{chapter}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'faq' && book.faq && (() => {
+              let faqItems = [];
+              try {
+                faqItems = typeof book.faq === 'string' ? JSON.parse(book.faq) : book.faq;
+              } catch (e) {
+                faqItems = [];
+              }
+              if (!Array.isArray(faqItems)) faqItems = [];
+              return (
+                <div className={styles.faqSection}>
+                  <h3 className={styles.contentTitle}>প্রায়শই জিজ্ঞাসিত প্রশ্নাবলী (FAQ)</h3>
+                  {faqItems.length > 0 ? (
+                    <div className={styles.faqList}>
+                      {faqItems.map((item, idx) => (
+                        <div key={idx} className={styles.faqItem}>
+                          <h4 className={styles.faqQuestion}>
+                            <span className={styles.faqQBadge}>Q</span>
+                            {item.q || item.question}
+                          </h4>
+                          <div className={styles.faqAnswer}>
+                            <span className={styles.faqABadge}>A</span>
+                            <span>{item.a || item.answer}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>প্রশ্নোত্তর পাওয়া যায়নি।</p>
+                  )}
+                </div>
+              );
+            })()}
 
             {activeTab === 'author' && (
               <div className={styles.authorBio}>

@@ -1116,3 +1116,148 @@
     flex-shrink: 0;
   }
 }
+
+/* AI-Powered SEO Content Styles */
+.seoBlock {
+  margin-top: 24px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px;
+}
+.seoBlockTitle {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+.seoBlockContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.seoBulletPoint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.bulletIcon {
+  color: var(--color-primary);
+  font-weight: 800;
+  font-size: 14px;
+}
+.bulletText {
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.seoBlockParagraph {
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+.formattedText {
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* TOC section styles */
+.tocSection {
+  display: flex;
+  flex-direction: column;
+}
+.tocList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px;
+}
+.tocItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+.tocItem:last-child {
+  border-bottom: none;
+}
+.tocNumber {
+  color: var(--color-primary);
+  font-weight: 800;
+  font-size: 14px;
+}
+.tocText {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* FAQ section styles */
+.faqSection {
+  display: flex;
+  flex-direction: column;
+}
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.faqItem {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px;
+}
+.faqQuestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 10px 0;
+}
+.faqQBadge {
+  background: var(--color-primary);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.faqABadge {
+  background: #64748b;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.faqAnswer {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+

@@ -192,7 +192,9 @@ export default function AdminBooks() {
     edition: '', weight: '', dimensions: '', stock: '',
     is_trending: false, is_new_release: true, is_preorder: false,
     description: '', author_bio: '', tags: '',
-    meta_title: '', meta_description: '', meta_keywords: ''
+    meta_title: '', meta_description: '', meta_keywords: '',
+    table_of_contents: '', why_read: '', target_audience: '',
+    faq: '', key_takeaways: '', long_description: ''
   });
   const [files, setFiles] = useState({
     cover: null,
@@ -247,7 +249,9 @@ export default function AdminBooks() {
       edition: '', weight: '', dimensions: '', stock: '',
       is_trending: false, is_new_release: true, is_preorder: false,
       description: '', author_bio: '', tags: '',
-      meta_title: '', meta_description: '', meta_keywords: ''
+      meta_title: '', meta_description: '', meta_keywords: '',
+      table_of_contents: '', why_read: '', target_audience: '',
+      faq: '', key_takeaways: '', long_description: ''
     });
     setFiles({ cover: null, sample_pdf: null });
     setUploadError(null);
@@ -306,7 +310,13 @@ export default function AdminBooks() {
         tags: bookData.tags || (bookData.tags_list ? bookData.tags_list.join(',') : ''),
         meta_title: bookData.meta_title || '',
         meta_description: bookData.meta_description || '',
-        meta_keywords: bookData.meta_keywords || ''
+        meta_keywords: bookData.meta_keywords || '',
+        table_of_contents: bookData.table_of_contents || '',
+        why_read: bookData.why_read || '',
+        target_audience: bookData.target_audience || '',
+        faq: bookData.faq || '',
+        key_takeaways: bookData.key_takeaways || '',
+        long_description: bookData.long_description || ''
       });
     } catch (error) {
       alert("বইয়ের তথ্য লোড করতে সমস্যা হয়েছে");
@@ -661,21 +671,80 @@ export default function AdminBooks() {
 
                 {/* SEO Fields */}
                 <h3>SEO সেটিংস (Google)</h3>
-                <div className={styles.formGrid}>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label>Meta Title</label>
-                    <input type="text" name="meta_title" value={formData.meta_title} onChange={handleInputChange} className="form-control" placeholder="SEO টাইটেল..." maxLength="200" />
-                  </div>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label>Meta Description</label>
-                    <textarea name="meta_description" value={formData.meta_description} onChange={handleInputChange} className="form-control" rows="2" placeholder="১৬০ অক্ষরের মধ্যে বইয়ের সারসংক্ষেপ..." maxLength="300"></textarea>
-                  </div>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label>Meta Keywords</label>
-                    <input type="text" name="meta_keywords" value={formData.meta_keywords} onChange={handleInputChange} className="form-control" placeholder="কমা দিয়ে কিওয়ার্ড দিন..." maxLength="500" />
+                <div style={{ 
+                  marginBottom: '16px', padding: '14px 18px', 
+                  background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)', 
+                  borderRadius: '10px', border: '1px solid #bfdbfe',
+                  display: 'flex', alignItems: 'flex-start', gap: '10px',
+                  fontSize: '13.5px', color: '#1e40af', lineHeight: '1.6'
+                }}>
+                  <span style={{ fontSize: '18px', flexShrink: 0 }}>💡</span>
+                  <div>
+                    <strong>অটো-জেনারেট:</strong> নিচের ফিল্ডগুলো ফাঁকা রাখলে সিস্টেম স্বয়ংক্রিয়ভাবে বইয়ের নাম, লেখক, প্রকাশক ও মূল্য থেকে SEO তথ্য তৈরি করবে। চাইলে নিজে কাস্টম লিখতে পারেন।
                   </div>
                 </div>
-                
+                <div className={styles.formGrid}>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label>Meta Title <span style={{ color: '#94a3b8', fontWeight: 400 }}>(ফাঁকা = অটো)</span></label>
+                    <input type="text" name="meta_title" value={formData.meta_title} onChange={handleInputChange} className="form-control" placeholder="অটো: বইয়ের নাম - লেখক | অনলাইনে কিনুন" maxLength="200" />
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label>Meta Description <span style={{ color: '#94a3b8', fontWeight: 400 }}>(ফাঁকা = অটো)</span></label>
+                    <textarea name="meta_description" value={formData.meta_description} onChange={handleInputChange} className="form-control" rows="2" placeholder="অটো: বইয়ের নাম বইটি লেখক রচিত। প্রকাশক: ...। মূল্য: ৳...।" maxLength="300"></textarea>
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label>Meta Keywords <span style={{ color: '#94a3b8', fontWeight: 400 }}>(ফাঁকা = অটো)</span></label>
+                    <input type="text" name="meta_keywords" value={formData.meta_keywords} onChange={handleInputChange} className="form-control" placeholder="অটো: বইয়ের নাম, লেখক, প্রকাশক, ক্যাটাগরি, ভাষা..." maxLength="500" />
+                  </div>
+                </div>
+
+                {/* AI SEO Content Fields */}
+                <h3>🤖 AI SEO কন্টেন্ট</h3>
+                <div style={{ 
+                  marginBottom: '16px', padding: '14px 18px', 
+                  background: 'linear-gradient(135deg, #fdf4ff 0%, #fef3c7 100%)', 
+                  borderRadius: '10px', border: '1px solid #e9d5ff',
+                  display: 'flex', alignItems: 'flex-start', gap: '10px',
+                  fontSize: '13.5px', color: '#7c3aed', lineHeight: '1.6'
+                }}>
+                  <span style={{ fontSize: '18px', flexShrink: 0 }}>🚀</span>
+                  <div>
+                    <strong>Google র‍্যাংকিং বুস্টার:</strong> এই ফিল্ডগুলোতে AI (ChatGPT/Gemini) দিয়ে কন্টেন্ট তৈরি করে পেস্ট করুন। এগুলো Google এ আপনার বইকে রকমারির থেকে উপরে নিয়ে আসবে।
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label>📑 সূচিপত্র <span style={{ color: '#94a3b8', fontWeight: 400 }}>(প্রতি লাইনে একটি অধ্যায়)</span></label>
+                  <textarea name="table_of_contents" value={formData.table_of_contents} onChange={handleInputChange} className="form-control" rows="5" placeholder="অধ্যায় ১: ভূমিকা&#10;অধ্যায় ২: তাওহীদের পরিচয়&#10;অধ্যায় ৩: শিরকের প্রকারভেদ&#10;..."></textarea>
+                </div>
+
+                <div className={styles.formGrid}>
+                  <div>
+                    <label>🎯 কাদের জন্য</label>
+                    <textarea name="target_audience" value={formData.target_audience} onChange={handleInputChange} className="form-control" rows="3" placeholder="যেমন: তালিবুল ইলম, মাদরাসার ছাত্র, দ্বীন শিখতে আগ্রহী সাধারণ মানুষ..."></textarea>
+                  </div>
+                  <div>
+                    <label>📖 কেন পড়বেন</label>
+                    <textarea name="why_read" value={formData.why_read} onChange={handleInputChange} className="form-control" rows="3" placeholder="যেমন:&#10;• আক্বীদা সংশোধনে সহায়ক&#10;• সহজ ভাষায় লেখা&#10;• প্রামাণ্য দলীল সমৃদ্ধ"></textarea>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label>💡 মূল শিক্ষা <span style={{ color: '#94a3b8', fontWeight: 400 }}>(প্রতি লাইনে একটি পয়েন্ট)</span></label>
+                  <textarea name="key_takeaways" value={formData.key_takeaways} onChange={handleInputChange} className="form-control" rows="4" placeholder="• তাওহীদের সঠিক ধারণা পাবেন&#10;• শিরক থেকে বাঁচার উপায় জানবেন&#10;• ইবাদতের সঠিক পদ্ধতি শিখবেন"></textarea>
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label>❓ প্রশ্ন-উত্তর / FAQ <span style={{ color: '#94a3b8', fontWeight: 400 }}>(Google Featured Snippet এ দেখাবে)</span></label>
+                  <textarea name="faq" value={formData.faq} onChange={handleInputChange} className="form-control" rows="5" placeholder='[{"q":"এই বইটি কাদের জন্য উপযোগী?","a":"এই বইটি মূলত তালিবুল ইলম ও সাধারণ মুসলিমদের জন্য লেখা।"},{"q":"বইটির মূল বিষয়বস্তু কি?","a":"তাওহীদের মৌলিক ধারণা ও শিরকের প্রকারভেদ।"}]'></textarea>
+                  <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>JSON ফরম্যাট: [&#123;&quot;q&quot;:&quot;প্রশ্ন&quot;,&quot;a&quot;:&quot;উত্তর&quot;&#125;]</p>
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label>📝 বিস্তারিত SEO বিবরণ <span style={{ color: '#94a3b8', fontWeight: 400 }}>(৩০০-৫০০ শব্দ — Google র‍্যাংকিং এ সবচেয়ে বেশি প্রভাব ফেলে)</span></label>
+                  <textarea name="long_description" value={formData.long_description} onChange={handleInputChange} className="form-control" rows="6" placeholder="AI দিয়ে বইয়ের বিস্তারিত keyword-rich বিবরণ লিখুন। এটি Google-এ content depth বাড়াবে এবং র‍্যাংকিং উন্নত করবে।"></textarea>
+                </div>
+
                 {uploadError && (
                   <div style={{ marginTop: '20px', padding: '15px', border: '1px solid #f5c6cb', borderRadius: '8px', backgroundColor: '#f8d7da', color: '#721c24' }}>
                     <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>⚠️ আপলোডে সমস্যা দেখা দিয়েছে!</h4>

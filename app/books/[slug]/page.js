@@ -84,18 +84,14 @@ export default async function BookDetail({ params }) {
       }))
     : [{ '@type': 'Person', name: book.author?.name || book.author_details?.name || 'অজানা লেখক' }];
 
-  // JSON-LD Structured Data for Product/Book
-  const jsonLd = {
+  // JSON-LD Structured Data — Product Schema (e-commerce)
+  const productJsonLd = {
     '@context': 'https://schema.org',
-    '@type': ['Product', 'Book'],
+    '@type': 'Product',
     name: book.title,
-    author: authorsLd,
     image: book.cover ? [getAbsoluteImageUrl(book.cover_url || book.cover)] : [],
     description: book.meta_description || book.short_description || book.description || `আকাবির প্রকাশনী থেকে "${book.title}" বইটি কিনুন।`,
-    isbn: book.isbn,
-    numberOfPages: book.pages,
-    inLanguage: book.language,
-    publisher: {
+    brand: {
       '@type': 'Organization',
       name: book.publisher || 'আকাবির প্রকাশনী'
     },
@@ -119,6 +115,26 @@ export default async function BookDetail({ params }) {
         worstRating: '1'
       }
     } : {})
+  };
+
+  // JSON-LD Structured Data — Book Schema (book-specific metadata)
+  const bookJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Book',
+    name: book.title,
+    author: authorsLd,
+    image: book.cover ? [getAbsoluteImageUrl(book.cover_url || book.cover)] : [],
+    description: book.meta_description || book.short_description || book.description || `আকাবির প্রকাশনী থেকে "${book.title}" বইটি কিনুন।`,
+    isbn: book.isbn || undefined,
+    numberOfPages: book.pages || undefined,
+    inLanguage: book.language || undefined,
+    ...(book.edition ? { bookEdition: book.edition } : {}),
+    ...(book.translator ? { translator: { '@type': 'Person', name: book.translator } } : {}),
+    publisher: {
+      '@type': 'Organization',
+      name: book.publisher || 'আকাবির প্রকাশনী'
+    },
+    url: `https://akabirprokashoni.com/books/${book.slug}`,
   };
 
   // BreadcrumbList JSON-LD Schema
@@ -162,17 +178,52 @@ export default async function BookDetail({ params }) {
     itemListElement: breadcrumbElements,
   };
 
+  // FAQ Schema JSON-LD (for Google Featured Snippets)
+  let faqJsonLd = null;
+  if (book.faq) {
+    try {
+      const faqData = typeof book.faq === 'string' ? JSON.parse(book.faq) : book.faq;
+      if (Array.isArray(faqData) && faqData.length > 0) {
+        faqJsonLd = {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faqData.map(item => ({
+            '@type': 'Question',
+            name: item.q,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: item.a
+            }
+          }))
+        };
+      }
+    } catch (e) {
+      // Invalid JSON — skip FAQ schema
+    }
+  }
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(bookJsonLd) }}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <BookDetailClient book={book} relatedBooks={relatedBooks} />
     </>
   );
 }
+

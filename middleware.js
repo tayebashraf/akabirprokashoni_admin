@@ -12,7 +12,7 @@ export function middleware(request) {
     }
   }
 
-  // 2. Automatically redirect "/" to "/tawhid" when accessing via a dedicated admin subdomain or host
+  // 2. Automatically redirect "/" to "/tawhid" when accessing via the dedicated admin domain
   // This blocks the storefront home page from displaying on the admin subdomain and routes directly to login/dashboard
   const isAdminSubdomain = host.includes('admin') || host.includes('control') || host.includes('manager');
   

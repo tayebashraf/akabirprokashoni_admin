@@ -8,7 +8,7 @@ import styles from './layout.module.css';
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
-  const { user, login, logout, loading } = useAuth();
+  const { user, login, logout, loading, hasPermission } = useAuth();
   
   // Inline admin login form state
   const [phone, setPhone] = useState('');
@@ -113,11 +113,11 @@ export default function AdminLayout({ children }) {
 
           <form onSubmit={handleAdminLogin}>
             <div style={{ marginBottom: '1.25rem' }}>
-              <label style={{ display: 'block', color: '#cbd5e1', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>মোবাইল নম্বর</label>
+              <label style={{ display: 'block', color: '#cbd5e1', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>মোবাইল নম্বর অথবা ইমেইল</label>
               <input 
-                type="tel" 
+                type="text" 
                 required
-                placeholder="01XXXXXXXXX"
+                placeholder="01XXXXXXXXX অথবা email@example.com"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 style={{ width: '100%', padding: '0.8rem 1rem', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: '#f1f5f9', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }}
@@ -188,33 +188,56 @@ export default function AdminLayout({ children }) {
           <span>📚</span> অ্যাডমিন
         </div>
         <nav className={styles.sidebarNav}>
-          <Link href="/admin" className={`${styles.navLink} ${pathname === '/admin' ? styles.navActive : ''}`}>
-            📊 ড্যাশবোর্ড
-          </Link>
-          <Link href="/admin/books" className={`${styles.navLink} ${pathname.includes('/books') ? styles.navActive : ''}`}>
-            📖 বই ম্যানেজমেন্ট
-          </Link>
-          <Link href="/admin/categories" className={`${styles.navLink} ${pathname.includes('/categories') ? styles.navActive : ''}`}>
-            📂 ক্যাটাগরি ম্যানেজমেন্ট
-          </Link>
-          <Link href="/admin/authors" className={`${styles.navLink} ${pathname.includes('/authors') ? styles.navActive : ''}`}>
-            ✍️ লেখক ম্যানেজমেন্ট
-          </Link>
-          <Link href="/admin/hero" className={`${styles.navLink} ${pathname.includes('/hero') ? styles.navActive : ''}`}>
-            🖼️ হিরো স্লাইডার
-          </Link>
-          <Link href="/admin/orders" className={`${styles.navLink} ${pathname.includes('/orders') ? styles.navActive : ''}`}>
-            📦 অর্ডার ম্যানেজমেন্ট
-          </Link>
-          <Link href="/admin/customers" className={`${styles.navLink} ${pathname.includes('/customers') ? styles.navActive : ''}`}>
-            👥 গ্রাহক ম্যানেজমেন্ট
-          </Link>
-          <Link href="/admin/reviews" className={`${styles.navLink} ${pathname.includes('/reviews') ? styles.navActive : ''}`}>
-            ⭐ রিভিউ ম্যানেজমেন্ট
-          </Link>
-          <Link href="/admin/settings" className={`${styles.navLink} ${pathname.includes('/settings') ? styles.navActive : ''}`}>
-            ⚙️ সাইট সেটিংস
-          </Link>
+          {hasPermission('view_dashboard') && (
+            <Link href="/admin" className={`${styles.navLink} ${pathname === '/admin' ? styles.navActive : ''}`}>
+              📊 ড্যাশবোর্ড
+            </Link>
+          )}
+          {hasPermission('manage_books') && (
+            <Link href="/admin/books" className={`${styles.navLink} ${pathname.includes('/books') ? styles.navActive : ''}`}>
+              📖 বই ম্যানেজমেন্ট
+            </Link>
+          )}
+          {hasPermission('manage_categories') && (
+            <Link href="/admin/categories" className={`${styles.navLink} ${pathname.includes('/categories') ? styles.navActive : ''}`}>
+              📂 ক্যাটাগরি ম্যানেজমেন্ট
+            </Link>
+          )}
+          {hasPermission('manage_authors') && (
+            <Link href="/admin/authors" className={`${styles.navLink} ${pathname.includes('/authors') ? styles.navActive : ''}`}>
+              ✍️ লেখক ম্যানেজমেন্ট
+            </Link>
+          )}
+          {hasPermission('manage_hero') && (
+            <Link href="/admin/hero" className={`${styles.navLink} ${pathname.includes('/hero') ? styles.navActive : ''}`}>
+              🖼️ হিরো স্লাইডার
+            </Link>
+          )}
+          {hasPermission('manage_orders') && (
+            <Link href="/admin/orders" className={`${styles.navLink} ${pathname.includes('/orders') ? styles.navActive : ''}`}>
+              📦 অর্ডার ম্যানেজমেন্ট
+            </Link>
+          )}
+          {hasPermission('manage_customers') && (
+            <Link href="/admin/customers" className={`${styles.navLink} ${pathname.includes('/customers') ? styles.navActive : ''}`}>
+              👥 গ্রাহক ম্যানেজমেন্ট
+            </Link>
+          )}
+          {hasPermission('manage_reviews') && (
+            <Link href="/admin/reviews" className={`${styles.navLink} ${pathname.includes('/reviews') ? styles.navActive : ''}`}>
+              ⭐ রিভিউ ম্যানেজমেন্ট
+            </Link>
+          )}
+          {hasPermission('manage_settings') && (
+            <Link href="/admin/settings" className={`${styles.navLink} ${pathname.includes('/settings') ? styles.navActive : ''}`}>
+              ⚙️ সাইট সেটিংস
+            </Link>
+          )}
+          {(user?.is_superuser || user?.is_super_admin) && (
+            <Link href="/admin/team" className={`${styles.navLink} ${pathname.includes('/team') ? styles.navActive : ''}`}>
+              👥 টিম ম্যানেজমেন্ট
+            </Link>
+          )}
           {showInstallBtn && (
             <button 
               type="button" 
@@ -254,7 +277,96 @@ export default function AdminLayout({ children }) {
 
       {/* Main Content */}
       <main className={styles.mainContent}>
-        {children}
+        {(() => {
+          let hasAccess = true;
+          let deniedMessage = '';
+
+          if (pathname === '/admin' || pathname === '/admin/') {
+            if (!hasPermission('view_dashboard')) {
+              hasAccess = false;
+              deniedMessage = 'ড্যাশবোর্ড দেখার অনুমতি আপনার নেই।';
+            }
+          } else if (pathname.startsWith('/admin/books')) {
+            if (!hasPermission('manage_books')) {
+              hasAccess = false;
+              deniedMessage = 'বই ম্যানেজমেন্টের অনুমতি আপনার নেই।';
+            }
+          } else if (pathname.startsWith('/admin/categories')) {
+            if (!hasPermission('manage_categories')) {
+              hasAccess = false;
+              deniedMessage = 'ক্যাটাগরি ম্যানেজমেন্টের অনুমতি আপনার নেই।';
+            }
+          } else if (pathname.startsWith('/admin/authors')) {
+            if (!hasPermission('manage_authors')) {
+              hasAccess = false;
+              deniedMessage = 'লেখক ম্যানেজমেন্টের অনুমতি আপনার নেই।';
+            }
+          } else if (pathname.startsWith('/admin/hero')) {
+            if (!hasPermission('manage_hero')) {
+              hasAccess = false;
+              deniedMessage = 'হিরো স্লাইডার ম্যানেজমেন্টের অনুমতি আপনার নেই।';
+            }
+          } else if (pathname.startsWith('/admin/orders')) {
+            if (!hasPermission('manage_orders')) {
+              hasAccess = false;
+              deniedMessage = 'অর্ডার ম্যানেজমেন্টের অনুমতি আপনার নেই।';
+            }
+          } else if (pathname.startsWith('/admin/customers')) {
+            if (!hasPermission('manage_customers')) {
+              hasAccess = false;
+              deniedMessage = 'গ্রাহক তালিকা দেখার অনুমতি আপনার নেই।';
+            }
+          } else if (pathname.startsWith('/admin/reviews')) {
+            if (!hasPermission('manage_reviews')) {
+              hasAccess = false;
+              deniedMessage = 'রিভিউ ম্যানেজমেন্টের অনুমতি আপনার নেই।';
+            }
+          } else if (pathname.startsWith('/admin/settings')) {
+            if (!hasPermission('manage_settings')) {
+              hasAccess = false;
+              deniedMessage = 'সাইট সেটিংস পরিবর্তনের অনুমতি আপনার নেই।';
+            }
+          } else if (pathname.startsWith('/admin/team')) {
+            if (!user?.is_superuser && !user?.is_super_admin) {
+              hasAccess = false;
+              deniedMessage = 'টিম ম্যানেজমেন্টে প্রবেশের অনুমতি শুধুমাত্র সুপার অ্যাডমিনের রয়েছে।';
+            }
+          }
+
+          if (hasAccess) return children;
+
+          return (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '60vh',
+              textAlign: 'center',
+              padding: '2rem',
+              background: 'rgba(239, 68, 68, 0.05)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: '12px',
+              margin: '2rem auto',
+              maxWidth: '500px'
+            }}>
+              <span style={{ fontSize: '3rem', marginBottom: '1rem' }}>🚫</span>
+              <h3 style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '1.25rem', marginBottom: '0.5rem' }}>অ্যাক্সেস বর্জনীয় (অনুমতি নেই)</h3>
+              <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '1.5rem' }}>{deniedMessage}</p>
+              <Link href="/admin" style={{
+                padding: '0.5rem 1rem',
+                background: '#22c55e',
+                color: 'white',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                fontWeight: '600',
+                fontSize: '0.9rem'
+              }}>
+                ড্যাশবোর্ডে ফিরে যান
+              </Link>
+            </div>
+          );
+        })()}
       </main>
     </div>
   );

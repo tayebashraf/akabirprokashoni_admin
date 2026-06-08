@@ -6,6 +6,7 @@ import ClientLayoutWrapper from '@/components/ClientLayoutWrapper';
 
 export const metadata = {
   metadataBase: new URL('https://akabirprokashoni.com'),
+  manifest: '/manifest.json',
   title: {
     default: 'আকাবির প্রকাশনী | Akabir Prokashoni — ইসলামিক ও দ্বীনি বইয়ের বিশ্বস্ত অনলাইন বুকশপ',
     template: '%s | আকাবির প্রকাশনী',

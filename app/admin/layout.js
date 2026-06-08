@@ -156,9 +156,7 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className={styles.adminContainer}>
-      <head>
-        <link rel="manifest" href="/manifest-admin.json" />
-      </head>
+      <link rel="manifest" href="/manifest-admin.json" />
 
       {/* Mobile Top Header */}
       <header className={styles.mobileHeader}>

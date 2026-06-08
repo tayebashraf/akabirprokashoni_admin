@@ -157,6 +157,7 @@ export default function AdminLayout({ children }) {
   return (
     <div className={styles.adminContainer}>
       <link rel="manifest" href="/manifest-admin.json" />
+      <meta name="robots" content="noindex, nofollow" />
 
       {/* Mobile Top Header */}
       <header className={styles.mobileHeader}>
@@ -187,52 +188,52 @@ export default function AdminLayout({ children }) {
         </div>
         <nav className={styles.sidebarNav}>
           {hasPermission('view_dashboard') && (
-            <Link href="/admin" className={`${styles.navLink} ${pathname === '/admin' ? styles.navActive : ''}`}>
+            <Link href="/tawhid" className={`${styles.navLink} ${pathname === '/tawhid' ? styles.navActive : ''}`}>
               📊 ড্যাশবোর্ড
             </Link>
           )}
           {hasPermission('manage_books') && (
-            <Link href="/admin/books" className={`${styles.navLink} ${pathname.includes('/books') ? styles.navActive : ''}`}>
+            <Link href="/tawhid/books" className={`${styles.navLink} ${pathname.includes('/books') ? styles.navActive : ''}`}>
               📖 বই ম্যানেজমেন্ট
             </Link>
           )}
           {hasPermission('manage_categories') && (
-            <Link href="/admin/categories" className={`${styles.navLink} ${pathname.includes('/categories') ? styles.navActive : ''}`}>
+            <Link href="/tawhid/categories" className={`${styles.navLink} ${pathname.includes('/categories') ? styles.navActive : ''}`}>
               📂 ক্যাটাগরি ম্যানেজমেন্ট
             </Link>
           )}
           {hasPermission('manage_authors') && (
-            <Link href="/admin/authors" className={`${styles.navLink} ${pathname.includes('/authors') ? styles.navActive : ''}`}>
+            <Link href="/tawhid/authors" className={`${styles.navLink} ${pathname.includes('/authors') ? styles.navActive : ''}`}>
               ✍️ লেখক ম্যানেজমেন্ট
             </Link>
           )}
           {hasPermission('manage_hero') && (
-            <Link href="/admin/hero" className={`${styles.navLink} ${pathname.includes('/hero') ? styles.navActive : ''}`}>
+            <Link href="/tawhid/hero" className={`${styles.navLink} ${pathname.includes('/hero') ? styles.navActive : ''}`}>
               🖼️ হিরো স্লাইডার
             </Link>
           )}
           {hasPermission('manage_orders') && (
-            <Link href="/admin/orders" className={`${styles.navLink} ${pathname.includes('/orders') ? styles.navActive : ''}`}>
+            <Link href="/tawhid/orders" className={`${styles.navLink} ${pathname.includes('/orders') ? styles.navActive : ''}`}>
               📦 অর্ডার ম্যানেজমেন্ট
             </Link>
           )}
           {hasPermission('manage_customers') && (
-            <Link href="/admin/customers" className={`${styles.navLink} ${pathname.includes('/customers') ? styles.navActive : ''}`}>
+            <Link href="/tawhid/customers" className={`${styles.navLink} ${pathname.includes('/customers') ? styles.navActive : ''}`}>
               👥 গ্রাহক ম্যানেজমেন্ট
             </Link>
           )}
           {hasPermission('manage_reviews') && (
-            <Link href="/admin/reviews" className={`${styles.navLink} ${pathname.includes('/reviews') ? styles.navActive : ''}`}>
+            <Link href="/tawhid/reviews" className={`${styles.navLink} ${pathname.includes('/reviews') ? styles.navActive : ''}`}>
               ⭐ রিভিউ ম্যানেজমেন্ট
             </Link>
           )}
           {hasPermission('manage_settings') && (
-            <Link href="/admin/settings" className={`${styles.navLink} ${pathname.includes('/settings') ? styles.navActive : ''}`}>
+            <Link href="/tawhid/settings" className={`${styles.navLink} ${pathname.includes('/settings') ? styles.navActive : ''}`}>
               ⚙️ সাইট সেটিংস
             </Link>
           )}
           {(user?.is_superuser || user?.is_super_admin) && (
-            <Link href="/admin/team" className={`${styles.navLink} ${pathname.includes('/team') ? styles.navActive : ''}`}>
+            <Link href="/tawhid/team" className={`${styles.navLink} ${pathname.includes('/team') ? styles.navActive : ''}`}>
               👥 টিম ম্যানেজমেন্ট
             </Link>
           )}
@@ -279,52 +280,52 @@ export default function AdminLayout({ children }) {
           let hasAccess = true;
           let deniedMessage = '';
 
-          if (pathname === '/admin' || pathname === '/admin/') {
+          if (pathname === '/tawhid' || pathname === '/tawhid/') {
             if (!hasPermission('view_dashboard')) {
               hasAccess = false;
               deniedMessage = 'ড্যাশবোর্ড দেখার অনুমতি আপনার নেই।';
             }
-          } else if (pathname.startsWith('/admin/books')) {
+          } else if (pathname.startsWith('/tawhid/books')) {
             if (!hasPermission('manage_books')) {
               hasAccess = false;
               deniedMessage = 'বই ম্যানেজমেন্টের অনুমতি আপনার নেই।';
             }
-          } else if (pathname.startsWith('/admin/categories')) {
+          } else if (pathname.startsWith('/tawhid/categories')) {
             if (!hasPermission('manage_categories')) {
               hasAccess = false;
               deniedMessage = 'ক্যাটাগরি ম্যানেজমেন্টের অনুমতি আপনার নেই।';
             }
-          } else if (pathname.startsWith('/admin/authors')) {
+          } else if (pathname.startsWith('/tawhid/authors')) {
             if (!hasPermission('manage_authors')) {
               hasAccess = false;
               deniedMessage = 'লেখক ম্যানেজমেন্টের অনুমতি আপনার নেই।';
             }
-          } else if (pathname.startsWith('/admin/hero')) {
+          } else if (pathname.startsWith('/tawhid/hero')) {
             if (!hasPermission('manage_hero')) {
               hasAccess = false;
               deniedMessage = 'হিরো স্লাইডার ম্যানেজমেন্টের অনুমতি আপনার নেই।';
             }
-          } else if (pathname.startsWith('/admin/orders')) {
+          } else if (pathname.startsWith('/tawhid/orders')) {
             if (!hasPermission('manage_orders')) {
               hasAccess = false;
               deniedMessage = 'অর্ডার ম্যানেজমেন্টের অনুমতি আপনার নেই।';
             }
-          } else if (pathname.startsWith('/admin/customers')) {
+          } else if (pathname.startsWith('/tawhid/customers')) {
             if (!hasPermission('manage_customers')) {
               hasAccess = false;
               deniedMessage = 'গ্রাহক তালিকা দেখার অনুমতি আপনার নেই।';
             }
-          } else if (pathname.startsWith('/admin/reviews')) {
+          } else if (pathname.startsWith('/tawhid/reviews')) {
             if (!hasPermission('manage_reviews')) {
               hasAccess = false;
               deniedMessage = 'রিভিউ ম্যানেজমেন্টের অনুমতি আপনার নেই।';
             }
-          } else if (pathname.startsWith('/admin/settings')) {
+          } else if (pathname.startsWith('/tawhid/settings')) {
             if (!hasPermission('manage_settings')) {
               hasAccess = false;
               deniedMessage = 'সাইট সেটিংস পরিবর্তনের অনুমতি আপনার নেই।';
             }
-          } else if (pathname.startsWith('/admin/team')) {
+          } else if (pathname.startsWith('/tawhid/team')) {
             if (!user?.is_superuser && !user?.is_super_admin) {
               hasAccess = false;
               deniedMessage = 'টিম ম্যানেজমেন্টে প্রবেশের অনুমতি শুধুমাত্র সুপার অ্যাডমিনের রয়েছে।';
@@ -351,7 +352,7 @@ export default function AdminLayout({ children }) {
               <span style={{ fontSize: '3rem', marginBottom: '1rem' }}>🚫</span>
               <h3 style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '1.25rem', marginBottom: '0.5rem' }}>অ্যাক্সেস বর্জনীয় (অনুমতি নেই)</h3>
               <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '1.5rem' }}>{deniedMessage}</p>
-              <Link href="/admin" style={{
+              <Link href="/tawhid" style={{
                 padding: '0.5rem 1rem',
                 background: '#22c55e',
                 color: 'white',

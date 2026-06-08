@@ -2,7 +2,7 @@
   "name": "আকাবির প্রকাশনী অ্যাডমিন",
   "short_name": "আকাবির অ্যাডমিন",
   "description": "আকাবির প্রকাশনী (Akabir Prokashoni) অ্যাডমিন ম্যানেজমেন্ট পোর্টাল",
-  "start_url": "/admin",
+  "start_url": "/tawhid",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0d6b3f",

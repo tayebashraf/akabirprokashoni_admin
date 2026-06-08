@@ -7,7 +7,7 @@ import { Suspense } from 'react';
 
 export default function ClientLayoutWrapper({ children }) {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith('/admin');
+  const isAdmin = pathname?.startsWith('/tawhid');
 
   return (
     <>

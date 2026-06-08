@@ -129,7 +129,7 @@ export default function DailySalesVoucher() {
             🖨️ প্রিন্ট ভাউচার
           </button>
           <Link 
-            href="/admin"
+            href="/tawhid"
             style={{ 
               backgroundColor: '#f1f5f9', 
               color: '#334155', 

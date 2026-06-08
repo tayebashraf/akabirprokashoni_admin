@@ -92,7 +92,7 @@ export default function LoginPage() {
         
         // Admin users go to admin panel, regular users go to account
         if (user.is_staff || user.is_superuser) {
-          router.push('/admin');
+          router.push('/tawhid');
         } else {
           router.push('/account');
         }

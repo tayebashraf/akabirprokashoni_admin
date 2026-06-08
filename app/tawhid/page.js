@@ -228,7 +228,7 @@ export default function AdminDashboard() {
       {/* ===== Main Stats Grid ===== */}
       <div className={styles.statsGrid}>
         {/* Revenue Card */}
-        <Link href="/admin/daily-sales" className={`${styles.statCard} ${styles.statCardRevenue}`} style={{ textDecoration: 'none' }}>
+        <Link href="/tawhid/daily-sales" className={`${styles.statCard} ${styles.statCardRevenue}`} style={{ textDecoration: 'none' }}>
           <div className={`${styles.statIcon} ${styles.statIconRevenue}`}>💰</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>৳{(stats?.revenue?.today || 0).toLocaleString('bn-BD')}</span>
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
         </Link>
 
         {/* Orders Card */}
-        <Link href="/admin/orders" className={`${styles.statCard} ${styles.statCardOrders}`} style={{ textDecoration: 'none' }}>
+        <Link href="/tawhid/orders" className={`${styles.statCard} ${styles.statCardOrders}`} style={{ textDecoration: 'none' }}>
           <div className={`${styles.statIcon} ${styles.statIconOrders}`}>📦</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>{(stats?.orders?.today || 0).toLocaleString('bn-BD')}</span>
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
         </Link>
 
         {/* Pending Card */}
-        <Link href="/admin/orders?filter=pending" className={`${styles.statCard} ${styles.statCardPending}`} style={{ textDecoration: 'none' }}>
+        <Link href="/tawhid/orders?filter=pending" className={`${styles.statCard} ${styles.statCardPending}`} style={{ textDecoration: 'none' }}>
           <div className={`${styles.statIcon} ${styles.statIconPending}`}>🚚</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>{(stats?.orders?.pending || 0).toLocaleString('bn-BD')}</span>
@@ -266,7 +266,7 @@ export default function AdminDashboard() {
         </Link>
 
         {/* Customers Card */}
-        <Link href="/admin/customers" className={`${styles.statCard} ${styles.statCardCustomers}`} style={{ textDecoration: 'none' }}>
+        <Link href="/tawhid/customers" className={`${styles.statCard} ${styles.statCardCustomers}`} style={{ textDecoration: 'none' }}>
           <div className={`${styles.statIcon} ${styles.statIconCustomers}`}>👥</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>{(stats?.catalog?.total_users || 0).toLocaleString('bn-BD')}</span>
@@ -278,7 +278,7 @@ export default function AdminDashboard() {
         </Link>
 
         {/* Steadfast Balance Card */}
-        <Link href="/admin/settings" className={styles.statCard} style={{ '--card-accent': '#FF5722', textDecoration: 'none' }}>
+        <Link href="/tawhid/settings" className={styles.statCard} style={{ '--card-accent': '#FF5722', textDecoration: 'none' }}>
           <div className={`${styles.statIcon}`} style={{ background: '#FFECE5', color: '#FF5722' }}>🚚</div>
           <div className={styles.statInfo}>
             <span className={styles.statNum}>
@@ -346,7 +346,7 @@ export default function AdminDashboard() {
                     className={styles.orderItem}
                     onClick={() => {
                       markAsRead(order.order_id);
-                      window.location.href = `/admin/orders?search=${order.order_id}`;
+                      window.location.href = `/tawhid/orders?search=${order.order_id}`;
                     }}
                     style={{ 
                       cursor: 'pointer',
@@ -370,7 +370,7 @@ export default function AdminDashboard() {
               })
             )}
           </div>
-          <Link href="/admin/orders" className={styles.viewAllBtn}>
+          <Link href="/tawhid/orders" className={styles.viewAllBtn}>
             সব অর্ডার দেখুন
             <span>→</span>
           </Link>

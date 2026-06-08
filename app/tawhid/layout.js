@@ -13,6 +13,7 @@ export default function AdminLayout({ children }) {
   // Inline admin login form state
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
 
@@ -126,13 +127,44 @@ export default function AdminLayout({ children }) {
             
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', color: '#cbd5e1', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>পাসওয়ার্ড</label>
-              <input 
-                type="password" 
-                required
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                style={{ width: '100%', padding: '0.8rem 1rem', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: '#f1f5f9', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showLoginPassword ? "text" : "password"} 
+                  required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  style={{ width: '100%', padding: '0.8rem 3.5rem 0.8rem 1rem', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: '#f1f5f9', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0'
+                  }}
+                  title={showLoginPassword ? "পাসওয়ার্ড লুকান" : "পাসওয়ার্ড দেখুন"}
+                >
+                  {showLoginPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
             
             <button 

@@ -38,7 +38,7 @@ export default function TeamManagementPage() {
         getAdminSubadmins(),
         getAdminPermissions()
       ]);
-      setSubadmins(subadminsData);
+      setSubadmins(Array.isArray(subadminsData) ? subadminsData : (subadminsData.results || []));
       setPermissionOptions(permissionsData);
       
       // Initialize selected permissions dict
@@ -113,7 +113,7 @@ export default function TeamManagementPage() {
       resetForm();
       // Refresh list
       const updatedSubadmins = await getAdminSubadmins();
-      setSubadmins(updatedSubadmins);
+      setSubadmins(Array.isArray(updatedSubadmins) ? updatedSubadmins : (updatedSubadmins.results || []));
     } catch (err) {
       setError(err.message || 'সাবমিট করতে সমস্যা হয়েছে।');
     }
@@ -147,7 +147,7 @@ export default function TeamManagementPage() {
       setSuccess('সাব-অ্যাডমিন অ্যাকাউন্টটি সফলভাবে মুছে ফেলা হয়েছে।');
       // Refresh list
       const updatedSubadmins = await getAdminSubadmins();
-      setSubadmins(updatedSubadmins);
+      setSubadmins(Array.isArray(updatedSubadmins) ? updatedSubadmins : (updatedSubadmins.results || []));
     } catch (err) {
       setError(err.message || 'অ্যাকাউন্টটি মুছতে সমস্যা হয়েছে।');
     }

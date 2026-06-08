@@ -96,7 +96,12 @@ export default function AdminCustomers() {
                 <tr key={customer.id}>
                   <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#64748b' }}>{index + 1}</td>
                   <td><strong>{fullName}</strong></td>
-                  <td style={{ fontFamily: 'monospace' }}>{customer.username}</td>
+                  <td style={{ fontFamily: 'monospace' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {customer.username}
+                      <a href={`tel:${customer.username}`} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#0d6b3f', color: 'white', borderRadius: '50%', width: '22px', height: '22px', fontSize: '12px', textDecoration: 'none', flexShrink: 0 }} title="কল করুন">📞</a>
+                    </span>
+                  </td>
                   <td>{customer.email || <span style={{ color: '#cbd5e1' }}>N/A</span>}</td>
                   <td>{profile.city || <span style={{ color: '#cbd5e1' }}>N/A</span>}</td>
                   <td>{profile.address || <span style={{ color: '#cbd5e1' }}>N/A</span>}</td>

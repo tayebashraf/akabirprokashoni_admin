@@ -276,7 +276,10 @@ export default function AdminOrders() {
                   <td>
                     <div className={styles.customerInfo}>
                       <span className={styles.customerName}>{order.customer_name}</span>
-                      <span className={styles.customerPhone}>{order.phone}</span>
+                      <span className={styles.customerPhone} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {order.phone}
+                        <a href={`tel:${order.phone}`} onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#0d6b3f', color: 'white', borderRadius: '50%', width: '22px', height: '22px', fontSize: '12px', textDecoration: 'none', flexShrink: 0 }} title="কল করুন">📞</a>
+                      </span>
                     </div>
                   </td>
                   <td>
@@ -409,8 +412,8 @@ export default function AdminOrders() {
               <div style={{ flex: '1 1 300px' }}>
                 <h3 style={{ fontSize: '16px', borderBottom: '1px solid #ddd', paddingBottom: '8px' }}>গ্রাহকের তথ্য</h3>
                 <p><strong>নাম:</strong> {selectedOrder.customer_name}</p>
-                <p><strong>মোবাইল:</strong> {selectedOrder.phone}</p>
-                <p><strong>বিকল্প মোবাইল:</strong> {selectedOrder.alt_phone || 'N/A'}</p>
+                <p><strong>মোবাইল:</strong> {selectedOrder.phone} <a href={`tel:${selectedOrder.phone}`} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#0d6b3f', color: 'white', borderRadius: '50%', width: '26px', height: '26px', fontSize: '14px', textDecoration: 'none', marginLeft: '8px', verticalAlign: 'middle' }} title="কল করুন">📞</a></p>
+                <p><strong>বিকল্প মোবাইল:</strong> {selectedOrder.alt_phone ? (<>{selectedOrder.alt_phone} <a href={`tel:${selectedOrder.alt_phone}`} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#0d6b3f', color: 'white', borderRadius: '50%', width: '26px', height: '26px', fontSize: '14px', textDecoration: 'none', marginLeft: '8px', verticalAlign: 'middle' }} title="কল করুন">📞</a></>) : 'N/A'}</p>
                 <p><strong>ঠিকানা:</strong> {selectedOrder.address}, {selectedOrder.district}</p>
                 {selectedOrder.customer_note && (
                   <p><strong>গ্রাহকের নোট:</strong> <span style={{ color: 'red' }}>{selectedOrder.customer_note}</span></p>

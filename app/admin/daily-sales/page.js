@@ -194,7 +194,8 @@ export default function DailySalesVoucher() {
         </div>
 
         {/* Orders Table */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: '800px' }}>
           <thead>
             <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #000' }}>
               <th style={{ border: '1px solid #000', padding: '10px', width: '50px', textAlign: 'center' }}>ক্রমিক</th>
@@ -215,7 +216,7 @@ export default function DailySalesVoucher() {
                 </td>
                 <td style={{ border: '1px solid #cbd5e1', padding: '10px' }}>
                   <div style={{ fontWeight: 'bold' }}>{order.customer_name}</div>
-                  <div style={{ color: '#0d6b3f', fontSize: '12px', fontWeight: '600', marginTop: '2px' }}>📞 {order.phone}</div>
+                  <div style={{ color: '#0d6b3f', fontSize: '12px', fontWeight: '600', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>📞 {order.phone} <a href={`tel:${order.phone}`} className="no-print" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#0d6b3f', color: 'white', borderRadius: '50%', width: '20px', height: '20px', fontSize: '11px', textDecoration: 'none', flexShrink: 0 }} title="কল করুন">📞</a></div>
                 </td>
                 <td style={{ border: '1px solid #cbd5e1', padding: '10px' }}>
                   <div>{order.address}</div>
@@ -243,6 +244,7 @@ export default function DailySalesVoucher() {
             )}
           </tbody>
         </table>
+        </div>
 
         {/* Totals Section */}
         {filteredOrders.length > 0 && (

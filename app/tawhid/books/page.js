@@ -378,6 +378,11 @@ export default function AdminBooks() {
     sample_pdf: null
   });
 
+  const duplicateBook = formData.title.trim() ? books.find(b => {
+    if (editingSlug && b.slug === editingSlug) return false;
+    return b.title.trim().toLowerCase() === formData.title.trim().toLowerCase();
+  }) : null;
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -698,9 +703,22 @@ export default function AdminBooks() {
                 {/* Core Info */}
                 <h3>মূল তথ্য</h3>
                 <div className={styles.formGrid}>
-                  <div>
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <label>শিরোনাম *</label>
                     <input type="text" name="title" required value={formData.title} onChange={handleInputChange} className="form-control" />
+                    {duplicateBook && (
+                      <div style={{ 
+                        color: '#b91c1c', background: '#fef2f2', border: '1px solid #fecaca', 
+                        borderRadius: '8px', padding: '10px 14px', fontSize: '13px', 
+                        marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px',
+                        lineHeight: '1.4'
+                      }}>
+                        <span style={{ fontSize: '16px' }}>⚠️</span>
+                        <div>
+                          <strong>সতর্কতা:</strong> এই নামে ইতিমধ্যে একটি বই যুক্ত আছে: <strong>&ldquo;{duplicateBook.title}&rdquo;</strong> (লেখক: {duplicateBook.author_name || 'অজানা'})।
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label>স্লাগ (URL) - ঐচ্ছিক</label>

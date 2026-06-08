@@ -17,6 +17,81 @@ function getAbsoluteImageUrl(url) {
   return `https://akabirprokashoni.com${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
+export function parseFaq(faqInput) {
+  if (!faqInput) return [];
+  if (Array.isArray(faqInput)) return faqInput;
+  
+  if (typeof faqInput === 'string') {
+    // 1. Try to parse as JSON after replacing smart quotes
+    const cleanJson = faqInput.replace(/[\u201C\u201D\u201E\u201F]/g, '"').trim();
+    if (cleanJson.startsWith('[') && cleanJson.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(cleanJson);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        // Fall through to plain text parsing
+      }
+    }
+    
+    // 2. Parse as plain text (lines alternating or prefixed by Q/A, প্রশ্ন/উত্তর)
+    const faqItems = [];
+    const lines = faqInput.split('\n').map(l => l.trim()).filter(Boolean);
+    let currentItem = null;
+    
+    for (let line of lines) {
+      const lowerLine = line.toLowerCase();
+      
+      const isQuestion = 
+        lowerLine.startsWith('q:') || 
+        lowerLine.startsWith('q.') || 
+        lowerLine.startsWith('question:') ||
+        lowerLine.startsWith('প্রশ্ন') ||
+        lowerLine.startsWith('প্র:') ||
+        lowerLine.endsWith('?') ||
+        /^[q\d\.\-]+\s*[:\.-]/i.test(line) ||
+        /^(প্রশ্ন|প্র)\s*\d*\s*[:\.-]/i.test(line);
+        
+      const isAnswer = 
+        lowerLine.startsWith('a:') || 
+        lowerLine.startsWith('a.') || 
+        lowerLine.startsWith('answer:') ||
+        lowerLine.startsWith('উত্তর') ||
+        lowerLine.startsWith('উ:') ||
+        /^(a|answer|উত্তর|উ)\s*\d*\s*[:\.-]/i.test(line);
+        
+      if (isQuestion) {
+        if (currentItem && currentItem.q && currentItem.a) {
+          faqItems.push(currentItem);
+        }
+        const cleanQ = line.replace(/^(q|question|প্রশ্ন|প্র|q\d+|প্রশ্ন\s*\d+)\s*[:\.-]\s*/i, '').trim();
+        currentItem = { q: cleanQ, a: '' };
+      } else if (isAnswer && currentItem) {
+        const cleanA = line.replace(/^(a|answer|উত্তর|উ|a\d+|উত্তর\s*\d+)\s*[:\.-]\s*/i, '').trim();
+        currentItem.a = cleanA;
+      } else {
+        if (currentItem) {
+          if (!currentItem.a) {
+            currentItem.q = (currentItem.q + ' ' + line).trim();
+          } else {
+            currentItem.a = (currentItem.a + ' ' + line).trim();
+          }
+        } else {
+          currentItem = { q: line, a: '' };
+        }
+      }
+    }
+    
+    if (currentItem && currentItem.q && currentItem.a) {
+      faqItems.push(currentItem);
+    }
+    
+    return faqItems;
+  }
+  
+  return [];
+}
+
+
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const book = await getBookBySlug(resolvedParams.slug);
@@ -181,24 +256,20 @@ export default async function BookDetail({ params }) {
   // FAQ Schema JSON-LD (for Google Featured Snippets)
   let faqJsonLd = null;
   if (book.faq) {
-    try {
-      const faqData = typeof book.faq === 'string' ? JSON.parse(book.faq) : book.faq;
-      if (Array.isArray(faqData) && faqData.length > 0) {
-        faqJsonLd = {
-          '@context': 'https://schema.org',
-          '@type': 'FAQPage',
-          mainEntity: faqData.map(item => ({
-            '@type': 'Question',
-            name: item.q,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: item.a
-            }
-          }))
-        };
-      }
-    } catch (e) {
-      // Invalid JSON — skip FAQ schema
+    const faqData = parseFaq(book.faq);
+    if (Array.isArray(faqData) && faqData.length > 0) {
+      faqJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqData.map(item => ({
+          '@type': 'Question',
+          name: item.q,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.a
+          }
+        }))
+      };
     }
   }
 

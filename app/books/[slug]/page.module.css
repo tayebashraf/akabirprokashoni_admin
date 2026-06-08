@@ -1058,6 +1058,19 @@
   
   .sidebar {
     position: static;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .quantityRow {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .specsTable {
+    padding: 16px;
+  }
+  .specTable td {
+    padding: 10px 12px;
   }
   .sidebarBookList {
     flex-direction: row;

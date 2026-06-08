@@ -219,10 +219,23 @@ export default function BookDetailClient({ book, relatedBooks }) {
   // Ensure image URL is absolute and uses correct host
   const getFileUrl = (url) => {
     if (!url) return null;
-    if (url.startsWith('http')) return url;
-    const base = process.env.NEXT_PUBLIC_API_URL 
+    
+    let base = process.env.NEXT_PUBLIC_API_URL 
       ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '')
       : 'http://127.0.0.1:8000';
+      
+    // Handle LAN testing from mobile
+    if (typeof window !== 'undefined' && window.location.hostname) {
+      const currentHost = window.location.hostname;
+      if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+        base = base.replace('127.0.0.1', currentHost).replace('localhost', currentHost);
+        if (url.startsWith('http')) {
+          return url.replace('127.0.0.1', currentHost).replace('localhost', currentHost);
+        }
+      }
+    }
+    
+    if (url.startsWith('http')) return url;
     return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
@@ -939,7 +952,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                   {sampleImages.map((img, idx) => (
                     <img
                       key={img.id || idx}
-                      src={img.image_url || getFileUrl(img.image)}
+                      src={getOptimizedCloudinaryUrl(getFileUrl(img.image_url || img.image))}
                       alt={`${title} - পৃষ্ঠা ${idx + 1}`}
                       className={styles.pdfPageImage}
                       onError={(e) => e.target.style.display = 'none'}

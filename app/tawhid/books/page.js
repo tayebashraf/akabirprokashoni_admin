@@ -643,10 +643,30 @@ export default function AdminBooks() {
           const match = segment.trim().match(/^([a-zA-Z0-9_]+):\s*(.*)/);
           if (match) {
             const fieldName = match[1];
-            const element = document.getElementsByName(fieldName)[0] || document.getElementById(fieldName);
+            
+            // Map backend serializer field names to actual HTML IDs/names
+            const fieldMapping = {
+              'category': 'categories',
+              'authors': 'authors',
+              'categories': 'categories',
+              'translator': 'translator'
+            };
+            
+            const targetIdOrName = fieldMapping[fieldName] || fieldName;
+            const element = document.getElementsByName(targetIdOrName)[0] || 
+                            document.getElementById(targetIdOrName) ||
+                            document.getElementsByName(fieldName)[0] || 
+                            document.getElementById(fieldName);
+            
             if (element) {
               element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              try { element.focus(); } catch (e) {}
+              
+              // If it's a container (like autocomplete), try focusing the input inside it
+              const inputEl = element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA'
+                ? element
+                : element.querySelector('input') || element;
+                
+              try { inputEl.focus(); } catch (e) {}
               
               // Apply red validation border glow effect
               const originalBorder = element.style.borderColor;
@@ -814,6 +834,16 @@ export default function AdminBooks() {
                 <button className={styles.modalClose} onClick={() => setShowForm(false)}>×</button>
               </div>
               <form onSubmit={handleSubmit} className={styles.bookForm}>
+                
+                {uploadError && (
+                  <div style={{ padding: '12px 16px', border: '1px solid #f5c6cb', borderRadius: '8px', backgroundColor: '#f8d7da', color: '#721c24', fontSize: '14px', lineHeight: '1.5', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '15px' }}>
+                    <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>⚠️</span> আপলোডে সমস্যা দেখা দিয়েছে!
+                    </strong>
+                    <span>{formatErrorForDisplay(uploadError)}</span>
+                    <a href="#upload-error-box" style={{ color: '#0284c7', textDecoration: 'underline', fontWeight: 600, fontSize: '13px', marginTop: '4px' }}>নিচে গিয়ে তাও আপলোড করুন (Force Upload)</a>
+                  </div>
+                )}
                 
                 {/* Core Info */}
                 <h3>মূল তথ্য</h3>

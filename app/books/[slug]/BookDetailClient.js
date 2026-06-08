@@ -674,7 +674,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
             <button
               className={`${styles.tab} ${activeTab === 'author' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('author')}
-            >লেখক পরিচিতি</button>
+            >{(book.book_type === 'translated' || book.translator) ? 'লেখক ও অনুবাদক' : 'লেখক পরিচিতি'}</button>
             <button
               className={`${styles.tab} ${activeTab === 'reviews' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('reviews')}
@@ -767,9 +767,25 @@ export default function BookDetailClient({ book, relatedBooks }) {
             })()}
 
             {activeTab === 'author' && (
-              <div className={styles.authorBio}>
-                <h3 className={styles.contentTitle}>লেখক পরিচিতি</h3>
-                <p>{book.author_bio || book.author_details?.bio || book.author?.bio || 'লেখকের তথ্য পাওয়া যায়নি।'}</p>
+              <div className={styles.authorBio} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div>
+                  <h3 className={styles.contentTitle} style={{ borderBottom: '2px solid #0f766e', paddingBottom: '6px', marginBottom: '12px', display: 'inline-block' }}>লেখক পরিচিতি</h3>
+                  <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.7', color: '#334155' }}>
+                    {book.author_bio || 
+                     (Array.isArray(book.author_details) && book.author_details.length > 0 ? book.author_details.map(a => a.bio).filter(Boolean).join('\n\n') : null) || 
+                     book.author_details?.bio || 
+                     book.author?.bio || 
+                     'লেখকের তথ্য পাওয়া যায়নি।'}
+                  </p>
+                </div>
+                {(book.book_type === 'translated' || book.translator) && (
+                  <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
+                    <h3 className={styles.contentTitle} style={{ borderBottom: '2px solid #0f766e', paddingBottom: '6px', marginBottom: '12px', display: 'inline-block' }}>অনুবাদক পরিচিতি</h3>
+                    <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.7', color: '#334155' }}>
+                      {book.translator_bio || 'অনুবাদকের তথ্য পাওয়া যায়নি।'}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

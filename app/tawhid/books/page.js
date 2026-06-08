@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getBooks, deleteBook, createBook, updateBook, getCategories, getAuthors, getBookBySlug, createAuthor, createCategory, getImageUrl } from '@/lib/api';
+import { getBooks, deleteBook, createBook, updateBook, getCategories, getAuthors, getBookBySlug, createAuthor, createCategory, getImageUrl, uploadBookImages, deleteBookImage } from '@/lib/api';
 import styles from './page.module.css';
 
 
@@ -363,12 +363,15 @@ export default function AdminBooks() {
   const [categoryChips, setCategoryChips] = useState([]);
   const [currentCoverUrl, setCurrentCoverUrl] = useState('');
   const [currentSamplePdfUrl, setCurrentSamplePdfUrl] = useState('');
+  const [existingImages, setExistingImages] = useState([]);
+  const [sampleImages, setSampleImages] = useState([null, null, null, null, null]);
+  const [imagesToDelete, setImagesToDelete] = useState([]);
   const [formData, setFormData] = useState({
     title: '', slug: '', category: '', publisher: '',
     price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
     edition: '', weight: '', dimensions: '', stock: '',
     is_trending: false, is_new_release: true, is_preorder: false,
-    description: '', author_bio: '', tags: '',
+    description: '', author_bio: '', translator_bio: '', tags: '',
     meta_title: '', meta_description: '', meta_keywords: '',
     table_of_contents: '', why_read: '', target_audience: '',
     faq: '', key_takeaways: '', long_description: ''
@@ -428,12 +431,15 @@ export default function AdminBooks() {
     setCategoryChips([]);
     setCurrentCoverUrl('');
     setCurrentSamplePdfUrl('');
+    setExistingImages([]);
+    setSampleImages([null, null, null, null, null]);
+    setImagesToDelete([]);
     setFormData({
       title: '', slug: '', category: '', publisher: '',
       price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
       edition: '', weight: '', dimensions: '', stock: '',
       is_trending: false, is_new_release: true, is_preorder: false,
-      description: '', author_bio: '', tags: '',
+      description: '', author_bio: '', translator_bio: '', tags: '',
       meta_title: '', meta_description: '', meta_keywords: '',
       table_of_contents: '', why_read: '', target_audience: '',
       faq: '', key_takeaways: '', long_description: ''
@@ -452,6 +458,9 @@ export default function AdminBooks() {
       // Set current cover and PDF urls
       setCurrentCoverUrl(bookData.cover_url || bookData.cover || '');
       setCurrentSamplePdfUrl(bookData.sample_pdf_url || bookData.sample_pdf || '');
+      setExistingImages(bookData.images || []);
+      setSampleImages([null, null, null, null, null]);
+      setImagesToDelete([]);
       
       // Set book type
       setBookType(bookData.book_type === 'translated' ? 'translation' : (bookData.book_type || 'original'));
@@ -500,6 +509,7 @@ export default function AdminBooks() {
         is_preorder: bookData.is_preorder || false,
         description: bookData.description || '',
         author_bio: bookData.author_bio || '',
+        translator_bio: bookData.translator_bio || '',
         tags: bookData.tags || (bookData.tags_list ? bookData.tags_list.join(',') : ''),
         meta_title: bookData.meta_title || '',
         meta_description: bookData.meta_description || '',
@@ -579,11 +589,41 @@ export default function AdminBooks() {
       if (files.cover) data.append('cover', files.cover);
       if (files.sample_pdf) data.append('sample_pdf', files.sample_pdf);
 
+      let savedBook;
       if (editingSlug) {
-        await updateBook(editingSlug, data);
+        savedBook = await updateBook(editingSlug, data);
+      } else {
+        savedBook = await createBook(data);
+      }
+
+      // Delete queued images
+      if (editingSlug && imagesToDelete.length > 0) {
+        for (const imgId of imagesToDelete) {
+          try {
+            await deleteBookImage(imgId);
+          } catch (delError) {
+            console.error(`Failed to delete book image ${imgId}:`, delError);
+          }
+        }
+      }
+
+      // Upload new sample images sequentially
+      const newFilesToUpload = sampleImages.filter(file => file !== null);
+      if (newFilesToUpload.length > 0) {
+        const startOrder = existingImages.length + 1;
+        for (let i = 0; i < newFilesToUpload.length; i++) {
+          const imgFormData = new FormData();
+          imgFormData.append('book', String(savedBook.id));
+          imgFormData.append('image', newFilesToUpload[i]);
+          imgFormData.append('order', String(startOrder + i));
+          
+          await uploadBookImages(imgFormData);
+        }
+      }
+
+      if (editingSlug) {
         alert('বইটি সফলভাবে আপডেট হয়েছে!');
       } else {
-        await createBook(data);
         alert('নতুন বই সফলভাবে যোগ হয়েছে!');
       }
       
@@ -880,6 +920,147 @@ export default function AdminBooks() {
                       </div>
                     )}
                   </div>
+
+                  <div style={{ gridColumn: '1 / -1', marginTop: '15px' }}>
+                    <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontWeight: 'bold', color: '#334155' }}>একটু পড়ে দেখুন (ছবিসমূহ) — PDF এর বিকল্প</span>
+                      <span style={{ fontSize: '12px', fontWeight: 'normal', color: '#64748b' }}>
+                        (যে ছবি প্রথমে সিলেক্ট করবেন, তা প্রথমে পড়া হবে)
+                      </span>
+                    </label>
+                    
+                    {/* Select All Button */}
+                    <div style={{ marginBottom: '12px' }}>
+                      <input 
+                        type="file" 
+                        id="multi-image-uploader" 
+                        multiple 
+                        accept="image/*" 
+                        style={{ display: 'none' }} 
+                        onChange={(e) => {
+                          const filesList = Array.from(e.target.files);
+                          if (filesList.length > 0) {
+                            setSampleImages(prev => {
+                              const updated = [...prev];
+                              let fileIdx = 0;
+                              for (let i = 0; i < updated.length; i++) {
+                                if (!updated[i] && fileIdx < filesList.length) {
+                                  updated[i] = filesList[fileIdx++];
+                                }
+                              }
+                              while (fileIdx < filesList.length) {
+                                updated.push(filesList[fileIdx++]);
+                              }
+                              return updated;
+                            });
+                          }
+                          // Clear input value to allow selecting the same files again
+                          e.target.value = '';
+                        }}
+                      />
+                      <button 
+                        type="button" 
+                        style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', padding: '8px 14px', fontSize: '13px', borderRadius: '6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}
+                        onClick={() => document.getElementById('multi-image-uploader').click()}
+                      >
+                        📷 একসাথে একাধিক ছবি সিলেক্ট করুন
+                      </button>
+                    </div>
+
+                    {/* Previews / Slots Grid */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', background: '#f8fafc', padding: '16px', borderRadius: '10px', border: '1px dashed #cbd5e1' }}>
+                      {/* Existing Images first */}
+                      {existingImages.map((img, idx) => (
+                        <div key={`existing-${img.id || idx}`} style={{ position: 'relative', width: '80px', height: '110px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                          <img 
+                            src={getImageUrl(img.image_url || img.image)} 
+                            alt={`Existing Page ${idx + 1}`} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                          <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', background: 'rgba(15, 23, 42, 0.75)', color: 'white', fontSize: '10px', textAlign: 'center', padding: '2px 0' }}>
+                            পৃষ্ঠা {idx + 1}
+                          </div>
+                          <button 
+                            type="button" 
+                            style={{ position: 'absolute', top: '4px', right: '4px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+                            onClick={() => {
+                              if (window.confirm('আপনি কি এই স্যাম্পল ছবিটি ডিলিট করতে চান? সংরক্ষণ করার পর এটি সম্পূর্ণ মুছে যাবে।')) {
+                                setExistingImages(prev => prev.filter(item => item.id !== img.id));
+                                setImagesToDelete(prev => [...prev, img.id]);
+                              }
+                            }}
+                            title="মুছে ফেলুন"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* New Image Slots */}
+                      {sampleImages.map((file, idx) => {
+                        const previewUrl = file ? URL.createObjectURL(file) : null;
+                        const slotNum = existingImages.length + idx + 1;
+                        return (
+                          <div key={`slot-${idx}`} style={{ position: 'relative', width: '80px', height: '110px', borderRadius: '8px', border: file ? '1px solid #bfdbfe' : '2px dashed #cbd5e1', background: file ? 'white' : '#f1f5f9', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                            {file ? (
+                              <>
+                                <img 
+                                  src={previewUrl} 
+                                  alt={`Slot ${idx + 1}`} 
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                                <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', background: 'rgba(30, 64, 175, 0.85)', color: 'white', fontSize: '10px', textAlign: 'center', padding: '2px 0' }}>
+                                  পৃষ্ঠা {slotNum}
+                                </div>
+                                <button 
+                                  type="button" 
+                                  style={{ position: 'absolute', top: '4px', right: '4px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSampleImages(prev => {
+                                      const updated = [...prev];
+                                      if (idx < 5) {
+                                        updated[idx] = null;
+                                      } else {
+                                        updated.splice(idx, 1);
+                                      }
+                                      return updated;
+                                    });
+                                  }}
+                                  title="মুছে ফেলুন"
+                                >
+                                  ✕
+                                </button>
+                              </>
+                            ) : (
+                              <div 
+                                style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#64748b' }}
+                                onClick={() => {
+                                  const input = document.createElement('input');
+                                  input.type = 'file';
+                                  input.accept = 'image/*';
+                                  input.onchange = (e) => {
+                                    const selectedFile = e.target.files[0];
+                                    if (selectedFile) {
+                                      setSampleImages(prev => {
+                                        const updated = [...prev];
+                                        updated[idx] = selectedFile;
+                                        return updated;
+                                      });
+                                    }
+                                  };
+                                  input.click();
+                                }}
+                              >
+                                <span style={{ fontSize: '18px' }}>➕</span>
+                                <span style={{ fontSize: '10px', fontWeight: 600 }}>ছবি {idx + 1}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Pricing & Stock */}
@@ -915,18 +1096,7 @@ export default function AdminBooks() {
                   </label>
                 </div>
 
-                {/* Media Uploads */}
-                <h3>মিডিয়া</h3>
-                <div className={styles.formGrid}>
-                  <div>
-                    <label>কভার ইমেজ</label>
-                    <input type="file" name="cover" accept="image/*" onChange={handleFileChange} className="form-control" />
-                  </div>
-                  <div>
-                    <label>একটু পড়ে দেখুন (PDF)</label>
-                    <input type="file" name="sample_pdf" accept=".pdf" onChange={handleFileChange} className="form-control" />
-                  </div>
-                </div>
+
 
                 {/* Descriptions */}
                 <h3>বিবরণ</h3>
@@ -934,6 +1104,16 @@ export default function AdminBooks() {
                   <label>বইয়ের বিবরণ</label>
                   <textarea name="description" value={formData.description} onChange={handleInputChange} className="form-control" rows="4"></textarea>
                 </div>
+                <div style={{ marginBottom: '15px' }}>
+                  <label>লেখক পরিচিতি (কাস্টম বা ওভাররাইড)</label>
+                  <textarea name="author_bio" value={formData.author_bio} onChange={handleInputChange} className="form-control" rows="3" placeholder="লেখকের পরিচিতি এখানে লিখুন (খালি রাখলে লেখকের মূল প্রোফাইল থেকে নেওয়া হবে)"></textarea>
+                </div>
+                {bookType === 'translation' && (
+                  <div style={{ marginBottom: '15px' }}>
+                    <label>অনুবাদক পরিচিতি</label>
+                    <textarea name="translator_bio" value={formData.translator_bio} onChange={handleInputChange} className="form-control" rows="3" placeholder="অনুবাদকের পরিচিতি এখানে লিখুন"></textarea>
+                  </div>
+                )}
                 <div style={{ marginBottom: '15px' }}>
                   <label>ট্যাগ (কমা দিয়ে আলাদা করুন)</label>
                   <input type="text" name="tags" value={formData.tags} onChange={handleInputChange} className="form-control" placeholder="যেমন: উপন্যাস, থ্রিলার" />

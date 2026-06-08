@@ -22,14 +22,33 @@ export default function LoginPage() {
     setError('');
     
     // Simple validation
-    if (!phone.trim()) {
-      setError('মোবাইল নম্বর আবশ্যক।');
+    const usernameInput = phone.trim();
+    if (!usernameInput) {
+      setError(isLogin ? 'মোবাইল নম্বর অথবা ইমেইল আবশ্যক।' : 'মোবাইল নম্বর আবশ্যক।');
       return;
     }
-    if (phone.trim().length < 11) {
-      setError('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন।');
-      return;
+    
+    if (isLogin) {
+      const isEmail = usernameInput.includes('@');
+      if (isEmail) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(usernameInput)) {
+          setError('সঠিক ইমেইল এড্রেস দিন।');
+          return;
+        }
+      } else {
+        if (usernameInput.length < 11 || !/^\d+$/.test(usernameInput)) {
+          setError('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন।');
+          return;
+        }
+      }
+    } else {
+      if (usernameInput.length < 11 || !/^\d+$/.test(usernameInput)) {
+        setError('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন।');
+        return;
+      }
     }
+
     if (!password || password.length < 6) {
       setError('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।');
       return;
@@ -135,12 +154,14 @@ export default function LoginPage() {
           )}
           
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>মোবাইল নম্বর</label>
+            <label className={styles.formLabel}>
+              {isLogin ? 'মোবাইল নম্বর অথবা ইমেইল' : 'মোবাইল নম্বর'}
+            </label>
             <input 
-              type="tel" 
+              type={isLogin ? 'text' : 'tel'} 
               className={styles.formControl} 
               required 
-              placeholder="যেমন: 01718XXXXXX"
+              placeholder={isLogin ? 'যেমন: 01718XXXXXX বা admin@email.com' : 'যেমন: 01718XXXXXX'}
               value={phone}
               onChange={e => setPhone(e.target.value)}
             />

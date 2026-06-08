@@ -41,9 +41,11 @@
 .imageSection {
   position: sticky;
   top: 90px;
+  width: 100%;
 }
 .mainImage {
   position: relative;
+  width: 100%;
   background: white;
   border: 1px solid #e5e5e5;
   border-radius: 12px;
@@ -1035,7 +1037,8 @@
   }
   .imageSection {
     position: static;
-    max-width: 260px;
+    width: 100%;
+    max-width: 280px;
     margin: 0 auto;
   }
   .bookTitle { font-size: 21px; }
@@ -1074,10 +1077,12 @@
   }
 
   .btnRow {
-    flex-direction: row;
+    flex-direction: column;
     gap: 10px;
   }
   .cartBtn, .buyBtn {
+    width: 100%;
+    flex: none;
     height: 48px;
     font-size: 15px;
   }

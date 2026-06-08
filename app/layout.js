@@ -4,6 +4,11 @@ import { AuthProvider } from '@/lib/AuthContext';
 import { FavoriteProvider } from '@/lib/FavoriteContext';
 import ClientLayoutWrapper from '@/components/ClientLayoutWrapper';
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export const metadata = {
   metadataBase: new URL('https://akabirprokashoni.com'),
   manifest: '/manifest.json',

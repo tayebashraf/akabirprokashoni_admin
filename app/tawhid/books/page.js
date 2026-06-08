@@ -361,6 +361,8 @@ export default function AdminBooks() {
   const [authorChips, setAuthorChips] = useState([]);
   const [translatorChips, setTranslatorChips] = useState([]);
   const [categoryChips, setCategoryChips] = useState([]);
+  const [currentCoverUrl, setCurrentCoverUrl] = useState('');
+  const [currentSamplePdfUrl, setCurrentSamplePdfUrl] = useState('');
   const [formData, setFormData] = useState({
     title: '', slug: '', category: '', publisher: '',
     price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
@@ -419,6 +421,8 @@ export default function AdminBooks() {
     setAuthorChips([]);
     setTranslatorChips([]);
     setCategoryChips([]);
+    setCurrentCoverUrl('');
+    setCurrentSamplePdfUrl('');
     setFormData({
       title: '', slug: '', category: '', publisher: '',
       price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
@@ -439,6 +443,10 @@ export default function AdminBooks() {
       setEditingSlug(slug);
       setShowForm(true);
       const bookData = await getBookBySlug(slug);
+      
+      // Set current cover and PDF urls
+      setCurrentCoverUrl(bookData.cover_url || bookData.cover || '');
+      setCurrentSamplePdfUrl(bookData.sample_pdf_url || bookData.sample_pdf || '');
       
       // Set book type
       setBookType(bookData.book_type === 'translated' ? 'translation' : (bookData.book_type || 'original'));
@@ -815,6 +823,44 @@ export default function AdminBooks() {
                   <div>
                     <label>মাপ (Dimensions)</label>
                     <input type="text" name="dimensions" value={formData.dimensions} onChange={handleInputChange} className="form-control" placeholder="যেমন: 8.5 x 5.5 inch" />
+                  </div>
+                </div>
+
+                {/* Media Uploads */}
+                <h3>মিডিয়া</h3>
+                <div className={styles.formGrid}>
+                  <div>
+                    <label>কভার ইমেজ</label>
+                    <input type="file" name="cover" accept="image/*" onChange={handleFileChange} className="form-control" />
+                    {currentCoverUrl && (
+                      <div style={{ marginTop: '8px' }}>
+                        <span style={{ fontSize: '12.5px', color: '#64748b', fontWeight: 500 }}>বর্তমান কভার:</span>
+                        <img 
+                          src={getImageUrl(currentCoverUrl)} 
+                          alt="Current Cover" 
+                          style={{ display: 'block', width: '70px', height: '95px', objectFit: 'cover', borderRadius: '6px', marginTop: '6px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+                          onError={(e) => { e.target.src = currentCoverUrl; }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label>একটু পড়ে দেখুন (PDF)</label>
+                    <input type="file" name="sample_pdf" accept=".pdf" onChange={handleFileChange} className="form-control" />
+                    {currentSamplePdfUrl && (
+                      <div style={{ marginTop: '8px', fontSize: '13px' }}>
+                        <span style={{ color: '#64748b', fontWeight: 500 }}>বর্তমান ফাইল: </span>
+                        <a 
+                          href={getImageUrl(currentSamplePdfUrl)} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ color: '#0f766e', fontWeight: 'bold', textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px' }}
+                          onError={(e) => { e.target.href = currentSamplePdfUrl; }}
+                        >
+                          📖 পিডিএফ স্যাম্পল দেখুন
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
 

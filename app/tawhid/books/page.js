@@ -682,6 +682,38 @@ export default function AdminBooks() {
     }
   };
 
+  const formatErrorForDisplay = (errText) => {
+    if (!errText) return '';
+    const FIELD_LABELS = {
+      title: 'বইয়ের নাম',
+      slug: 'ইউআরএল (Slug)',
+      price: 'বিক্রয় মূল্য',
+      original_price: 'আসল মূল্য',
+      stock: 'স্টক সংখ্যা',
+      weight: 'ওজন',
+      pages: 'পৃষ্ঠা সংখ্যা',
+      isbn: 'আইএসবিএন (ISBN)',
+      language: 'ভাষা',
+      edition: 'সংস্করণ',
+      dimensions: 'মাপ',
+      cover: 'কভার ইমেজ',
+      sample_pdf: 'স্যাম্পল পিডিএফ',
+      description: 'সারসংক্ষেপ',
+      author_bio: 'লেখক পরিচিতি',
+      translator_bio: 'অনুবাদক পরিচিতি',
+      authors: 'লেখকগণ',
+      categories: 'ক্যাটাগরি/বিষয়সমূহ',
+      category: 'ক্যাটাগরি/বিষয়',
+    };
+    
+    let formatted = errText;
+    Object.keys(FIELD_LABELS).forEach(key => {
+      const regex = new RegExp(`(^|\\|\\s*)${key}:`, 'g');
+      formatted = formatted.replace(regex, `$1${FIELD_LABELS[key]}:`);
+    });
+    return formatted;
+  };
+
   const handleDelete = async (slug) => {
     if (window.confirm('আপনি কি নিশ্চিত যে এই বইটি ডিলিট করতে চান?')) {
       try {
@@ -1244,7 +1276,7 @@ export default function AdminBooks() {
                 {uploadError && (
                   <div id="upload-error-box" style={{ marginTop: '20px', padding: '15px', border: '1px solid #f5c6cb', borderRadius: '8px', backgroundColor: '#f8d7da', color: '#721c24' }}>
                     <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>⚠️ আপলোডে সমস্যা দেখা দিয়েছে!</h4>
-                    <p style={{ margin: '0 0 15px 0', fontSize: '14px' }}>{uploadError}</p>
+                    <p style={{ margin: '0 0 15px 0', fontSize: '14px', lineHeight: '1.6' }}>{formatErrorForDisplay(uploadError)}</p>
                     
                     <div style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '5px', border: '1px solid #f5c6cb' }}>
                       <p style={{ margin: '0 0 10px 0', fontWeight: 'bold' }}>তারপরও কি আপনি আপলোড করতে চান?</p>

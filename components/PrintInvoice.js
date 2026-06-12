@@ -138,37 +138,42 @@ export default function PrintInvoice({ order }) {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  borderBottom: '1px solid black',
-                  paddingBottom: '6px',
+                  borderBottom: '1.5px solid black',
+                  paddingBottom: '8px',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <img
                     src="/images/logo.png"
                     alt="Akabir Logo"
-                    style={{ height: '8mm', objectFit: 'contain' }}
+                    style={{ height: '10mm', objectFit: 'contain' }}
                   />
-                  <div>
-                    <h2 style={{ fontSize: '14px', fontWeight: '800', margin: 0, fontFamily: "'Hind Siliguri', sans-serif" }}>
-                      আকাবির প্রকাশনী
-                    </h2>
-                    <p style={{ fontSize: '9px', color: '#444', margin: 0, fontFamily: "'Hind Siliguri', sans-serif" }}>
-                      ইসলামিক বইয়ের বিশ্বস্ত লাইব্রেরি
-                    </p>
-                  </div>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: '#444',
+                      fontWeight: '600',
+                      borderLeft: '1.5px solid #ccc',
+                      paddingLeft: '10px',
+                      marginTop: '4px',
+                      fontFamily: "'Hind Siliguri', sans-serif",
+                    }}
+                  >
+                    ইসলামিক বইয়ের বিশ্বস্ত লাইব্রেরি
+                  </span>
                 </div>
                 <div
                   style={{
                     textAlign: 'right',
-                    fontSize: '9px',
-                    fontWeight: '600',
-                    color: '#333',
-                    lineHeight: '1.3',
+                    fontSize: '10px',
+                    fontWeight: '700',
+                    color: '#000',
+                    lineHeight: '1.4',
                     fontFamily: "'Hind Siliguri', sans-serif",
                   }}
                 >
-                  <p style={{ margin: 0 }}>হেল্পলাইন: ০১৩০৫-৬৪৪৭৭৮</p>
-                  <p style={{ margin: 0 }}>akabirprokashoni.com</p>
+                  <p style={{ margin: 0 }}>হেল্পলাইন: ০১৭১৮-৭৬৩৯৭৮</p>
+                  <p style={{ margin: 0, fontFamily: 'sans-serif', fontSize: '9.5px', color: '#555' }}>akabirprokashoni.com</p>
                 </div>
               </div>
 
@@ -177,140 +182,113 @@ export default function PrintInvoice({ order }) {
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(12, 1fr)',
-                  gap: '8px',
+                  gap: '12px',
                   borderBottom: '1px solid black',
-                  padding: '6px 0',
+                  padding: '8px 0',
                   fontSize: '11px',
                   lineHeight: '1.4',
                 }}
               >
-                {/* Left: Recipient (9 cols) */}
-                <div style={{ gridColumn: 'span 9', borderRight: '1px solid #ccc', paddingRight: '8px' }}>
-                  <p style={{ fontSize: '9px', color: '#555', fontWeight: 'bold', margin: '0 0 1px 0', fontFamily: "'Hind Siliguri', sans-serif" }}>
+                {/* Left: Recipient (7 cols) */}
+                <div style={{ gridColumn: 'span 7', borderRight: '1px solid #ddd', paddingRight: '8px' }}>
+                  <p style={{ fontSize: '9px', color: '#555', fontWeight: 'bold', margin: '0 0 2px 0', fontFamily: "'Hind Siliguri', sans-serif" }}>
                     প্রাপক (Recipient):
                   </p>
-                  <p style={{ fontSize: '13px', fontWeight: '800', margin: '0 0 2px 0', fontFamily: "'Hind Siliguri', sans-serif" }}>
+                  <p style={{ fontSize: '13.5px', fontWeight: '800', margin: '0 0 2px 0', fontFamily: "'Hind Siliguri', sans-serif" }}>
                     {singleOrder.customer_name}
                   </p>
                   <p style={{ fontSize: '13px', fontWeight: '900', margin: '0 0 2px 0' }}>
                     মোবাইল: {singleOrder.phone}
                   </p>
                   {singleOrder.alt_phone && (
-                    <p style={{ fontSize: '10px', fontWeight: 'bold', margin: '0 0 2px 0' }}>
+                    <p style={{ fontSize: '11px', fontWeight: 'bold', margin: '0 0 2px 0' }}>
                       বিকল্প: {singleOrder.alt_phone}
                     </p>
                   )}
-                  <p style={{ margin: 0, fontSize: '10.5px', fontFamily: "'Hind Siliguri', sans-serif" }}>
+                  <p style={{ margin: 0, fontSize: '11px', fontFamily: "'Hind Siliguri', sans-serif" }}>
                     ঠিকানা: {singleOrder.address},{' '}
                     <strong style={{ fontWeight: 'bold' }}>{singleOrder.district}</strong>
                   </p>
                 </div>
 
-                {/* Right: QR Code and Sender Info (3 cols) */}
-                <div style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', paddingLeft: '4px' }}>
-                  <QRCodeImage value={qrContent} />
-                  <div style={{ fontSize: '8.5px', color: '#555', textAlign: 'center', marginTop: '4px', fontFamily: "'Hind Siliguri', sans-serif" }}>
-                    <span style={{ fontWeight: 'bold' }}>প্রেরক:</span> আকাবির প্রকাশনী, ঢাকা
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. Mid Section: Cash Box & Info */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '8px', padding: '6px 0', alignItems: 'center' }}>
-                {/* Left: Billing details & Order info */}
-                <div style={{ gridColumn: 'span 7', display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '10.5px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif" }}>
-                    <span>অর্ডার আইডি:</span>
+                {/* Right: Order metadata (5 cols) */}
+                <div style={{ gridColumn: 'span 5', paddingLeft: '8px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <p style={{ fontSize: '9px', color: '#555', fontWeight: 'bold', margin: '0 0 2px 0', fontFamily: "'Hind Siliguri', sans-serif" }}>
+                    ইনভয়েস বিবরণ (Invoice Info):
+                  </p>
+                  <div style={{ display: 'flex', justifycontent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif" }}>
+                    <span style={{ flexGrow: 1 }}>অর্ডার আইডি:</span>
                     <span style={{ fontWeight: 'bold', color: '#0d6b3f', fontFamily: 'monospace' }}>
                       {singleOrder.order_id}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif" }}>
-                    <span>তারিখ:</span>
+                  <div style={{ display: 'flex', justifycontent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif" }}>
+                    <span style={{ flexGrow: 1 }}>তারিখ:</span>
                     <span style={{ fontWeight: '600' }}>{formatDate(singleOrder.created_at)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif" }}>
-                    <span>পেমেন্ট মেথড:</span>
+                  <div style={{ display: 'flex', justifycontent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif" }}>
+                    <span style={{ flexGrow: 1 }}>পেমেন্ট মেথড:</span>
                     <span style={{ fontWeight: 'bold' }}>
                       {singleOrder.payment_display ||
                         (singleOrder.payment_method === 'cod' ? 'ক্যাশ অন ডেলিভারি' : singleOrder.payment_method)}
                     </span>
                   </div>
                 </div>
-
-                {/* Right: Cash Box */}
-                <div style={{ gridColumn: 'span 5' }}>
-                  <div
-                    style={{
-                      border: '2px solid black',
-                      padding: '4px',
-                      textAlign: 'center',
-                      borderRadius: '6px',
-                      backgroundColor: '#fcfcfc',
-                    }}
-                  >
-                    <p style={{ fontSize: '8.5px', fontWeight: 'bold', margin: 0, color: '#333', fontFamily: "'Hind Siliguri', sans-serif" }}>
-                      {singleOrder.payment_method === 'cod' ? 'ক্যাশ কালেকশন' : 'পেইড অর্ডার'}
-                    </p>
-                    <p style={{ fontSize: '16px', fontWeight: '900', margin: '1px 0' }}>
-                      ৳{singleOrder.payment_method === 'cod' ? singleOrder.total : '০.০০'}
-                    </p>
-                    <p style={{ fontSize: '8.5px', fontWeight: 'bold', margin: 0, color: '#555', fontFamily: "'Hind Siliguri', sans-serif" }}>
-                      {singleOrder.payment_method === 'cod' ? 'কুরিয়ারকে পরিশোধ করুন' : 'পেমেন্ট সম্পন্ন'}
-                    </p>
-                  </div>
-                </div>
               </div>
 
-              {/* 4. Book items checklist table */}
-              <div style={{ borderTop: '1px solid black', borderBottom: '1px solid black', padding: '4px 0', margin: '2px 0' }}>
-                <p style={{ fontSize: '8.5px', fontWeight: 'bold', color: '#555', margin: '0 0 2px 0', fontFamily: "'Hind Siliguri', sans-serif" }}>
-                  📦 পার্সেল সামগ্রী (Items Checklist):
-                </p>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9.5px' }}>
+              {/* 3. Book items checklist table */}
+              <div style={{ flexGrow: 1, margin: '6px 0', display: 'flex', flexDirection: 'column' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #ccc', fontWeight: 'bold', color: '#333' }}>
-                      <th style={{ textAlign: 'center', width: '8%', paddingBottom: '1px', fontFamily: "'Hind Siliguri', sans-serif" }}>নং</th>
-                      <th style={{ textAlign: 'left', paddingBottom: '1px', fontFamily: "'Hind Siliguri', sans-serif" }}>বইয়ের নাম</th>
-                      <th style={{ textAlign: 'center', width: '12%', paddingBottom: '1px', fontFamily: "'Hind Siliguri', sans-serif" }}>পরিমাণ</th>
+                    <tr style={{ borderBottom: '1.5px solid black', fontWeight: 'bold', color: '#000', backgroundColor: '#f8fafc' }}>
+                      <th style={{ textAlign: 'center', width: '8%', padding: '4px 2px', border: '1px solid black', fontFamily: "'Hind Siliguri', sans-serif" }}>নং</th>
+                      <th style={{ textAlign: 'left', padding: '4px 6px', border: '1px solid black', fontFamily: "'Hind Siliguri', sans-serif" }}>বইয়ের বিবরণ (Book Details)</th>
+                      <th style={{ textAlign: 'right', width: '15%', padding: '4px 6px', border: '1px solid black', fontFamily: "'Hind Siliguri', sans-serif" }}>মূল্য (Rate)</th>
+                      <th style={{ textAlign: 'center', width: '12%', padding: '4px 2px', border: '1px solid black', fontFamily: "'Hind Siliguri', sans-serif" }}>পরিমাণ</th>
+                      <th style={{ textAlign: 'right', width: '18%', padding: '4px 6px', border: '1px solid black', fontFamily: "'Hind Siliguri', sans-serif" }}>মোট (Total)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {singleOrder.items &&
-                      singleOrder.items.slice(0, 3).map((itm, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                          <td style={{ textAlign: 'center', padding: '1px 0' }}>{i + 1}</td>
+                      singleOrder.items.slice(0, 4).map((itm, i) => (
+                        <tr key={i} style={{ borderBottom: '1px solid #ccc' }}>
+                          <td style={{ textAlign: 'center', padding: '4px 2px', border: '1px solid black', fontWeight: '600' }}>{i + 1}</td>
                           <td
                             style={{
-                              padding: '1px 0',
-                              fontWeight: 'bold',
+                              padding: '4px 6px',
+                              border: '1px solid black',
+                              fontWeight: '700',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
-                              maxWidth: '240px',
+                              maxWidth: '280px',
                               fontFamily: "'Hind Siliguri', sans-serif",
                             }}
                           >
                             {itm.book_title}
                           </td>
-                          <td style={{ textAlign: 'center', padding: '1px 0', fontWeight: 'bold' }}>{itm.quantity}</td>
+                          <td style={{ textAlign: 'right', padding: '4px 6px', border: '1px solid black', fontWeight: '600' }}>৳{itm.price}</td>
+                          <td style={{ textAlign: 'center', padding: '4px 2px', border: '1px solid black', fontWeight: '700' }}>{itm.quantity}</td>
+                          <td style={{ textAlign: 'right', padding: '4px 6px', border: '1px solid black', fontWeight: '700' }}>৳{itm.price * itm.quantity}</td>
                         </tr>
                       ))}
-                    {singleOrder.items && singleOrder.items.length > 3 && (
+                    {singleOrder.items && singleOrder.items.length > 4 && (
                       <tr>
                         <td
-                          colSpan={3}
+                          colSpan={5}
                           style={{
                             textAlign: 'center',
-                            fontSize: '8.5px',
+                            fontSize: '9px',
                             fontWeight: 'bold',
                             fontStyle: 'italic',
-                            padding: '1px 0',
+                            padding: '3px 0',
                             color: '#555',
+                            border: '1px solid black',
                             fontFamily: "'Hind Siliguri', sans-serif",
+                            backgroundColor: '#fafafa'
                           }}
                         >
-                          + আরও {singleOrder.items.length - 3}টি বই আছে (অর্ডার শিট দেখুন)
+                          + আরও {singleOrder.items.length - 4}টি বই আছে (অর্ডার বিবরণী দেখুন)
                         </td>
                       </tr>
                     )}
@@ -318,10 +296,80 @@ export default function PrintInvoice({ order }) {
                 </table>
               </div>
 
-              {/* 5. Barcode (Centered at the bottom) */}
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '4px' }}>
-                <div style={{ width: '80%', textAlign: 'center' }}>
-                  <Barcode value={trackingCode} />
+              {/* 4. Barcode, QR Code and Bill Summary Row */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(12, 1fr)',
+                  gap: '12px',
+                  alignItems: 'end',
+                  borderTop: '1.5px solid black',
+                  paddingTop: '6px',
+                }}
+              >
+                {/* Left: Barcode, QR Code and Sender Info (7 cols) */}
+                <div style={{ gridColumn: 'span 7', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ flexShrink: 0 }}>
+                      <QRCodeImage value={qrContent} />
+                    </div>
+                    <div style={{ flexGrow: 1, textAlign: 'center' }}>
+                      <Barcode value={trackingCode} />
+                    </div>
+                  </div>
+                  
+                  {/* Sender Details */}
+                  <div
+                    style={{
+                      fontSize: '9px',
+                      color: '#444',
+                      fontFamily: "'Hind Siliguri', sans-serif",
+                      lineHeight: '1.3',
+                      borderTop: '1px dashed #ccc',
+                      paddingTop: '4px',
+                      marginTop: '2px',
+                    }}
+                  >
+                    <strong>প্রেরক (Sender):</strong> আকাবির প্রকাশনী, বাংলাবাজার, ঢাকা-১১০০। ফোন: ০১৭১৮-৭৬৩৯৭৮
+                  </div>
+                </div>
+
+                {/* Right: Bill Summary (5 cols) */}
+                <div style={{ gridColumn: 'span 5', display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '10.5px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif" }}>
+                    <span>উপ-মোট (Subtotal):</span>
+                    <span style={{ fontWeight: '700' }}>৳{singleOrder.subtotal}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif" }}>
+                    <span>ডেলিভারি চার্জ:</span>
+                    <span style={{ fontWeight: '700' }}>৳{singleOrder.delivery_charge}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif", borderTop: '1px solid #ccc', paddingTop: '2px', fontWeight: 'bold' }}>
+                    <span>সর্বমোট (Total Bill):</span>
+                    <span style={{ fontWeight: '800', fontSize: '11.5px' }}>৳{singleOrder.total}</span>
+                  </div>
+
+                  {/* Cash Collection highlight box */}
+                  <div
+                    style={{
+                      border: '2px solid black',
+                      padding: '4px 6px',
+                      textAlign: 'center',
+                      borderRadius: '6px',
+                      backgroundColor: '#f8fafc',
+                      marginTop: '2px',
+                    }}
+                  >
+                    <p style={{ fontSize: '8.5px', fontWeight: 'bold', margin: 0, color: '#333', fontFamily: "'Hind Siliguri', sans-serif", textTransform: 'uppercase' }}>
+                      {singleOrder.payment_method === 'cod' ? 'ক্যাশ কালেকশন (Cash Collection)' : 'পেইড অর্ডার (Paid Order)'}
+                    </p>
+                    <p style={{ fontSize: '15px', fontWeight: '900', margin: '2px 0', color: '#000' }}>
+                      ৳{singleOrder.payment_method === 'cod' ? singleOrder.total : '০'}
+                    </p>
+                    <p style={{ fontSize: '8px', fontWeight: 'bold', margin: 0, color: '#555', fontFamily: "'Hind Siliguri', sans-serif" }}>
+                      {singleOrder.payment_method === 'cod' ? 'কুরিয়ারকে পরিশোধ করুন' : 'পেমেন্ট সম্পন্ন'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -369,7 +417,6 @@ export default function PrintInvoice({ order }) {
             height: 138mm !important;
           }
           @page {
-            size: A5 landscape !important;
             margin: 0 !important;
           }
         }

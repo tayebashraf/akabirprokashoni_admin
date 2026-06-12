@@ -247,45 +247,37 @@ export default function PrintLabelsPage() {
                     }`}
                   >
                     {/* 1. Logo and Header */}
-                    <div className="flex justify-between items-center border-b border-black pb-2">
+                    <div className="flex justify-between items-center border-b-[1.5px] border-black pb-2">
                       <div className="flex items-center gap-2.5">
                         <img
                           src="/images/logo.png"
                           alt="Akabir Logo"
                           className="h-[10mm] object-contain print:h-[9mm]"
                         />
-                        <div>
-                          <h2
-                            className="text-base font-extrabold tracking-wide text-black"
-                            style={{ fontFamily: "'Hind Siliguri'" }}
-                          >
-                            আকাবির প্রকাশনী
-                          </h2>
-                          <p
-                            className="text-[9px] text-zinc-600 font-medium -mt-1"
-                            style={{ fontFamily: "'Hind Siliguri'" }}
-                          >
-                            ইসলামিক বইয়ের বিশ্বস্ত লাইব্রেরি
-                          </p>
-                        </div>
+                        <span
+                          className="text-[11px] text-zinc-700 font-semibold border-l-[1.5px] border-zinc-300 pl-2.5 mt-1"
+                          style={{ fontFamily: "'Hind Siliguri'" }}
+                        >
+                          ইসলামিক বইয়ের বিশ্বস্ত লাইব্রেরি
+                        </span>
                       </div>
-                      <div className="text-right text-[10px] text-zinc-700 leading-normal font-semibold">
-                        <p>হেল্পলাইন: 01305-644778</p>
-                        <p>akabirprokashoni.com</p>
+                      <div className="text-right text-[10px] text-black leading-normal font-bold" style={{ fontFamily: "'Hind Siliguri'" }}>
+                        <p>হেল্পলাইন: ০১৭১৮-৭৬৩৯৭৮</p>
+                        <p className="font-sans text-[9.5px] text-zinc-500 font-normal">akabirprokashoni.com</p>
                       </div>
                     </div>
 
-                    {/* 2. Sender and Receiver Grid */}
+                    {/* 2. Recipient and Invoice Metadata Row */}
                     <div className="grid grid-cols-12 gap-3 py-2 border-b border-black text-[11px] leading-relaxed">
-                      {/* Left: Recipient (7 cols) */}
-                      <div className="col-span-8 border-r border-zinc-300 pr-2">
-                        <p className="font-bold text-zinc-600 text-[10px] mb-0.5" style={{ fontFamily: "'Hind Siliguri'" }}>
+                      {/* Left: Recipient Details (7 cols) */}
+                      <div className="col-span-7 border-r border-zinc-300 pr-2">
+                        <p className="font-bold text-zinc-500 text-[9px] mb-0.5" style={{ fontFamily: "'Hind Siliguri'" }}>
                           প্রাপক (Recipient):
                         </p>
-                        <p className="text-[13px] font-extrabold text-black" style={{ fontFamily: "'Hind Siliguri'" }}>
+                        <p className="text-[13.5px] font-extrabold text-black" style={{ fontFamily: "'Hind Siliguri'" }}>
                           {order.customer_name}
                         </p>
-                        <p className="text-[14px] font-black text-black tracking-wide my-0.5">
+                        <p className="text-[13px] font-black text-black tracking-wide my-0.5">
                           মোবাইল: {order.phone}
                         </p>
                         {order.alt_phone && (
@@ -294,111 +286,68 @@ export default function PrintLabelsPage() {
                           </p>
                         )}
                         <p className="text-[11px] font-medium text-black mt-1" style={{ fontFamily: "'Hind Siliguri'" }}>
-                          ঠিকানা: {order.address}, {order.upazila ? `${order.upazila}, ` : ''}
+                          ঠিকানা: {order.address},{' '}
                           <strong className="font-bold">{order.district}</strong>
                         </p>
                       </div>
 
-                      {/* Right: Sender (4 cols) */}
-                      <div className="col-span-4 pl-1">
-                        <div className="mb-2">
-                          <p className="font-bold text-zinc-600 text-[10px] mb-0.5" style={{ fontFamily: "'Hind Siliguri'" }}>
-                            প্রেরক (Sender):
-                          </p>
-                          <p className="font-extrabold text-black" style={{ fontFamily: "'Hind Siliguri'" }}>
-                            আকাবির প্রকাশনী
-                          </p>
-                          <p className="text-[10px] font-medium" style={{ fontFamily: "'Hind Siliguri'" }}>
-                            বাংলাবাজার, ঢাকা-১১০০
-                          </p>
-                          <p className="text-[10px] font-bold">ফোন: 01305-644778</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 3. Mid Section: Cash Box & Info */}
-                    <div className="grid grid-cols-12 gap-3 py-2 items-center">
-                      {/* Left: Billing details & Order info */}
-                      <div className="col-span-7 space-y-1">
-                        <div className="flex justify-between text-[11px]">
-                          <span className="font-medium" style={{ fontFamily: "'Hind Siliguri'" }}>অর্ডার আইডি (Order ID):</span>
+                      {/* Right: Order Metadata (5 cols) */}
+                      <div className="col-span-5 pl-2 flex flex-col gap-0.5 justify-center">
+                        <p className="font-bold text-zinc-500 text-[9px] mb-0.5" style={{ fontFamily: "'Hind Siliguri'" }}>
+                          ইনভয়েস বিবরণ (Invoice Info):
+                        </p>
+                        <div className="flex justify-between text-[11px]" style={{ fontFamily: "'Hind Siliguri'" }}>
+                          <span>অর্ডার আইডি:</span>
                           <span className="font-bold font-mono text-emerald-600">{order.order_id}</span>
                         </div>
-                        <div className="flex justify-between text-[11px]">
-                          <span className="font-medium" style={{ fontFamily: "'Hind Siliguri'" }}>অর্ডারের তারিখ:</span>
+                        <div className="flex justify-between text-[11px]" style={{ fontFamily: "'Hind Siliguri'" }}>
+                          <span>তারিখ:</span>
                           <span className="font-semibold text-zinc-700">
-                            {new Date(order.created_at).toLocaleDateString('bn-BD')}
+                            {new Date(order.created_at).toLocaleDateString('bn-BD', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })}
                           </span>
                         </div>
-                        <div className="flex justify-between text-[11px]">
-                          <span className="font-medium" style={{ fontFamily: "'Hind Siliguri'" }}>পেমেন্ট মেথড:</span>
-                          <span className="font-extrabold text-zinc-800" style={{ fontFamily: "'Hind Siliguri'" }}>
-                            {order.payment_display}
+                        <div className="flex justify-between text-[11px]" style={{ fontFamily: "'Hind Siliguri'" }}>
+                          <span>পেমেন্ট মেথড:</span>
+                          <span className="font-extrabold text-zinc-800">
+                            {order.payment_display || (order.payment_method === 'cod' ? 'ক্যাশ অন ডেলিভারি' : order.payment_method)}
                           </span>
-                        </div>
-                      </div>
-
-                      {/* Right: Cash Collection Highlight Box (Thick outline) */}
-                      <div className="col-span-5">
-                        <div className="border-[2.5px] border-black bg-zinc-50 p-2 text-center rounded-lg">
-                          <p
-                            className="text-[9px] font-black uppercase text-zinc-700 tracking-wider"
-                            style={{ fontFamily: "'Hind Siliguri'" }}
-                          >
-                            {order.payment_method === 'cod' ? 'ক্যাশ কালেকশন' : 'পেইড অর্ডার'}
-                          </p>
-                          <p className="text-xl font-black text-black my-0.5">
-                            ৳{order.payment_method === 'cod' ? order.total : '০.০০'}
-                          </p>
-                          <p
-                            className="text-[9px] font-bold text-zinc-600"
-                            style={{ fontFamily: "'Hind Siliguri'" }}
-                          >
-                            {order.payment_method === 'cod' ? 'কুরিয়ারকে পরিশোধ করুন' : 'পেমেন্ট সম্পন্ন'}
-                          </p>
                         </div>
                       </div>
                     </div>
 
-                    {/* 4. Book list table (if toggled) */}
+                    {/* 3. Itemized Pricing Table */}
                     {showItems && (
-                      <div className="border-t border-b border-black py-1.5 my-1">
-                        <p
-                          className="text-[9px] font-bold text-zinc-500 mb-1"
-                          style={{ fontFamily: "'Hind Siliguri'" }}
-                        >
-                          📦 পার্সেল সামগ্রী (Items Checklist):
-                        </p>
-                        <table className="w-full text-left text-[10px] border-collapse">
+                      <div className="flex-grow my-1.5 flex flex-col">
+                        <table className="w-full border-collapse text-[10px] border border-black">
                           <thead>
-                            <tr className="border-b border-zinc-300 font-semibold text-zinc-700">
-                              <th className="py-0.5 text-center w-[8%]" style={{ fontFamily: "'Hind Siliguri'" }}>
-                                নং
-                              </th>
-                              <th className="py-0.5" style={{ fontFamily: "'Hind Siliguri'" }}>
-                                বইয়ের নাম
-                              </th>
-                              <th className="py-0.5 text-center w-[12%]" style={{ fontFamily: "'Hind Siliguri'" }}>
-                                পরিমাণ
-                              </th>
+                            <tr className="bg-zinc-50 font-bold text-black border-b border-black">
+                              <th className="py-1 text-center w-[8%] border-r border-black" style={{ fontFamily: "'Hind Siliguri'" }}>নং</th>
+                              <th className="py-1 px-1.5 text-left border-r border-black" style={{ fontFamily: "'Hind Siliguri'" }}>বইয়ের বিবরণ (Book Details)</th>
+                              <th className="py-1 px-1.5 text-right w-[15%] border-r border-black" style={{ fontFamily: "'Hind Siliguri'" }}>মূল্য (Rate)</th>
+                              <th className="py-1 text-center w-[12%] border-r border-black" style={{ fontFamily: "'Hind Siliguri'" }}>পরিমাণ</th>
+                              <th className="py-1 px-1.5 text-right w-[18%]" style={{ fontFamily: "'Hind Siliguri'" }}>মোট (Total)</th>
                             </tr>
                           </thead>
                           <tbody>
                             {order.items.slice(0, 4).map((itm, i) => (
-                              <tr key={itm.id} className="border-b border-zinc-200/50">
-                                <td className="py-0.5 text-center font-mono">{i + 1}</td>
-                                <td className="py-0.5 font-bold truncate max-w-[200px]" style={{ fontFamily: "'Hind Siliguri'" }}>
+                              <tr key={itm.id} className="border-b border-black/30">
+                                <td className="py-1 text-center font-semibold border-r border-black">{i + 1}</td>
+                                <td className="py-1 px-1.5 font-bold truncate max-w-[260px] border-r border-black" style={{ fontFamily: "'Hind Siliguri'" }}>
                                   {itm.book_title}
                                 </td>
-                                <td className="py-0.5 text-center font-bold font-mono">
-                                  {itm.quantity}
-                                </td>
+                                <td className="py-1 px-1.5 text-right font-semibold border-r border-black">৳{itm.price}</td>
+                                <td className="py-1 text-center font-bold border-r border-black">{itm.quantity}</td>
+                                <td className="py-1 px-1.5 text-right font-bold">৳{itm.price * itm.quantity}</td>
                               </tr>
                             ))}
                             {order.items.length > 4 && (
                               <tr>
-                                <td colSpan={3} className="py-0.5 text-zinc-500 font-bold italic text-center text-[9px]" style={{ fontFamily: "'Hind Siliguri'" }}>
-                                  + আরও {order.items.length - 4}টি বই আছে (অর্ডার শিট দেখুন)
+                                <td colSpan={5} className="py-0.5 text-zinc-600 font-bold italic text-center text-[9px] bg-zinc-50 border-t border-black" style={{ fontFamily: "'Hind Siliguri'" }}>
+                                  + আরও {order.items.length - 4}টি বই আছে (অর্ডার বিবরণী দেখুন)
                                 </td>
                               </tr>
                             )}
@@ -407,18 +356,61 @@ export default function PrintLabelsPage() {
                       </div>
                     )}
 
-                    {/* 5. Barcode & QR Code Section */}
-                    <div className="flex justify-between items-center mt-2 pt-1.5 border-t border-zinc-200">
-                      <div className="w-[68%] text-center">
-                        <Barcode value={trackingCode} />
-                        {order.steadfast_tracking_code && (
-                          <p className="text-[8px] font-semibold text-zinc-500 mt-0.5">
-                            Steadfast Courier Integration Barcode
-                          </p>
-                        )}
+                    {/* 4. Barcode, QR Code and Bill Summary Row */}
+                    <div className="grid grid-cols-12 gap-3 pt-1.5 border-t border-black items-end">
+                      {/* Left: Barcode, QR Code and Sender Info (7 cols) */}
+                      <div className="col-span-7 flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <div className="shrink-0">
+                            <QRCodeImage value={qrContent} />
+                          </div>
+                          <div className="grow text-center">
+                            <Barcode value={trackingCode} />
+                          </div>
+                        </div>
+                        
+                        {/* Sender Details */}
+                        <div
+                          className="text-[9px] text-zinc-600 leading-normal border-t border-dashed border-zinc-300 pt-1 mt-0.5"
+                          style={{ fontFamily: "'Hind Siliguri'" }}
+                        >
+                          <strong>প্রেরক (Sender):</strong> আকাবির প্রকাশনী, বাংলাবাজার, ঢাকা-১১০০। ফোন: ০১৭১৮-৭৬৩৯৭৮
+                        </div>
                       </div>
-                      <div className="w-[28%] flex justify-end">
-                        <QRCodeImage value={qrContent} />
+
+                      {/* Right: Bill Summary (5 cols) */}
+                      <div className="col-span-5 flex flex-col gap-0.5 text-[10.5px]">
+                        <div className="flex justify-between" style={{ fontFamily: "'Hind Siliguri'" }}>
+                          <span>উপ-মোট (Subtotal):</span>
+                          <span className="font-bold">৳{order.subtotal}</span>
+                        </div>
+                        <div className="flex justify-between" style={{ fontFamily: "'Hind Siliguri'" }}>
+                          <span>ডেলিভারি চার্জ:</span>
+                          <span className="font-bold">৳{order.delivery_charge}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-zinc-300 pt-0.5 font-bold" style={{ fontFamily: "'Hind Siliguri'" }}>
+                          <span>সর্বমোট (Total Bill):</span>
+                          <span className="font-black text-[11.5px]">৳{order.total}</span>
+                        </div>
+
+                        {/* Cash Collection highlight box */}
+                        <div className="border-[2px] border-black bg-zinc-50 p-1 text-center rounded-md mt-1">
+                          <p
+                            className="text-[8.5px] font-bold text-zinc-700 uppercase tracking-wider"
+                            style={{ fontFamily: "'Hind Siliguri'" }}
+                          >
+                            {order.payment_method === 'cod' ? 'ক্যাশ কালেকশন (Cash Collection)' : 'পেইড অর্ডার (Paid Order)'}
+                          </p>
+                          <p className="text-sm font-black text-black my-0.5">
+                            ৳{order.payment_method === 'cod' ? order.total : '০'}
+                          </p>
+                          <p
+                            className="text-[8px] font-bold text-zinc-600"
+                            style={{ fontFamily: "'Hind Siliguri'" }}
+                          >
+                            {order.payment_method === 'cod' ? 'কুরিয়ারকে পরিশোধ করুন' : 'পেমেন্ট সম্পন্ন'}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -448,7 +440,6 @@ export default function PrintLabelsPage() {
           
           /* Force exact margins for alignment */
           @page {
-            size: A4 portrait;
             margin: 0 !important;
           }
           

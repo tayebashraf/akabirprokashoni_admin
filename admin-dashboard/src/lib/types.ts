@@ -121,6 +121,7 @@ export interface Order {
   order_id: string;
   customer_name: string;
   phone: string;
+  alt_phone?: string;
   email: string;
   district: string;
   upazila: string;

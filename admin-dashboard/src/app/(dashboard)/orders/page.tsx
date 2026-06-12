@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   Package, Search, Filter, Truck, Eye,
-  ChevronLeft, ChevronRight, Loader2,
+  ChevronLeft, ChevronRight, Loader2, Printer,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -120,6 +120,17 @@ function OrderDetailDrawer({ order, open, onClose }: { order: Order | null; open
             </div>
           )}
 
+          <Button
+            onClick={() => {
+              localStorage.setItem('akabir_print_orders', JSON.stringify([order]));
+              window.open('/print-labels', '_blank');
+            }}
+            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2"
+            style={{ fontFamily: "'Hind Siliguri'" }}
+          >
+            <Printer className="w-4 h-4" /> লেবেল প্রিন্ট করুন
+          </Button>
+
           <Separator className="bg-zinc-800" />
 
           {/* গ্রাহক তথ্য */}
@@ -194,6 +205,12 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+
+  // Clear selection on page/search/filter change
+  useEffect(() => {
+    setSelectedOrderIds([]);
+  }, [page, search, statusFilter]);
 
   const queryClient = useQueryClient();
 
@@ -228,6 +245,19 @@ export default function OrdersPage() {
             মোট {data?.count || 0}টি অর্ডার
           </p>
         </div>
+        {selectedOrderIds.length > 0 && (
+          <Button
+            onClick={() => {
+              const selectedOrders = orders.filter((o) => selectedOrderIds.includes(o.order_id));
+              localStorage.setItem('akabir_print_orders', JSON.stringify(selectedOrders));
+              window.open('/print-labels', '_blank');
+            }}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-all shadow-lg flex items-center gap-2"
+            style={{ fontFamily: "'Hind Siliguri'" }}
+          >
+            <Printer className="w-4 h-4" /> লেবেল প্রিন্ট করুন ({selectedOrderIds.length})
+          </Button>
+        )}
       </motion.div>
 
       {/* ফিল্টার বার */}
@@ -275,6 +305,20 @@ export default function OrdersPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-zinc-900/80 border-b border-zinc-800/50">
+                  <th className="px-4 py-3 w-[45px]">
+                    <input
+                      type="checkbox"
+                      className="rounded border-zinc-800 bg-zinc-900 text-emerald-500 focus:ring-emerald-500 cursor-pointer w-4 h-4"
+                      checked={orders.length > 0 && selectedOrderIds.length === orders.length}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedOrderIds(orders.map((o) => o.order_id));
+                        } else {
+                          setSelectedOrderIds([]);
+                        }
+                      }}
+                    />
+                  </th>
                   {['অর্ডার আইডি', 'গ্রাহক', 'মোবাইল', 'জেলা', 'মোট', 'পেমেন্ট', 'স্ট্যাটাস', 'তারিখ', ''].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider"
                         style={{ fontFamily: "'Hind Siliguri'" }}>
@@ -286,6 +330,20 @@ export default function OrdersPage() {
               <tbody>
                 {orders.map((o) => (
                   <tr key={o.order_id} className="border-b border-zinc-800/30 hover:bg-zinc-900/30 transition-colors">
+                    <td className="px-4 py-3 w-[45px]">
+                      <input
+                        type="checkbox"
+                        className="rounded border-zinc-800 bg-zinc-900 text-emerald-500 focus:ring-emerald-500 cursor-pointer w-4 h-4"
+                        checked={selectedOrderIds.includes(o.order_id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedOrderIds([...selectedOrderIds, o.order_id]);
+                          } else {
+                            setSelectedOrderIds(selectedOrderIds.filter((id) => id !== o.order_id));
+                          }
+                        }}
+                      />
+                    </td>
                     <td className="px-4 py-3 text-sm font-mono text-emerald-400">{o.order_id}</td>
                     <td className="px-4 py-3 text-sm text-white" style={{ fontFamily: "'Hind Siliguri'" }}>{o.customer_name}</td>
                     <td className="px-4 py-3 text-sm text-zinc-300">{o.phone}</td>

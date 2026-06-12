@@ -338,6 +338,9 @@ export default function PrintInvoice({ order }) {
         
         /* Show only invoice on print */
         @media print {
+          .no-print {
+            display: none !important;
+          }
           body * {
             visibility: hidden !important;
           }

@@ -47,6 +47,12 @@ export default function AdminOrders() {
 
   // Printing State
   const [orderToPrint, setOrderToPrint] = useState(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+
+  // Clear selection on filter/search change
+  useEffect(() => {
+    setSelectedOrderIds([]);
+  }, [filter, search]);
 
   // New Orders Tracking State
   const [readOrderIds, setReadOrderIds] = useState([]);
@@ -243,12 +249,38 @@ export default function AdminOrders() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {selectedOrderIds.length > 0 && (
+          <button
+            className="btn btn-primary"
+            style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#0d6b3f', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            onClick={() => {
+              const selected = orders.filter(o => selectedOrderIds.includes(o.order_id));
+              setOrderToPrint(selected);
+            }}
+          >
+            🖨️ লেবেল প্রিন্ট করুন ({selectedOrderIds.length})
+          </button>
+        )}
       </div>
 
       <div className={styles.tableCard}>
         <table className={styles.table}>
           <thead>
             <tr>
+              <th style={{ width: '45px', textAlign: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedOrderIds(filteredOrders.map(o => o.order_id));
+                    } else {
+                      setSelectedOrderIds([]);
+                    }
+                  }}
+                  style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                />
+              </th>
               <th>অর্ডার আইডি ও তারিখ</th>
               <th>গ্রাহকের তথ্য</th>
               <th>বর্তমান স্ট্যাটাস</th>
@@ -258,15 +290,29 @@ export default function AdminOrders() {
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.length > 0 ? filteredOrders.map(order => {
-              const isNew = !readOrderIds.includes(order.order_id);
-              return (
-                <tr 
-                  key={order.order_id} 
-                  className={isNew ? styles.newOrderRow : ''} 
-                  onClick={() => markAsRead(order.order_id)}
-                >
-                  <td>
+              {filteredOrders.length > 0 ? filteredOrders.map(order => {
+                const isNew = !readOrderIds.includes(order.order_id);
+                return (
+                  <tr 
+                    key={order.order_id} 
+                    className={isNew ? styles.newOrderRow : ''} 
+                    onClick={() => markAsRead(order.order_id)}
+                  >
+                    <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedOrderIds.includes(order.order_id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedOrderIds([...selectedOrderIds, order.order_id]);
+                          } else {
+                            setSelectedOrderIds(selectedOrderIds.filter(id => id !== order.order_id));
+                          }
+                        }}
+                        style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                      />
+                    </td>
+                    <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {isNew && <span className={styles.newIndicator}>NEW</span>}
                       <div style={{ fontWeight: '700', color: 'var(--color-primary)' }}>{order.order_id}</div>
@@ -390,7 +436,7 @@ export default function AdminOrders() {
               );
             }) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>কোনো অর্ডার পাওয়া যায়নি।</td>
+                <td colSpan="7" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             )}
           </tbody>

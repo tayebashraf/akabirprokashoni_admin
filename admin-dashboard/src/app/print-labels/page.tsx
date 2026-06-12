@@ -1,5 +1,6 @@
 'use client';
 
+// Force rebuild trigger
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import JsBarcode from 'jsbarcode';

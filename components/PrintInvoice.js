@@ -1,5 +1,6 @@
 'use client';
 
+// Force rebuild trigger
 import React, { useEffect, useRef, useState } from 'react';
 import JsBarcode from 'jsbarcode';
 import QRCode from 'qrcode';

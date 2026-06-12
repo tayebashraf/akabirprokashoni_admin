@@ -227,11 +227,11 @@ export default function AdminOrders() {
 
   return (
     <div className={styles.ordersPage}>
-      <div className={styles.topBar}>
+      <div className={`${styles.topBar} no-print`}>
         <h1 className={styles.title}>📦 অর্ডার ম্যানেজমেন্ট</h1>
       </div>
 
-      <div className={styles.filters}>
+      <div className={`${styles.filters} no-print`}>
         <select 
           className={styles.filterSelect} 
           value={filter} 
@@ -263,7 +263,7 @@ export default function AdminOrders() {
         )}
       </div>
 
-      <div className={styles.tableCard}>
+      <div className={`${styles.tableCard} no-print`}>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -445,7 +445,7 @@ export default function AdminOrders() {
 
       {/* --- Order Details Modal --- */}
       {selectedOrder && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+        <div className="no-print" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ backgroundColor: 'white', borderRadius: '8px', width: '90%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '16px', marginBottom: '20px' }}>
               <h2 style={{ margin: 0 }}>অর্ডার বিস্তারিত - {selectedOrder.order_id}</h2>

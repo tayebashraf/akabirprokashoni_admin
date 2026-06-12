@@ -192,7 +192,7 @@ export default function AdminLayout({ children }) {
       <meta name="robots" content="noindex, nofollow" />
 
       {/* Mobile Top Header */}
-      <header className={styles.mobileHeader}>
+      <header className={`${styles.mobileHeader} no-print`}>
         <button 
           type="button"
           className={styles.hamburgerBtn}
@@ -209,11 +209,11 @@ export default function AdminLayout({ children }) {
 
       {/* Backdrop Overlay when Sidebar is open on Mobile */}
       {isMobileMenuOpen && (
-        <div className={styles.overlay} onClick={() => setIsMobileMenuOpen(false)} />
+        <div className={`${styles.overlay} no-print`} onClick={() => setIsMobileMenuOpen(false)} />
       )}
 
       {/* Sidebar */}
-      <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpen : ''}`}>
+      <aside className={`${styles.sidebar} ${isMobileMenuOpen ? styles.sidebarOpen : ''} no-print`}>
 
         <div className={styles.sidebarLogo}>
           <span>📚</span> অ্যাডমিন

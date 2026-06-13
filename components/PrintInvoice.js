@@ -94,30 +94,31 @@ export default function PrintInvoice({ order }) {
 
   return (
     <div className="print-only-invoice">
-      {orders.map((singleOrder) => {
-        const trackingCode = singleOrder.steadfast_tracking_code || singleOrder.order_id;
-        
-        // Structured data for QR code scanning
-        const qrContent = `Order: ${singleOrder.order_id}\nCustomer: ${singleOrder.customer_name}\nPhone: ${singleOrder.phone}\nCollect: ${singleOrder.payment_method === 'cod' ? singleOrder.total : 0} BDT\nAddress: ${singleOrder.address}, ${singleOrder.district}`;
+      {Array.from({ length: Math.ceil(orders.length / 2) }, (_, i) => orders.slice(i * 2, i * 2 + 2)).map((pair, pairIdx) => (
+        <div key={pairIdx} className="a4-page-wrap">
+          {pair.map((singleOrder) => {
+            const trackingCode = singleOrder.steadfast_tracking_code || singleOrder.order_id;
 
-        return (
-          <div
-            key={singleOrder.order_id}
-            className="a5-label-container"
-            style={{
-              width: '200mm',
-              height: '138mm',
-              pageBreakAfter: 'always',
-              boxSizing: 'border-box',
-              padding: '4mm',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              backgroundColor: '#fff',
-              color: '#000',
-              margin: '0 auto',
-            }}
-          >
+            // Structured data for QR code scanning
+            const qrContent = `Order: ${singleOrder.order_id}\nCustomer: ${singleOrder.customer_name}\nPhone: ${singleOrder.phone}\nCollect: ${singleOrder.payment_method === 'cod' ? singleOrder.total : 0} BDT\nAddress: ${singleOrder.address}, ${singleOrder.district}`;
+
+            return (
+              <div
+                key={singleOrder.order_id}
+                className="a5-label-container"
+                style={{
+                  width: '200mm',
+                  height: '138mm',
+                  boxSizing: 'border-box',
+                  padding: '4mm',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  backgroundColor: '#fff',
+                  color: '#000',
+                  margin: '0 auto',
+                }}
+              >
             {/* Outer frame matching dashboard style */}
             <div
               className="label-frame"
@@ -390,9 +391,11 @@ export default function PrintInvoice({ order }) {
                 </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+              </div>
+            );
+          })}
+        </div>
+      ))}
 
       {/* Embedded print logic styles */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -457,8 +460,16 @@ export default function PrintInvoice({ order }) {
             padding: 0 !important;
             box-sizing: border-box !important;
           }
-          .a5-label-container {
+          .a4-page-wrap {
             page-break-after: always !important;
+            page-break-inside: avoid !important;
+            width: 210mm !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 3mm !important;
+            margin: 0 auto !important;
+          }
+          .a5-label-container {
             page-break-inside: avoid !important;
             margin: 0 auto !important;
             padding: 4mm !important;
@@ -468,6 +479,7 @@ export default function PrintInvoice({ order }) {
             height: 138mm !important;
           }
           @page {
+            size: A4 portrait !important;
             margin: 0 !important;
           }
         }

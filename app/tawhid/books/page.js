@@ -631,14 +631,16 @@ export default function AdminBooks() {
       fetchData();
     } catch (error) {
       console.error('Book save error:', error);
-      let errMsg = error.message || 'অজানা ত্রুটি দেখা দিয়েছে।';
-      errMsg = errMsg.replace(/^\[\d+\]\s*(.*?:\s*)?/, '');
-      setUploadError(errMsg);
+      const originalErrMsg = error.message || 'অজানা ত্রুটি দেখা দিয়েছে।';
+      const displayErrMsg = originalErrMsg.replace(/^\[\d+\]\s*(.*?:\s*)?/, '');
+      setUploadError(displayErrMsg);
       
       // Auto-scroll and focus validation error field
       setTimeout(() => {
         let scrolled = false;
-        const segments = errMsg.split('|');
+        // Strip only the status code (e.g. "[400] ") so the field prefix (e.g. "title:") is kept for scrolling
+        const cleanOriginalMsg = originalErrMsg.replace(/^\[\d+\]\s*/, '');
+        const segments = cleanOriginalMsg.split('|');
         for (const segment of segments) {
           const match = segment.trim().match(/^([a-zA-Z0-9_]+):\s*(.*)/);
           if (match) {
@@ -689,11 +691,19 @@ export default function AdminBooks() {
           }
         }
         
-        // Fallback: scroll to error box at the bottom
+        // Fallback: scroll to error box at the bottom of the modal container
         if (!scrolled) {
-          const errorBox = document.getElementById('upload-error-box');
-          if (errorBox) {
-            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const modalEl = document.querySelector('.' + styles.modal);
+          if (modalEl) {
+            modalEl.scrollTo({
+              top: modalEl.scrollHeight,
+              behavior: 'smooth'
+            });
+          } else {
+            const errorBox = document.getElementById('upload-error-box');
+            if (errorBox) {
+              errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
           }
         }
       }, 100);

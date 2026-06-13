@@ -107,7 +107,7 @@ export default function PrintInvoice({ order }) {
                 key={singleOrder.order_id}
                 className="a5-label-container"
                 style={{
-                  width: '200mm',
+                  width: '100%',
                   height: '138mm',
                   boxSizing: 'border-box',
                   padding: '4mm',
@@ -116,7 +116,6 @@ export default function PrintInvoice({ order }) {
                   justifyContent: 'space-between',
                   backgroundColor: '#fff',
                   color: '#000',
-                  margin: '0 auto',
                 }}
               >
             {/* Outer frame matching dashboard style */}
@@ -451,10 +450,8 @@ export default function PrintInvoice({ order }) {
           
           .print-only-invoice {
             display: block !important;
-            position: relative !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 210mm !important;
+            position: static !important;
+            width: 100% !important;
             height: auto !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -463,24 +460,22 @@ export default function PrintInvoice({ order }) {
           .a4-page-wrap {
             page-break-after: always !important;
             page-break-inside: avoid !important;
-            width: 210mm !important;
+            width: 100% !important;
             display: flex !important;
             flex-direction: column !important;
             gap: 3mm !important;
-            margin: 0 auto !important;
+            box-sizing: border-box !important;
           }
           .a5-label-container {
             page-break-inside: avoid !important;
-            margin: 0 auto !important;
-            padding: 4mm !important;
-            border: none !important;
-            box-sizing: border-box !important;
-            width: 200mm !important;
+            width: 100% !important;
             height: 138mm !important;
+            box-sizing: border-box !important;
+            padding: 4mm !important;
           }
           @page {
-            size: A4 portrait !important;
-            margin: 0 !important;
+            size: A4 portrait;
+            margin: 5mm;
           }
         }
       `}} />

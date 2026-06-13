@@ -343,6 +343,12 @@ export default function AddBookPage() {
   const [isPreorder, setIsPreorder] = useState(false);
   const [sampleImages, setSampleImages] = useState<File[]>([]);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+
+  // Helper: get first error message for a field
+  const fe = (name: string) => fieldErrors[name]?.[0] ?? '';
+  // Helper: error border class
+  const errBorder = (name: string) => fe(name) ? 'border-red-500 focus:border-red-500' : 'border-zinc-700';
 
   const { data: authorsData } = useQuery<PaginatedResponse<Author>>({
     queryKey: ['authors'],
@@ -386,21 +392,34 @@ export default function AddBookPage() {
     onError: (err: any) => {
       console.error('Book creation error:', err);
       const detail = err?.response?.data;
-      let msg = 'সমস্যা হয়েছে: Failed to create book';
-      if (detail) {
-        if (typeof detail === 'string') msg = detail;
-        else if (typeof detail === 'object') {
-          const parts = Object.entries(detail).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`);
-          msg = parts.join('\n');
-        }
+
+      if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+        // Field-specific errors from backend
+        const errors: Record<string, string[]> = {};
+        Object.entries(detail).forEach(([k, v]) => {
+          errors[k] = Array.isArray(v) ? v.map(String) : [String(v)];
+        });
+        setFieldErrors(errors);
+
+        // Scroll to first error field
+        const firstKey = Object.keys(errors)[0];
+        setTimeout(() => {
+          const el = document.querySelector(`[data-field="${firstKey}"]`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 80);
+
+        const firstMsg = errors[firstKey]?.[0] ?? 'তথ্য পূরণে সমস্যা আছে';
+        toast.error(`সমস্যা: ${firstMsg}`);
+      } else {
+        const msg = typeof detail === 'string' ? detail : 'বই যোগ করতে সমস্যা হয়েছে';
+        toast.error(msg);
       }
-      toast.error(msg);
-      alert(msg);
     },
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFieldErrors({});
     const form = e.currentTarget;
     const fd = new FormData(form);
 
@@ -469,19 +488,20 @@ export default function AddBookPage() {
                 <CardTitle className="text-base text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>প্রাথমিক তথ্য</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-2" data-field="title">
                   <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>বইয়ের নাম *</Label>
-                  <Input 
-                    name="title" 
-                    required 
+                  <Input
+                    name="title"
+                    required
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="যেমন: প্যারাডক্সিক্যাল সাজিদ" 
-                    className="bg-zinc-800/50 border-zinc-700 text-white text-lg" 
-                    style={{ fontFamily: "'Hind Siliguri'" }} 
+                    onChange={(e) => { setTitle(e.target.value); if (fe('title')) setFieldErrors(p => ({...p, title: []})); }}
+                    placeholder="যেমন: প্যারাডক্সিক্যাল সাজিদ"
+                    className={`bg-zinc-800/50 text-white text-lg ${errBorder('title')}`}
+                    style={{ fontFamily: "'Hind Siliguri'" }}
                   />
+                  {fe('title') && <p className="text-xs text-red-400 mt-1" style={{ fontFamily: "'Hind Siliguri'" }}>⚠ {fe('title')}</p>}
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>বইয়ের ধরন *</Label>
@@ -495,10 +515,10 @@ export default function AddBookPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2" data-field="category">
                     <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>বিষয়/ক্যাটাগরি *</Label>
-                    <Select value={categoryId} onValueChange={setCategoryId} required>
-                      <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }}>
+                    <Select value={categoryId} onValueChange={(v) => { setCategoryId(v); setFieldErrors(p => ({...p, category: []})); }} required>
+                      <SelectTrigger className={`bg-zinc-800/50 text-white ${errBorder('category')}`} style={{ fontFamily: "'Hind Siliguri'" }}>
                         <SelectValue placeholder="বিষয় নির্বাচন করুন" />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-zinc-800">
@@ -507,18 +527,25 @@ export default function AddBookPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {fe('category') && <p className="text-xs text-red-400 mt-1" style={{ fontFamily: "'Hind Siliguri'" }}>⚠ {fe('category')}</p>}
                   </div>
                 </div>
 
                 {/* মূল লেখক — Autocomplete */}
-                <AuthorAutocomplete
-                  label="মূল লেখক * (একাধিক নির্বাচন সম্ভব)"
-                  allAuthors={authors}
-                  selected={authorChips}
-                  onChange={setAuthorChips}
-                  placeholder="লেখকের নাম টাইপ করুন..."
-                />
-                {authorChips.length === 0 && <p className="text-xs text-red-400" style={{ fontFamily: "'Hind Siliguri'" }}>কমপক্ষে একজন লেখক নির্বাচন করুন</p>}
+                <div data-field="authors">
+                  <AuthorAutocomplete
+                    label="মূল লেখক * (একাধিক নির্বাচন সম্ভব)"
+                    allAuthors={authors}
+                    selected={authorChips}
+                    onChange={(chips) => { setAuthorChips(chips); setFieldErrors(p => ({...p, authors: []})); }}
+                    placeholder="লেখকের নাম টাইপ করুন..."
+                  />
+                  {(authorChips.length === 0 || fe('authors')) && (
+                    <p className="text-xs text-red-400 mt-1" style={{ fontFamily: "'Hind Siliguri'" }}>
+                      ⚠ {fe('authors') || 'কমপক্ষে একজন লেখক নির্বাচন করুন'}
+                    </p>
+                  )}
+                </div>
 
                 {/* অনুবাদক — Autocomplete (শুধুমাত্র অনুবাদ বই হলে) */}
                 {bookType === 'translation' && (
@@ -714,18 +741,21 @@ export default function AddBookPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                  <div className="space-y-2" data-field="original_price">
                     <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>আসল/মুদ্রিত মূল্য (৳) *</Label>
-                    <Input name="original_price" type="number" required placeholder="0" className="bg-zinc-800/50 border-zinc-700 text-white" />
+                    <Input name="original_price" type="number" required placeholder="0" className={`bg-zinc-800/50 text-white ${errBorder('original_price')}`} onChange={() => setFieldErrors(p => ({...p, original_price: []}))} />
+                    {fe('original_price') && <p className="text-xs text-red-400 mt-1">⚠ {fe('original_price')}</p>}
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2" data-field="price">
                     <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>বিক্রয় মূল্য (৳) *</Label>
-                    <Input name="price" type="number" required placeholder="0" className="bg-zinc-800/50 border-zinc-700 text-white" />
+                    <Input name="price" type="number" required placeholder="0" className={`bg-zinc-800/50 text-white ${errBorder('price')}`} onChange={() => setFieldErrors(p => ({...p, price: []}))} />
+                    {fe('price') && <p className="text-xs text-red-400 mt-1">⚠ {fe('price')}</p>}
                   </div>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2" data-field="stock">
                   <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>আসল স্টক *</Label>
-                  <Input name="stock" type="number" required defaultValue="0" className="bg-zinc-800/50 border-zinc-700 text-white" />
+                  <Input name="stock" type="number" required defaultValue="0" className={`bg-zinc-800/50 text-white ${errBorder('stock')}`} onChange={() => setFieldErrors(p => ({...p, stock: []}))} />
+                  {fe('stock') && <p className="text-xs text-red-400 mt-1">⚠ {fe('stock')}</p>}
                   <p className="text-xs text-zinc-500" style={{ fontFamily: "'Hind Siliguri'" }}>নোট: এখানে যত খুশি দিন, ওয়েবসাইটে কাস্টমার সর্বোচ্চ ৫০ কপি দেখতে পাবে।</p>
                 </div>
               </CardContent>

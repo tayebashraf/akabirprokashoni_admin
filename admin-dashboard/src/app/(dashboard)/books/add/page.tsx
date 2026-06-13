@@ -221,6 +221,108 @@ function AuthorAutocomplete({
 }
 
 
+const PRESET_TAGS = [
+  'ইসলামিক বই', 'ইসলামী বই', 'দ্বীনি বই', 'ধর্মীয় বই', 'বাংলা ইসলামিক বই',
+  'অনলাইনে বই কিনুন', 'ক্যাশ অন ডেলিভারি বই',
+  'আত্মশুদ্ধির বই', 'তাযকিয়ায়ে নফস', 'আত্মশুদ্ধি ও তাসাউফ',
+  'তাসাউফ', 'আধ্যাত্মিক বই', 'বুযুর্গদের জীবনী',
+  'আখেরাত', 'পরকাল', 'জান্নাত জাহান্নাম', 'মৃত্যু পরবর্তী জীবন',
+  'ইসলামিক ফিকহ', 'হানাফী ফিকহ', 'মাসআলা মাসায়েল', 'ইসলামী বিধান',
+  'ইসলামিক জীবনী', 'আলেমদের জীবনী', 'সীরাত',
+  'ইসলাহী বই', 'সংশোধনমূলক বই', 'তাবলীগ', 'দাওয়াত',
+  'মুফতি তাকী উসমানী', 'হাকীমুল উম্মত', 'আশরাফ আলী থানভী',
+  'হাকীম আখতার', 'দেওবন্দ', 'আকাবিরে উম্মত',
+];
+
+function TagInputField() {
+  const [tags, setTags] = useState<string[]>([]);
+  const [input, setInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const filtered = PRESET_TAGS.filter(
+    t => !tags.includes(t) && t.includes(input.trim())
+  );
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const addTag = (tag: string) => {
+    const t = tag.trim();
+    if (t && !tags.includes(t)) setTags(prev => [...prev, t]);
+    setInput('');
+    setShowSuggestions(false);
+  };
+
+  const removeTag = (idx: number) => setTags(tags.filter((_, i) => i !== idx));
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === 'Enter' || e.key === ',') && input.trim()) {
+      e.preventDefault();
+      addTag(input);
+    } else if (e.key === 'Backspace' && !input && tags.length > 0) {
+      removeTag(tags.length - 1);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>ট্যাগ (SEO)</Label>
+      <input type="hidden" name="tags" value={tags.join(', ')} />
+      <div ref={wrapperRef} className="relative">
+        <div
+          className="flex flex-wrap items-center gap-1.5 p-2 min-h-[44px] border border-zinc-700 rounded-lg bg-zinc-800/50 focus-within:ring-1 focus-within:ring-emerald-500/50 focus-within:border-emerald-500/50 transition-all cursor-text"
+          onClick={() => { setShowSuggestions(true); }}
+        >
+          {tags.map((tag, idx) => (
+            <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-zinc-700 text-zinc-200 border border-zinc-600" style={{ fontFamily: "'Hind Siliguri'" }}>
+              {tag}
+              <button type="button" onClick={() => removeTag(idx)} className="hover:text-red-400 transition-colors"><X className="w-3 h-3" /></button>
+            </span>
+          ))}
+          <input
+            type="text"
+            value={input}
+            onChange={e => { setInput(e.target.value); setShowSuggestions(true); }}
+            onFocus={() => setShowSuggestions(true)}
+            onKeyDown={handleKeyDown}
+            placeholder={tags.length === 0 ? 'ট্যাগ লিখুন বা নিচ থেকে বেছে নিন...' : 'আরো যোগ করুন...'}
+            className="bg-transparent outline-none text-sm text-white placeholder:text-zinc-500 flex-1 min-w-[140px]"
+            style={{ fontFamily: "'Hind Siliguri'" }}
+          />
+        </div>
+        {showSuggestions && filtered.length > 0 && (
+          <div className="absolute z-50 mt-1 w-full max-h-44 overflow-y-auto rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl">
+            <p className="px-3 py-1.5 text-[10px] text-zinc-500 uppercase font-bold tracking-wider border-b border-zinc-800" style={{ fontFamily: "'Hind Siliguri'" }}>প্রি-সেট ট্যাগ</p>
+            <div className="flex flex-wrap gap-1.5 p-2">
+              {filtered.map(tag => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => addTag(tag)}
+                  className="px-2.5 py-1 rounded-full text-xs text-zinc-300 bg-zinc-800 border border-zinc-700 hover:bg-emerald-500/15 hover:text-emerald-300 hover:border-emerald-500/40 transition-all"
+                  style={{ fontFamily: "'Hind Siliguri'" }}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <p className="text-xs text-zinc-500" style={{ fontFamily: "'Hind Siliguri'" }}>Enter বা কমা দিয়ে ট্যাগ আলাদা করুন। সাজেশন থেকেও বেছে নিতে পারেন।</p>
+    </div>
+  );
+}
+
+
 export default function AddBookPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -234,6 +336,7 @@ export default function AddBookPage() {
   const [translatorChips, setTranslatorChips] = useState<AuthorChip[]>([]);
   const [categoryId, setCategoryId] = useState('');
   const [language, setLanguage] = useState('bangla');
+  const [coverType, setCoverType] = useState('paperback');
   const [productionStatus, setProductionStatus] = useState('published');
   const [isNewRelease, setIsNewRelease] = useState(true);
   const [isTrending, setIsTrending] = useState(false);
@@ -325,6 +428,7 @@ export default function AddBookPage() {
 
     // Select-based fields (base-ui Select doesn't submit natively)
     fd.set('language', language);
+    fd.set('cover_type', coverType);
     fd.set('production_status', productionStatus);
 
     // Switch/Boolean fields (base-ui Switch doesn't submit natively)
@@ -418,18 +522,30 @@ export default function AddBookPage() {
 
                 {/* অনুবাদক — Autocomplete (শুধুমাত্র অনুবাদ বই হলে) */}
                 {bookType === 'translation' && (
-                  <AuthorAutocomplete
-                    label="অনুবাদক (একাধিক নির্বাচন সম্ভব)"
-                    allAuthors={authors}
-                    selected={translatorChips}
-                    onChange={setTranslatorChips}
-                    placeholder="অনুবাদকের নাম টাইপ করুন..."
-                  />
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>মূল ভাষার শিরোনাম</Label>
+                      <Input name="original_title" placeholder="যেমন: علاج الغضب" className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }} />
+                      <p className="text-xs text-zinc-500" style={{ fontFamily: "'Hind Siliguri'" }}>আরবি/উর্দু/ফার্সি মূল বইয়ের নাম</p>
+                    </div>
+                    <AuthorAutocomplete
+                      label="অনুবাদক (একাধিক নির্বাচন সম্ভব)"
+                      allAuthors={authors}
+                      selected={translatorChips}
+                      onChange={setTranslatorChips}
+                      placeholder="অনুবাদকের নাম টাইপ করুন..."
+                    />
+                  </>
                 )}
-                
+
                 <div className="space-y-2 pt-2">
                   <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>প্রকাশক</Label>
                   <Input name="publisher" placeholder="যেমন: সমকালীন প্রকাশন" className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }} />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>সম্পাদক</Label>
+                  <Input name="editor" placeholder="সম্পাদকের নাম" className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }} />
                 </div>
               </CardContent>
             </Card>
@@ -447,6 +563,13 @@ export default function AddBookPage() {
                   <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>লেখক পরিচিতি (এই বইয়ের প্রেক্ষাপটে)</Label>
                   <Textarea name="author_bio" rows={4} placeholder="লেখকের সংক্ষিপ্ত পরিচিতি..." className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }} />
                 </div>
+                {bookType === 'translation' && (
+                  <div className="space-y-2">
+                    <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>অনুবাদক পরিচিতি</Label>
+                    <Textarea name="translator_bio" rows={3} placeholder="অনুবাদকের সংক্ষিপ্ত পরিচিতি..." className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }} />
+                  </div>
+                )}
+                <TagInputField />
               </CardContent>
             </Card>
 
@@ -638,8 +761,25 @@ export default function AddBookPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>বাঁধাই/কভার</Label>
-                    <Input name="edition" placeholder="যেমন: হার্ডকভার" className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }} />
+                    <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>বাইন্ডিং ধরন</Label>
+                    <Select value={coverType} onValueChange={setCoverType}>
+                      <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-zinc-800">
+                        <SelectItem value="paperback" className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>পেপারব্যাক</SelectItem>
+                        <SelectItem value="hardcover" className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>হার্ডকভার</SelectItem>
+                        <SelectItem value="spiral" className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>স্পাইরাল</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>প্রকাশসাল</Label>
+                    <Input name="publish_year" placeholder="যেমন: ২০২৪ বা 2024" className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>সংস্করণ</Label>
+                    <Input name="edition" placeholder="যেমন: ৩য় সংস্করণ" className="bg-zinc-800/50 border-zinc-700 text-white" style={{ fontFamily: "'Hind Siliguri'" }} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-zinc-300" style={{ fontFamily: "'Hind Siliguri'" }}>ওজন (গ্রাম)</Label>

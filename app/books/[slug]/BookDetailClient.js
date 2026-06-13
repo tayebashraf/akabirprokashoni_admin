@@ -945,7 +945,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                         <span style={{ fontSize: '15px', fontWeight: '800', color: 'var(--color-primary)' }}>৳{(Number(b.price) || 0).toLocaleString('bn-BD')}</span>
                         {Number(b.original_price) > Number(b.price) && (
-                          <span style={{ fontSize: '12px', color: '#aaa', textDecoration: 'line-through' }}>৳{(Number(b.original_price) || 0).toLocaleString('bn-BD')}</span>
+                          <span style={{ fontSize: '15px', color: '#718096', fontWeight: '600', textDecoration: 'line-through', textDecorationColor: '#e53e3e', WebkitTextDecorationColor: '#e53e3e' }}>৳{(Number(b.original_price) || 0).toLocaleString('bn-BD')}</span>
                         )}
                       </div>
                     </div>

@@ -327,10 +327,12 @@ ul, ol {
 }
 
 .price-original {
-  color: var(--color-text-light);
+  color: var(--color-text-secondary);
   text-decoration: line-through;
+  text-decoration-color: #e53e3e;
+  -webkit-text-decoration-color: #e53e3e;
   font-size: var(--text-sm);
-  font-weight: 400;
+  font-weight: 500;
   margin-left: var(--space-2);
 }
 

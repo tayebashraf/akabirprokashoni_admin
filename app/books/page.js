@@ -33,6 +33,10 @@ export default async function BooksPage({ searchParams }) {
   const categories = Array.isArray(categoriesResult?.results) ? categoriesResult.results : (Array.isArray(categoriesResult) ? categoriesResult : []);
   const authors = Array.isArray(authorsResult?.results) ? authorsResult.results : (Array.isArray(authorsResult) ? authorsResult : []);
 
+  // Selected category / author objects for SEO content
+  const activeCat = selectedCat !== 'all' ? categories.find(c => c.slug === selectedCat || String(c.id) === selectedCat) : null;
+  const activeAuthor = selectedAuthor !== 'all' ? authors.find(a => a.slug === selectedAuthor || String(a.id) === selectedAuthor) : null;
+
   // Build params for API
   const apiParams = {};
   if (selectedCat !== 'all') apiParams.category = selectedCat;
@@ -102,7 +106,9 @@ export default async function BooksPage({ searchParams }) {
       />
       <div className="container section">
         <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>সকল বই</h1>
+          <h1 className={styles.pageTitle}>
+            {activeCat ? `${activeCat.icon || '📚'} ${activeCat.name}` : activeAuthor ? `${activeAuthor.name}-এর বই` : 'সকল বই'}
+          </h1>
           <p className={styles.resultCount}>({sortedBooks.length})</p>
         </div>
 
@@ -134,6 +140,35 @@ export default async function BooksPage({ searchParams }) {
               <div className={styles.noResults}>
                 <p>এই বিষয়ে কোনো বই পাওয়া যায়নি</p>
                 <Link href="/books" className="btn btn-outline">সকল বই দেখুন</Link>
+              </div>
+            )}
+
+            {/* Category SEO Description */}
+            {activeCat?.seo_description && (
+              <div style={{ marginTop: '3rem', padding: '1.5rem', background: 'var(--bg-card, #f8f7f4)', borderRadius: '12px', borderLeft: '4px solid var(--color-primary, #1a5c38)' }}>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)' }}>
+                  {activeCat.icon} {activeCat.name} সম্পর্কে
+                </h2>
+                <div style={{ fontSize: '0.95rem', lineHeight: '1.8', color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>
+                  {activeCat.seo_description}
+                </div>
+              </div>
+            )}
+
+            {/* Author Bio */}
+            {activeAuthor?.bio && (
+              <div style={{ marginTop: '3rem', padding: '1.5rem', background: 'var(--bg-card, #f8f7f4)', borderRadius: '12px', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                {activeAuthor.image_url && (
+                  <img src={activeAuthor.image_url} alt={activeAuthor.name} style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                )}
+                <div>
+                  <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
+                    লেখক পরিচিতি — {activeAuthor.name}
+                  </h2>
+                  <p style={{ fontSize: '0.95rem', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
+                    {activeAuthor.bio}
+                  </p>
+                </div>
               </div>
             )}
           </div>

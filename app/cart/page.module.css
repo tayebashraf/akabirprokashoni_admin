@@ -40,7 +40,7 @@
 .removeBtn:hover { opacity: 0.7; }
 .itemPrice { text-align: right; flex-shrink: 0; }
 .itemCurrentPrice { font-size: var(--text-lg); font-weight: 700; color: var(--color-primary); font-family: var(--font-english); display: block; }
-.itemOriginalPrice { font-size: var(--text-sm); color: var(--color-text-light); text-decoration: line-through; font-family: var(--font-english); }
+.itemOriginalPrice { font-size: var(--text-sm); color: var(--color-text-secondary); text-decoration: line-through; text-decoration-color: #e53e3e; -webkit-text-decoration-color: #e53e3e; font-family: var(--font-english); }
 
 /* Summary */
 .summaryCard {

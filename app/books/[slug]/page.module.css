@@ -254,8 +254,10 @@
 }
 .originalPrice {
   font-size: 17px;
-  color: #aaa;
+  color: #718096; /* updated to darker shade for better accessibility */
   text-decoration: line-through;
+  text-decoration-color: #e53e3e; /* red cross/strike-through */
+  -webkit-text-decoration-color: #e53e3e;
 }
 .saveBadge {
   font-size: 13px;
@@ -559,8 +561,10 @@
 }
 .sidebarOrigPrice {
   font-size: 11px;
-  color: #aaa;
+  color: #718096;
   text-decoration: line-through;
+  text-decoration-color: #e53e3e; /* red cross/strike-through */
+  -webkit-text-decoration-color: #e53e3e;
 }
 .sidebarDiscount {
   font-size: 11px;

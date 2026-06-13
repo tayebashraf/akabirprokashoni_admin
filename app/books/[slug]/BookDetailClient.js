@@ -376,7 +376,14 @@ export default function BookDetailClient({ book, relatedBooks }) {
 
           {/* CENTER: Book Info */}
           <div className={styles.infoSection}>
-            <h1 className={styles.bookTitle}>{title}</h1>
+            <h1 className={styles.bookTitle}>
+              {title}
+              {book.original_title && (
+                <span style={{ display: 'block', fontSize: '16px', fontWeight: 500, color: '#64748b', marginTop: '4px', direction: 'rtl' }}>
+                  {book.original_title}
+                </span>
+              )}
+            </h1>
 
             {/* Compact Meta Info Table */}
             <table className={styles.metaTable}>
@@ -417,6 +424,18 @@ export default function BookDetailClient({ book, relatedBooks }) {
                   <tr>
                     <td className={styles.metaLabel}>সংস্করণ :</td>
                     <td className={styles.metaValue}>{book.edition}</td>
+                  </tr>
+                )}
+                {book.cover_type && (
+                  <tr>
+                    <td className={styles.metaLabel}>বাইন্ডিং :</td>
+                    <td className={styles.metaValue}>{book.cover_type === 'hardcover' ? 'হার্ডকভার' : book.cover_type === 'paperback' ? 'পেপারব্যাক' : book.cover_type === 'spiral' ? 'স্পাইরাল' : book.cover_type}</td>
+                  </tr>
+                )}
+                {book.publish_year && (
+                  <tr>
+                    <td className={styles.metaLabel}>প্রকাশসাল :</td>
+                    <td className={styles.metaValue}>{book.publish_year}</td>
                   </tr>
                 )}
                 {book.isbn && (

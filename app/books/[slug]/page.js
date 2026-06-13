@@ -106,7 +106,10 @@ export async function generateMetadata({ params }) {
     authorNames = book.author?.name || book.author_details?.name || 'আকাবির প্রকাশনী';
   }
 
-  const title = book.meta_title || `${book.title} — ${authorNames}`;
+  // Build title with original language title for SEO
+  let titleText = book.title;
+  if (book.original_title) titleText += ` (${book.original_title})`;
+  const title = book.meta_title || `${titleText} — ${authorNames}`;
   const description = book.meta_description || book.short_description || book.description?.substring(0, 160) || `আকাবির প্রকাশনী থেকে "${book.title}" বইটি কিনুন। লেখক পরিচিতি, বিবরণ ও রিভিউ দেখে সহজেই সংগ্রহ করুন।`;
   const keywords = book.meta_keywords || book.tags_list?.join(', ') || '';
 
@@ -193,10 +196,12 @@ export default async function BookDetail({ params }) {
   };
 
   // JSON-LD Structured Data — Book Schema (book-specific metadata)
+  const bookFormatMap = { 'hardcover': 'https://schema.org/Hardcover', 'paperback': 'https://schema.org/Paperback' };
   const bookJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Book',
     name: book.title,
+    ...(book.original_title ? { alternateName: book.original_title } : {}),
     author: authorsLd,
     image: book.cover ? [getAbsoluteImageUrl(book.cover_url || book.cover)] : [],
     description: book.meta_description || book.short_description || book.description || `আকাবির প্রকাশনী থেকে "${book.title}" বইটি কিনুন।`,
@@ -204,6 +209,8 @@ export default async function BookDetail({ params }) {
     numberOfPages: book.pages || undefined,
     inLanguage: book.language || undefined,
     ...(book.edition ? { bookEdition: book.edition } : {}),
+    ...(book.cover_type && bookFormatMap[book.cover_type] ? { bookFormat: bookFormatMap[book.cover_type] } : {}),
+    ...(book.publish_year ? { datePublished: book.publish_year } : {}),
     ...(book.translator ? { translator: { '@type': 'Person', name: book.translator } } : {}),
     publisher: {
       '@type': 'Organization',

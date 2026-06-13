@@ -367,9 +367,9 @@ export default function AdminBooks() {
   const [sampleImages, setSampleImages] = useState([null, null, null, null, null]);
   const [imagesToDelete, setImagesToDelete] = useState([]);
   const [formData, setFormData] = useState({
-    title: '', slug: '', category: '', publisher: '',
+    title: '', original_title: '', slug: '', category: '', publisher: '',
     price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
-    edition: '', weight: '', dimensions: '', stock: '',
+    edition: '', cover_type: 'paperback', publish_year: '', weight: '', dimensions: '', stock: '',
     is_trending: false, is_new_release: true, is_preorder: false,
     description: '', author_bio: '', translator_bio: '', tags: '',
     meta_title: '', meta_description: '', meta_keywords: '',
@@ -557,6 +557,9 @@ export default function AdminBooks() {
         is_preorder: bookData.is_preorder || false,
         description: bookData.description || '',
         author_bio: bookData.author_bio || '',
+        original_title: bookData.original_title || '',
+        cover_type: bookData.cover_type || 'paperback',
+        publish_year: bookData.publish_year || '',
         translator_bio: bookData.translator_bio || '',
         tags: bookData.tags || (bookData.tags_list ? bookData.tags_list.join(',') : ''),
         meta_title: bookData.meta_title || '',
@@ -778,6 +781,9 @@ export default function AdminBooks() {
       sample_pdf: 'স্যাম্পল পিডিএফ',
       description: 'সারসংক্ষেপ',
       author_bio: 'লেখক পরিচিতি',
+      original_title: 'মূল ভাষার শিরোনাম',
+      cover_type: 'বাইন্ডিং',
+      publish_year: 'প্রকাশসাল',
       translator_bio: 'অনুবাদক পরিচিতি',
       authors: 'লেখকগণ',
       categories: 'ক্যাটাগরি/বিষয়সমূহ',
@@ -924,6 +930,10 @@ export default function AdminBooks() {
                     )}
                   </div>
                   <div>
+                    <label>মূল ভাষার শিরোনাম <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 400 }}>(আরবি/উর্দু)</span></label>
+                    <input type="text" name="original_title" value={formData.original_title} onChange={handleInputChange} className="form-control" placeholder="যেমন: علاج الغضب" dir="auto" />
+                  </div>
+                  <div>
                     <label>স্লাগ (URL) - ঐচ্ছিক</label>
                     <input type="text" name="slug" value={formData.slug} onChange={handleInputChange} className="form-control" placeholder="ফাঁকা রাখলে স্বয়ংক্রিয়ভাবে তৈরি হবে" />
                   </div>
@@ -1043,6 +1053,18 @@ export default function AdminBooks() {
                   <div>
                     <label>সংস্করণ (Edition)</label>
                     <input type="text" name="edition" value={formData.edition} onChange={handleInputChange} className="form-control" />
+                  </div>
+                  <div>
+                    <label>বাইন্ডিং</label>
+                    <select name="cover_type" value={formData.cover_type} onChange={handleInputChange} className="form-control">
+                      <option value="paperback">পেপারব্যাক</option>
+                      <option value="hardcover">হার্ডকভার</option>
+                      <option value="spiral">স্পাইরাল</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>প্রকাশসাল</label>
+                    <input type="text" name="publish_year" value={formData.publish_year} onChange={handleInputChange} className="form-control" placeholder="যেমন: ২০২৪" />
                   </div>
                   <div>
                     <label>মাপ (Dimensions)</label>
@@ -1293,6 +1315,18 @@ export default function AdminBooks() {
                 <div style={{ marginBottom: '15px' }}>
                   <label>ট্যাগ (কমা দিয়ে আলাদা করুন)</label>
                   <input type="text" name="tags" value={formData.tags} onChange={handleInputChange} className="form-control" placeholder="যেমন: উপন্যাস, থ্রিলার" />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                      {['ইসলামিক বই', 'দ্বীনি বই', 'আত্মশুদ্ধি', 'তাসাউফ', 'ইসলাহী বই', 'জীবনী', 'ফিকহ', 'আখেরাত', 'তাবলীগ', 'দেওবন্দ', 'হাদিস', 'সীরাত', 'দোয়া ও আমল', 'পরিবার ও দাম্পত্য', 'অনলাইনে বই কিনুন'].map(tag => (
+                        <button key={tag} type="button" onClick={() => {
+                          const current = formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+                          if (!current.includes(tag)) {
+                            setFormData(prev => ({ ...prev, tags: [...current, tag].join(', ') }));
+                          }
+                        }} style={{ padding: '3px 10px', fontSize: '11px', background: formData.tags?.includes(tag) ? '#dcfce7' : '#f1f5f9', color: formData.tags?.includes(tag) ? '#166534' : '#475569', border: '1px solid ' + (formData.tags?.includes(tag) ? '#86efac' : '#cbd5e1'), borderRadius: '20px', cursor: 'pointer', fontWeight: 500 }}>
+                          {formData.tags?.includes(tag) ? '✓ ' : '+ '}{tag}
+                        </button>
+                      ))}
+                    </div>
                 </div>
 
                 {/* SEO Fields */}

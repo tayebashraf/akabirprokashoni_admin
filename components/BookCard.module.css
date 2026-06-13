@@ -37,17 +37,34 @@
 .imageWrap {
   display: block;
   width: 100%;
-  aspect-ratio: 2 / 3; /* Standard book aspect ratio (1:1.5) for perfectly uniform cards */
+  aspect-ratio: 2 / 3;
   overflow: hidden;
-  background: #ffffff;
+  background: #1a1a2e;
   position: relative;
-  padding: 8px 8px 0 8px; /* Adds top/side spacing to prevent any clipping from card border-radius */
 }
+
+/* Blurred backdrop — same image, zoomed & blurred to fill empty sides */
+.coverBg {
+  position: absolute;
+  inset: -12px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(18px) brightness(0.55) saturate(1.3);
+  transform: scale(1.15);
+  z-index: 0;
+  transition: transform 0.3s ease;
+}
+.card:hover .coverBg {
+  transform: scale(1.2);
+}
+
 .coverImg {
+  position: relative;
+  z-index: 1;
   width: 100% !important;
   height: 100% !important;
-  object-fit: contain !important; /* Preserves aspect ratio, no stretching, no cropping */
-  object-position: center bottom !important; /* Stand the book on the bottom line */
+  object-fit: contain !important;
+  object-position: center center !important;
   transition: transform 0.3s ease;
 }
 .imagePlaceholder {
@@ -201,7 +218,6 @@
   .favoriteBtn svg { width: 14px; height: 14px; }
   .imageWrap {
     aspect-ratio: 5/7;
-    height: auto; /* Allow dynamic scaling on mobile screens */
-    padding: 6px 6px 0 6px;
+    height: auto;
   }
 }

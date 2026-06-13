@@ -77,12 +77,19 @@ export default function BookCard({ book }) {
 
       <Link href={`/books/${slug}`} className={styles.imageWrap}>
         {finalCoverImage ? (
-          <img
-            src={finalCoverImage}
-            alt={book.cover_alt_text || title}
-            className={styles.coverImg}
-            loading="lazy"
-          />
+          <>
+            <div
+              className={styles.coverBg}
+              style={{ backgroundImage: `url(${finalCoverImage})` }}
+              aria-hidden="true"
+            />
+            <img
+              src={finalCoverImage}
+              alt={book.cover_alt_text || title}
+              className={styles.coverImg}
+              loading="lazy"
+            />
+          </>
         ) : (
           <div className={styles.imagePlaceholder}>
             <span className={styles.placeholderTitle}>{title}</span>

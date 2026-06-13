@@ -220,6 +220,7 @@ export default function PrintLabelsPage() {
               height: '297mm',
               pageBreakAfter: 'always',
               boxSizing: 'border-box',
+              maxWidth: '100%',
             }}
           >
             {pair.map((order, labelIndex) => {
@@ -235,7 +236,7 @@ export default function PrintLabelsPage() {
                   className="relative flex flex-col justify-between p-[6mm]"
                   style={{
                     height: '148.5mm',
-                    width: '210mm',
+                    width: '100%',
                     boxSizing: 'border-box',
                     borderBottom: !isLastInPair ? '1px dashed #bbb' : 'none',
                   }}
@@ -315,6 +316,18 @@ export default function PrintLabelsPage() {
                           <span className="font-extrabold text-zinc-800">
                             {order.payment_display || (order.payment_method === 'cod' ? 'ক্যাশ অন ডেলিভারি' : order.payment_method)}
                           </span>
+                        </div>
+                        {(order as any).steadfast_consignment_id && (
+                          <div className="flex justify-between text-[11px]" style={{ fontFamily: "'Hind Siliguri'" }}>
+                            <span>কনসাইনমেন্ট আইডি:</span>
+                            <span className="font-black text-emerald-700 text-[13px] font-mono">
+                              {(order as any).steadfast_consignment_id}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-[11px]" style={{ fontFamily: "'Hind Siliguri'" }}>
+                          <span>মার্চেন্ট আইডি:</span>
+                          <span className="font-black text-emerald-700 text-[13px] font-mono">AQQC7A7H</span>
                         </div>
                       </div>
                     </div>
@@ -423,31 +436,38 @@ export default function PrintLabelsPage() {
 
       {/* Global CSS Inject for Print Styling */}
       <style jsx global>{`
+        @import url('https://fonts.maateen.me/kalpurush/font.css');
+
+        @page {
+          size: A4 portrait;
+          margin: 0;
+        }
+
         @media print {
-          /* CSS Reset for print */
           body, html {
             background-color: white !important;
             color: black !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 210mm !important;
+            width: 100% !important;
             height: auto !important;
           }
-          
+
           .no-print {
             display: none !important;
           }
-          
-          /* Force exact margins for alignment */
-          @page {
-            margin: 0 !important;
+
+          main {
+            padding: 0 !important;
+            gap: 0 !important;
           }
-          
-          /* Prevent page split inside labels */
+
           .a4-sheet {
             box-shadow: none !important;
             margin: 0 !important;
             border: none !important;
+            width: 100% !important;
+            height: 100vh !important;
             page-break-after: always !important;
             page-break-inside: avoid !important;
           }

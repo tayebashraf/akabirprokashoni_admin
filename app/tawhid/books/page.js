@@ -371,7 +371,7 @@ export default function AdminBooks() {
     price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
     edition: '', cover_type: 'paperback', publish_year: '', weight: '', dimensions: '', stock: '',
     is_trending: false, is_new_release: true, is_preorder: false,
-    description: '', author_bio: '', translator_bio: '', tags: '',
+    description: '', author_bio: '', translator_bio: '', tags: 'ইসলামিক বই, ইসলামী বই, দ্বীনি বই, ধর্মীয় বই, বাংলা ইসলামিক বই, অনলাইনে বই কিনুন, বই অর্ডার, ক্যাশ অন ডেলিভারি বই',
     meta_title: '', meta_description: '', meta_keywords: '',
     table_of_contents: '', why_read: '', target_audience: '',
     faq: '', key_takeaways: '', long_description: ''
@@ -473,11 +473,11 @@ export default function AdminBooks() {
     setSampleImages([null, null, null, null, null]);
     setImagesToDelete([]);
     setFormData({
-      title: '', slug: '', category: '', publisher: '',
+      title: '', original_title: '', slug: '', category: '', publisher: '',
       price: '', original_price: '', pages: '', isbn: '', language: 'bangla',
-      edition: '', weight: '', dimensions: '', stock: '',
+      edition: '', cover_type: 'paperback', publish_year: '', weight: '', dimensions: '', stock: '',
       is_trending: false, is_new_release: true, is_preorder: false,
-      description: '', author_bio: '', translator_bio: '', tags: '',
+      description: '', author_bio: '', translator_bio: '', tags: 'ইসলামিক বই, ইসলামী বই, দ্বীনি বই, ধর্মীয় বই, বাংলা ইসলামিক বই, অনলাইনে বই কিনুন, বই অর্ডার, ক্যাশ অন ডেলিভারি বই',
       meta_title: '', meta_description: '', meta_keywords: '',
       table_of_contents: '', why_read: '', target_audience: '',
       faq: '', key_takeaways: '', long_description: ''

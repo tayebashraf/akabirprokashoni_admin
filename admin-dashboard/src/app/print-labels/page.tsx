@@ -90,6 +90,28 @@ export default function PrintLabelsPage() {
     }
   }, []);
 
+  // Force body to A4 width before print so browser doesn't scale down
+  useEffect(() => {
+    const onBeforePrint = () => {
+      document.documentElement.style.width = '794px'; // 210mm @ 96dpi
+      document.body.style.width = '794px';
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+    };
+    const onAfterPrint = () => {
+      document.documentElement.style.width = '';
+      document.body.style.width = '';
+      document.body.style.margin = '';
+      document.body.style.padding = '';
+    };
+    window.addEventListener('beforeprint', onBeforePrint);
+    window.addEventListener('afterprint', onAfterPrint);
+    return () => {
+      window.removeEventListener('beforeprint', onBeforePrint);
+      window.removeEventListener('afterprint', onAfterPrint);
+    };
+  }, []);
+
   const handlePrint = () => {
     window.print();
   };
@@ -444,13 +466,11 @@ export default function PrintLabelsPage() {
         }
 
         @media print {
-          body, html {
-            background-color: white !important;
-            color: black !important;
+          html, body {
+            background: white !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 100% !important;
-            height: auto !important;
+            width: 794px !important;
           }
 
           .no-print {
@@ -458,16 +478,16 @@ export default function PrintLabelsPage() {
           }
 
           main {
+            display: block !important;
             padding: 0 !important;
-            gap: 0 !important;
+            margin: 0 !important;
           }
 
           .a4-sheet {
             box-shadow: none !important;
             margin: 0 !important;
             border: none !important;
-            width: 100% !important;
-            height: 100vh !important;
+            width: 794px !important;
             page-break-after: always !important;
             page-break-inside: avoid !important;
           }

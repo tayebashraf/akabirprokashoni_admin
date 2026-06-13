@@ -234,16 +234,16 @@ export default function PrintInvoice({ order }) {
                     </span>
                   </div>
                   {singleOrder.steadfast_consignment_id && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif" }}>
-                      <span style={{ flexGrow: 1 }}>Consignment ID:</span>
-                      <span style={{ fontWeight: '800', fontFamily: 'monospace', color: '#1a5c38', fontSize: '11px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Kalpurush', sans-serif" }}>
+                      <span style={{ flexGrow: 1, fontFamily: "'Kalpurush', sans-serif" }}>কনসাইনমেন্ট আইডি:</span>
+                      <span style={{ fontWeight: '900', fontFamily: "'Kalpurush', sans-serif", color: '#1a5c38', fontSize: '14px' }}>
                         {singleOrder.steadfast_consignment_id}
                       </span>
                     </div>
                   )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Hind Siliguri', sans-serif" }}>
-                    <span style={{ flexGrow: 1 }}>Merchant ID:</span>
-                    <span style={{ fontWeight: '800', fontFamily: 'monospace', color: '#1a5c38', fontSize: '11px' }}>AQQC7A7H</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Kalpurush', sans-serif" }}>
+                    <span style={{ flexGrow: 1, fontFamily: "'Kalpurush', sans-serif" }}>মার্চেন্ট আইডি:</span>
+                    <span style={{ fontWeight: '900', fontFamily: "'Kalpurush', sans-serif", color: '#1a5c38', fontSize: '14px' }}>AQQC7A7H</span>
                   </div>
                 </div>
               </div>
@@ -328,7 +328,7 @@ export default function PrintInvoice({ order }) {
                     <div style={{ flexGrow: 1, textAlign: 'center' }}>
                       <Barcode value={trackingCode} />
                       {singleOrder.steadfast_consignment_id && (
-                        <p style={{ fontSize: '11px', fontWeight: '900', fontFamily: 'monospace', margin: '2px 0 0', color: '#000', letterSpacing: '1px' }}>
+                        <p style={{ fontSize: '14px', fontWeight: '900', fontFamily: "'Kalpurush', sans-serif", margin: '2px 0 0', color: '#000', letterSpacing: '1px' }}>
                           {singleOrder.steadfast_consignment_id}
                         </p>
                       )}

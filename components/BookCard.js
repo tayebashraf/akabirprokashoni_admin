@@ -5,7 +5,7 @@ import { useFavorites } from '@/lib/FavoriteContext';
 import styles from './BookCard.module.css';
 
 export default function BookCard({ book }) {
-  const { addToCart } = useCart();
+  useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorited = isFavorite(book.id);
 
@@ -77,19 +77,12 @@ export default function BookCard({ book }) {
 
       <Link href={`/books/${slug}`} className={styles.imageWrap}>
         {finalCoverImage ? (
-          <>
-            <div
-              className={styles.coverBg}
-              style={{ backgroundImage: `url(${finalCoverImage})` }}
-              aria-hidden="true"
-            />
-            <img
-              src={finalCoverImage}
-              alt={book.cover_alt_text || title}
-              className={styles.coverImg}
-              loading="lazy"
-            />
-          </>
+          <img
+            src={finalCoverImage}
+            alt={book.cover_alt_text || title}
+            className={styles.coverImg}
+            loading="lazy"
+          />
         ) : (
           <div className={styles.imagePlaceholder}>
             <span className={styles.placeholderTitle}>{title}</span>

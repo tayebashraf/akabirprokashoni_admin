@@ -431,7 +431,7 @@ export default function PrintLabelsPage() {
             margin: 0 !important;
             padding: 0 !important;
             width: 210mm !important;
-            height: 297mm !important;
+            height: auto !important;
           }
           
           .no-print {

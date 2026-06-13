@@ -389,19 +389,47 @@ export default function PrintInvoice({ order }) {
           .no-print {
             display: none !important;
           }
+          
+          /* Reset general html/body for print page height */
+          html, body {
+            background-color: white !important;
+            color: black !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: auto !important;
+            height: auto !important;
+          }
+          
+          /* Hide all elements except the invoice component */
           body * {
             visibility: hidden !important;
           }
           .print-only-invoice, .print-only-invoice * {
             visibility: visible !important;
           }
+          
+          /* Reset next.js/layout wrappers so they occupy 0 print space */
+          [class*="adminContainer"],
+          [class*="mainContent"],
+          [class*="ordersPage"] {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: transparent !important;
+            min-height: auto !important;
+            height: auto !important;
+            display: block !important;
+            position: static !important;
+            width: auto !important;
+            box-shadow: none !important;
+          }
+          
           .print-only-invoice {
             display: block !important;
-            position: absolute !important;
+            position: relative !important;
             left: 0 !important;
             top: 0 !important;
             width: 210mm !important;
-            height: 148.5mm !important;
+            height: auto !important;
             margin: 0 !important;
             padding: 0 !important;
             box-sizing: border-box !important;

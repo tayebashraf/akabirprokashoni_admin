@@ -396,6 +396,12 @@ export default function PrintInvoice({ order }) {
 
       {/* Embedded print logic styles */}
       <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://fonts.maateen.me/kalpurush/font.css');
+
+        .print-only-invoice, .print-only-invoice * {
+          font-family: 'Kalpurush', sans-serif !important;
+        }
+
         /* Hide invoice on screen */
         .print-only-invoice {
           display: none;

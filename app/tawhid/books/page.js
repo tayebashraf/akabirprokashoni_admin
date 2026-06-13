@@ -408,6 +408,44 @@ export default function AdminBooks() {
     fetchData();
   }, []);
 
+  // Auto-fill author_bio from selected authors' saved bios
+  const authorBioManuallyEdited = useRef(false);
+  useEffect(() => {
+    if (authorBioManuallyEdited.current) return;
+    if (authorChips.length === 0) {
+      setFormData(prev => ({ ...prev, author_bio: '' }));
+      return;
+    }
+    const bios = authorChips
+      .map(chip => {
+        const authorObj = authors.find(a => a.id === chip.id);
+        return authorObj?.bio?.trim() || '';
+      })
+      .filter(Boolean);
+    if (bios.length > 0) {
+      setFormData(prev => ({ ...prev, author_bio: bios.join('\n\n') }));
+    }
+  }, [authorChips, authors]);
+
+  // Auto-fill translator_bio from selected translators' saved bios
+  const translatorBioManuallyEdited = useRef(false);
+  useEffect(() => {
+    if (translatorBioManuallyEdited.current) return;
+    if (translatorChips.length === 0) {
+      setFormData(prev => ({ ...prev, translator_bio: '' }));
+      return;
+    }
+    const bios = translatorChips
+      .map(chip => {
+        const authorObj = authors.find(a => a.id === chip.id);
+        return authorObj?.bio?.trim() || '';
+      })
+      .filter(Boolean);
+    if (bios.length > 0) {
+      setFormData(prev => ({ ...prev, translator_bio: bios.join('\n\n') }));
+    }
+  }, [translatorChips, authors]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -446,6 +484,8 @@ export default function AdminBooks() {
     });
     setFiles({ cover: null, sample_pdf: null });
     setUploadError(null);
+    authorBioManuallyEdited.current = false;
+    translatorBioManuallyEdited.current = false;
     setShowForm(true);
   };
 
@@ -453,6 +493,10 @@ export default function AdminBooks() {
     try {
       setEditingSlug(slug);
       setShowForm(true);
+      // When editing, the book already has author_bio saved — mark as manually edited
+      // so auto-fill doesn't overwrite the existing saved bio
+      authorBioManuallyEdited.current = true;
+      translatorBioManuallyEdited.current = true;
       const bookData = await getBookBySlug(slug);
       
       // Set current cover and PDF urls
@@ -474,7 +518,11 @@ export default function AdminBooks() {
       
       // Set translator chips
       if (bookData.translator) {
-        const transMapped = bookData.translator.split(',').map(name => ({ id: null, name: name.trim() }));
+        const transMapped = bookData.translator.split(',').map(name => {
+          // Try to match translator name with an existing author to get their id
+          const matchedAuthor = authors.find(a => a.name.trim().toLowerCase() === name.trim().toLowerCase());
+          return { id: matchedAuthor?.id || null, name: name.trim() };
+        });
         setTranslatorChips(transMapped);
       } else {
         setTranslatorChips([]);
@@ -1223,13 +1271,23 @@ export default function AdminBooks() {
                   <textarea name="description" value={formData.description} onChange={handleInputChange} className="form-control" rows="4"></textarea>
                 </div>
                 <div style={{ marginBottom: '15px' }}>
-                  <label>লেখক পরিচিতি (কাস্টম বা ওভাররাইড)</label>
-                  <textarea name="author_bio" value={formData.author_bio} onChange={handleInputChange} className="form-control" rows="3" placeholder="লেখকের পরিচিতি এখানে লিখুন (খালি রাখলে লেখকের মূল প্রোফাইল থেকে নেওয়া হবে)"></textarea>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    লেখক পরিচিতি
+                    {!authorBioManuallyEdited.current && formData.author_bio && (
+                      <span style={{ fontSize: '11px', background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '10px', fontWeight: 600 }}>✨ স্বয়ংক্রিয়ভাবে লোড হয়েছে</span>
+                    )}
+                  </label>
+                  <textarea name="author_bio" value={formData.author_bio} onChange={(e) => { authorBioManuallyEdited.current = true; handleInputChange(e); }} className="form-control" rows="3" placeholder="লেখক সিলেক্ট করলে স্বয়ংক্রিয়ভাবে লোড হবে। প্রয়োজনে এডিট করতে পারেন।"></textarea>
                 </div>
                 {bookType === 'translation' && (
                   <div style={{ marginBottom: '15px' }}>
-                    <label>অনুবাদক পরিচিতি</label>
-                    <textarea name="translator_bio" value={formData.translator_bio} onChange={handleInputChange} className="form-control" rows="3" placeholder="অনুবাদকের পরিচিতি এখানে লিখুন"></textarea>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      অনুবাদক পরিচিতি
+                      {!translatorBioManuallyEdited.current && formData.translator_bio && (
+                        <span style={{ fontSize: '11px', background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '10px', fontWeight: 600 }}>✨ স্বয়ংক্রিয়ভাবে লোড হয়েছে</span>
+                      )}
+                    </label>
+                    <textarea name="translator_bio" value={formData.translator_bio} onChange={(e) => { translatorBioManuallyEdited.current = true; handleInputChange(e); }} className="form-control" rows="3" placeholder="অনুবাদক সিলেক্ট করলে স্বয়ংক্রিয়ভাবে লোড হবে। প্রয়োজনে এডিট করতে পারেন।"></textarea>
                   </div>
                 )}
                 <div style={{ marginBottom: '15px' }}>

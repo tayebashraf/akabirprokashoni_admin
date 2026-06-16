@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './login.module.css';
+import { normalizePhone, API_URL } from '@/lib/api';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -22,7 +23,7 @@ export default function LoginPage() {
     setError('');
     
     // Simple validation
-    const usernameInput = phone.trim();
+    const usernameInput = normalizePhone(phone);
     if (!usernameInput) {
       setError(isLogin ? 'মোবাইল নম্বর অথবা ইমেইল আবশ্যক।' : 'মোবাইল নম্বর আবশ্যক।');
       return;
@@ -37,13 +38,13 @@ export default function LoginPage() {
           return;
         }
       } else {
-        if (usernameInput.length < 11 || !/^\d+$/.test(usernameInput)) {
+        if (usernameInput.length !== 11 || !/^\d+$/.test(usernameInput)) {
           setError('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন।');
           return;
         }
       }
     } else {
-      if (usernameInput.length < 11 || !/^\d+$/.test(usernameInput)) {
+      if (usernameInput.length !== 11 || !/^\d+$/.test(usernameInput)) {
         setError('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন।');
         return;
       }
@@ -58,16 +59,17 @@ export default function LoginPage() {
       return;
     }
 
+    setPhone(usernameInput);
+
     setLoading(true);
 
     try {
       if (isLogin) {
         // Login API Call
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
         const res = await fetch(`${API_URL}/accounts/login/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: phone, password })
+          body: JSON.stringify({ username: usernameInput, password })
         });
         
         if (!res.ok) {
@@ -106,11 +108,10 @@ export default function LoginPage() {
         const [firstName, ...lastNameArr] = name.split(' ');
         const lastName = lastNameArr.join(' ');
         
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
         const res = await fetch(`${API_URL}/accounts/register/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone, password, first_name: firstName, last_name: lastName })
+          body: JSON.stringify({ phone: usernameInput, password, first_name: firstName, last_name: lastName })
         });
         
         if (!res.ok) {
@@ -202,7 +203,7 @@ export default function LoginPage() {
                 />
                 <span>আমাকে মনে রাখুন</span>
               </label>
-              <Link href={`/track${phone.trim() ? `?phone=${phone.trim()}` : ''}`} className={styles.forgotLink}>
+              <Link href={`/recover${phone.trim() ? `?phone=${normalizePhone(phone)}` : ''}`} className={styles.forgotLink}>
                 পাসওয়ার্ড ভুলে গেছেন?
               </Link>
             </div>

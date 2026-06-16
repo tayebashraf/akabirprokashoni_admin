@@ -349,6 +349,10 @@ export default function AdminBooks() {
   const [categories, setCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextUrl, setNextUrl] = useState(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const loadMoreRef = useRef(null);
   
   // Form State
   const [showForm, setShowForm] = useState(false);
@@ -395,6 +399,8 @@ export default function AdminBooks() {
         getAuthors()
       ]);
       setBooks(booksData.results || booksData || []);
+      setNextUrl(booksData.next || null);
+      setTotalCount(booksData.count || (booksData.results || booksData || []).length);
       setCategories(catsData.results || catsData || []);
       setAuthors(authsData.results || authsData || []);
     } catch (error) {
@@ -404,9 +410,40 @@ export default function AdminBooks() {
     }
   };
 
+  const loadMore = useCallback(async () => {
+    if (!nextUrl || loadingMore) return;
+    try {
+      setLoadingMore(true);
+      const res = await fetch(nextUrl, { next: { revalidate: 60 } });
+      if (!res.ok) throw new Error('Failed to load more books');
+      const data = await res.json();
+      setBooks(prev => [...prev, ...(data.results || [])]);
+      setNextUrl(data.next || null);
+    } catch (error) {
+      console.error('Error loading more books:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [nextUrl, loadingMore]);
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!loadMoreRef.current || !nextUrl) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [nextUrl, loadMore]);
 
   // Auto-fill author_bio from selected authors' saved bios
   const authorBioManuallyEdited = useRef(false);
@@ -803,6 +840,7 @@ export default function AdminBooks() {
       try {
         await deleteBook(slug);
         setBooks(prev => prev.filter(b => b.slug !== slug));
+        setTotalCount(prev => prev - 1);
         alert('বইটি সফলভাবে ডিলিট হয়েছে!');
       } catch (error) {
         alert('ডিলিট করতে সমস্যা হয়েছে।');
@@ -823,7 +861,7 @@ export default function AdminBooks() {
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
             <span className={styles.statIcon}>📚</span>
-            <div><span className={styles.statNum}>{books.length}</span><span>মোট বই</span></div>
+            <div><span className={styles.statNum}>{totalCount || books.length}</span><span>মোট বই</span></div>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statIcon}>📦</span>
@@ -887,6 +925,22 @@ export default function AdminBooks() {
               </table>
             </div>
           )}
+          {/* Infinite scroll sentinel */}
+          <div ref={loadMoreRef} style={{ padding: '16px', textAlign: 'center', minHeight: '1px' }}>
+            {loadingMore && (
+              <div style={{ color: '#6b7280', fontSize: '14px' }}>আরো বই লোড হচ্ছে...</div>
+            )}
+            {!loading && !loadingMore && nextUrl && (
+              <div style={{ color: '#9ca3af', fontSize: '13px' }}>
+                {books.length} / {totalCount}টি বই দেখানো হচ্ছে — স্ক্রল করুন
+              </div>
+            )}
+            {!loading && !nextUrl && books.length > 0 && (
+              <div style={{ color: '#9ca3af', fontSize: '13px', padding: '8px 0' }}>
+                সব বই দেখানো হয়েছে ({books.length}টি)
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Add/Edit Modal Form */}

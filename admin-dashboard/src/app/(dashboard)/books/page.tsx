@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { BookOpen, Plus, Search, Trash2, Edit, Grid3X3, List, Loader2 } from 'lucide-react';
+import { BookOpen, Plus, Search, Trash2, Edit, Grid3X3, List, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -31,15 +31,23 @@ export default function BooksPage() {
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [createOpen, setCreateOpen] = useState(false);
+  const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
 
-  const params: Record<string, string> = {};
-  if (search) params.search = search;
+  const params: Record<string, string> = { page: String(page) };
+  if (search) {
+    params.search = search;
+    // সার্চ করলে প্রথম পেজ থেকে শুরু
+    if (page !== 1) setPage(1);
+  }
 
   const { data, isLoading } = useQuery<PaginatedResponse<BookListItem>>({
     queryKey: ['books', params],
     queryFn: () => booksApi.getAll(params),
+    placeholderData: (prev) => prev,
   });
+
+  const totalPages = data ? Math.ceil(data.count / 20) : 1;
 
   const { data: authors } = useQuery<PaginatedResponse<Author>>({
     queryKey: ['authors'],
@@ -214,6 +222,35 @@ export default function BooksPage() {
               ))}
             </tbody>
           </table>
+        </motion.div>
+      )}
+
+      {/* পেজিনেশন */}
+      {data && totalPages > 1 && (
+        <motion.div variants={item} className="flex items-center justify-center gap-3 pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1"
+            style={{ fontFamily: "'Hind Siliguri'" }}
+          >
+            <ChevronLeft className="w-4 h-4" /> আগের
+          </Button>
+          <span className="text-sm text-zinc-400" style={{ fontFamily: "'Hind Siliguri'" }}>
+            পৃষ্ঠা {page} / {totalPages} (মোট {data.count}টি)
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!data.next}
+            onClick={() => setPage((p) => p + 1)}
+            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1"
+            style={{ fontFamily: "'Hind Siliguri'" }}
+          >
+            পরের <ChevronRight className="w-4 h-4" />
+          </Button>
         </motion.div>
       )}
     </motion.div>

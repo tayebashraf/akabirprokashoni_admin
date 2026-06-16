@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import BookCard from './BookCard';
 import styles from '../app/books/page.module.css';
 
@@ -8,6 +8,7 @@ export default function InfiniteBookList({ initialBooks, initialNextUrl, viewMod
   const [nextUrl, setNextUrl] = useState(initialNextUrl);
   const [loading, setLoading] = useState(false);
   const observerRef = useRef(null);
+  const loadMoreRef = useRef(null);
 
   // Reset state when filters change (initialBooks change)
   useEffect(() => {
@@ -15,7 +16,7 @@ export default function InfiniteBookList({ initialBooks, initialNextUrl, viewMod
     setNextUrl(initialNextUrl);
   }, [initialBooks, initialNextUrl]);
 
-  const loadMore = async () => {
+  const loadMore = useCallback(async () => {
     if (!nextUrl || loading) return;
     setLoading(true);
     try {
@@ -28,12 +29,15 @@ export default function InfiniteBookList({ initialBooks, initialNextUrl, viewMod
     } finally {
       setLoading(false);
     }
-  };
+  }, [nextUrl, loading]);
+
+  // Keep ref updated so IntersectionObserver always calls latest loadMore
+  loadMoreRef.current = loadMore;
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        loadMore();
+      if (entries[0].isIntersecting && loadMoreRef.current) {
+        loadMoreRef.current();
       }
     }, { threshold: 0.1 });
 

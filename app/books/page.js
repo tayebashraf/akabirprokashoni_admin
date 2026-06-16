@@ -44,8 +44,8 @@ export default async function BooksPage({ searchParams }) {
   if (searchQuery) apiParams.search = searchQuery;
   if (minPrice) apiParams.min_price = minPrice;
   if (maxPrice) apiParams.max_price = maxPrice;
-  if (sortBy === 'new') apiParams.new_release = 'true';
-  if (filter === 'new') apiParams.new_release = 'true';
+  if (sortBy === 'new') apiParams.new = 'true';
+  if (filter === 'new') apiParams.new = 'true';
   if (filter === 'preorder') apiParams.preorder = 'true';
 
   // Fetch books

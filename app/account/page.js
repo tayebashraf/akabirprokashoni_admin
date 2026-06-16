@@ -5,7 +5,7 @@ import BookCard from '@/components/BookCard';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { API_URL } from '@/lib/api';
+import { API_URL, apiFetch } from '@/lib/api';
 
 export default function AccountPage() {
   const { user, token, logout, loading } = useAuth();
@@ -48,14 +48,11 @@ export default function AccountPage() {
   useEffect(() => {
     if (token) {
       // Fetch profile
-      fetch(`${API_URL}/accounts/profile/`, {
+      apiFetch(`${API_URL}/accounts/profile/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       .then(res => {
-        if (res.status === 401) {
-          logout();
-          throw new Error('Unauthorized');
-        }
+        if (!res.ok) throw new Error('Failed to fetch profile');
         return res.json();
       })
       .then(data => {
@@ -66,14 +63,11 @@ export default function AccountPage() {
       .catch(err => console.error(err));
 
       // Fetch orders
-      fetch(`${API_URL}/orders/my-orders/`, {
+      apiFetch(`${API_URL}/orders/my-orders/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       .then(res => {
-        if (res.status === 401) {
-          logout();
-          throw new Error('Unauthorized');
-        }
+        if (!res.ok) throw new Error('Failed to fetch orders');
         return res.json();
       })
       .then(data => {
@@ -115,7 +109,7 @@ export default function AccountPage() {
     // Sync default address to profile if it exists
     const def = newAddrs.find(a => a.isDefault);
     if (def && token) {
-      fetch(`${API_URL}/accounts/profile/`, {
+      apiFetch(`${API_URL}/accounts/profile/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -190,7 +184,7 @@ export default function AccountPage() {
     setUpdatingSettings(true);
 
     try {
-      const res = await fetch(`${API_URL}/accounts/profile/`, {
+      const res = await apiFetch(`${API_URL}/accounts/profile/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

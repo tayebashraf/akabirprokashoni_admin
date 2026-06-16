@@ -1,11 +1,9 @@
 'use client';
 import Link from 'next/link';
-import { useCart } from '@/lib/CartContext';
 import { useFavorites } from '@/lib/FavoriteContext';
 import styles from './BookCard.module.css';
 
 export default function BookCard({ book }) {
-  useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorited = isFavorite(book.id);
 

@@ -5,6 +5,15 @@ import OfferBanner from '@/components/OfferBanner';
 import { getCategories, getTrendingBooks, getNewReleases, getBooks, getHeroSlides, getAuthors, getOfferBanners, getImageUrl } from '@/lib/api';
 import styles from './page.module.css';
 
+export const metadata = {
+  title: 'আকাবির প্রকাশনী | ইসলামিক বই, দ্বীনি বই ও আত্মশুদ্ধির বই কিনুন',
+  description: 'আকাবির প্রকাশনী থেকে কিনুন সেরা সব ইসলামিক বই, দ্বীনি বই, আত্মশুদ্ধির বই। ক্যাশ অন ডেলিভারি ও হোম ডেলিভারি সুবিধা সহ সারাদেশে বই পৌঁছে দিই।',
+  keywords: ['ইসলামিক বই', 'দ্বীনি বই', 'আত্মশুদ্ধির বই', 'বাংলা বই', 'অনলাইনে বই কিনুন', 'আকাবির প্রকাশনী', 'ইসলামী বই', 'ক্যাশ অন ডেলিভারি বই'],
+  alternates: {
+    canonical: 'https://akabirprokashoni.com',
+  },
+};
+
 export default async function Home() {
   const [categoriesData, trendingBooksData, newBooksData, allBooksData, slidesData, authorsData, offerBannersData] = await Promise.all([
     getCategories().catch(() => ({ results: [] })),

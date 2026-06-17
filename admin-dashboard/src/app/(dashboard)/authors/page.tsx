@@ -19,7 +19,7 @@ export default function AuthorsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery<PaginatedResponse<Author>>({
+  const { data, isLoading } = useQuery<Author[] | PaginatedResponse<Author>>({
     queryKey: ['authors'],
     queryFn: () => authorsApi.getAll(),
   });
@@ -41,7 +41,8 @@ export default function AuthorsPage() {
     createMutation.mutate({ name: fd.get('name') as string, bio: fd.get('bio') as string });
   };
 
-  const authors = data?.results || [];
+  // Handle both paginated ({results: []}) and non-paginated ([]) response formats
+  const authors: Author[] = Array.isArray(data) ? data : (data?.results || []);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">

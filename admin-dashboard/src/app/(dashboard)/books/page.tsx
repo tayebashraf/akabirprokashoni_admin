@@ -49,12 +49,12 @@ export default function BooksPage() {
 
   const totalPages = data ? Math.ceil(data.count / 20) : 1;
 
-  const { data: authors } = useQuery<PaginatedResponse<Author>>({
+  const { data: authors } = useQuery<Author[] | PaginatedResponse<Author>>({
     queryKey: ['authors'],
     queryFn: () => authorsApi.getAll(),
   });
 
-  const { data: categories } = useQuery<PaginatedResponse<Category>>({
+  const { data: categories } = useQuery<Category[] | PaginatedResponse<Category>>({
     queryKey: ['categories'],
     queryFn: () => categoriesApi.getAll(),
   });

@@ -461,8 +461,8 @@ export default function AddBookPage() {
     createMutation.mutate(fd);
   };
 
-  const authors = authorsData?.results || [];
-  const categories = categoriesData?.results || [];
+  const authors: Author[] = Array.isArray(authorsData) ? authorsData : (authorsData?.results || []);
+  const categories: Category[] = Array.isArray(categoriesData) ? categoriesData : (categoriesData?.results || []);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 max-w-5xl mx-auto pb-20">

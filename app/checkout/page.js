@@ -234,7 +234,7 @@ export default function CheckoutPage() {
       address: finalAddress,
       customer_note: formData.get('customer_note') || '',
       payment_method: paymentMethod,
-      items: cart.map(item => ({ book_id: item.id, slug: item.slug, quantity: item.quantity })),
+      items: cart.filter(item => item.quantity > 0).map(item => ({ book_id: item.id, slug: item.slug, quantity: item.quantity })),
       coupon_code: appliedCoupon ? appliedCoupon.code : ''
     };
 
@@ -252,7 +252,10 @@ export default function CheckoutPage() {
     try {
       const response = await createOrder(orderData);
       clearCart();
-      
+      setAppliedCoupon(null);
+      setCouponMessage('');
+      setCouponError('');
+
       // If the API returns a payment_url, redirect the user to SSLCommerz
       if (response.payment_url) {
         window.location.href = response.payment_url;

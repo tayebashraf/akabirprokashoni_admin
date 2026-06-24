@@ -52,6 +52,7 @@ export default async function BooksPage({ searchParams }) {
   const booksResult = await getBooks(apiParams).catch(() => ({ results: [] }));
   let sortedBooks = Array.isArray(booksResult?.results) ? booksResult.results : (Array.isArray(booksResult) ? booksResult : []);
   let nextUrl = booksResult?.next || null;
+  const totalCount = booksResult?.count ?? sortedBooks.length;
 
   // Manual sorting if API doesn't support it fully
   if (sortBy === 'price-low') sortedBooks.sort((a, b) => a.price - b.price);
@@ -109,7 +110,7 @@ export default async function BooksPage({ searchParams }) {
           <h1 className={styles.pageTitle}>
             {activeCat ? `${activeCat.icon || '📚'} ${activeCat.name}` : activeAuthor ? `${activeAuthor.name}-এর বই` : 'সকল বই'}
           </h1>
-          <p className={styles.resultCount}>({sortedBooks.length})</p>
+          <p className={styles.resultCount}>({totalCount})</p>
         </div>
 
         <div className={styles.pageGrid}>

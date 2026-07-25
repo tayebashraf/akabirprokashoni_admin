@@ -17,7 +17,11 @@ const nextConfig = {
       {
         protocol: 'http',
         hostname: 'api.akabirprokashoni.com',
-        port: '8000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.akabirprokashoni.com',
         pathname: '/**',
       },
       {

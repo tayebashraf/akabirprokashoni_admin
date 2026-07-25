@@ -15,8 +15,15 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
-        hostname: 'web-production-bd153.up.railway.app',
+        protocol: 'http',
+        hostname: 'api.akabirprokashoni.com',
+        port: '8000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '200.141.0.187',
+        port: '8000',
         pathname: '/**',
       },
       {

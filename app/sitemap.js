@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://api.akabirprokashoni.com:8000/api';
 
 const fetchWithTimeout = async (url, options = {}) => {
   const { timeout = 10000 } = options;

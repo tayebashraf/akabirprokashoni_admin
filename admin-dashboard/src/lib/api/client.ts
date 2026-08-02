@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.akabirprokashoni.com/api';
 
 // Axios ইনস্ট্যান্স — JWT ইন্টারসেপ্টরসহ
 const api = axios.create({

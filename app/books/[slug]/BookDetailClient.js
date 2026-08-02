@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/CartContext';
-import { submitReview } from '@/lib/api';
+import { submitReview, getImageUrl } from '@/lib/api';
 import styles from './page.module.css';
 
 export function parseFaq(faqInput) {
@@ -216,28 +216,7 @@ export default function BookDetailClient({ book, relatedBooks }) {
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
-  // Ensure image URL is absolute and uses correct host
-  const getFileUrl = (url) => {
-    if (!url) return null;
-    
-    let base = process.env.NEXT_PUBLIC_API_URL 
-      ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '')
-      : 'http://127.0.0.1:8000';
-      
-    // Handle LAN testing from mobile
-    if (typeof window !== 'undefined' && window.location.hostname) {
-      const currentHost = window.location.hostname;
-      if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
-        base = base.replace('127.0.0.1', currentHost).replace('localhost', currentHost);
-        if (url.startsWith('http')) {
-          return url.replace('127.0.0.1', currentHost).replace('localhost', currentHost);
-        }
-      }
-    }
-    
-    if (url.startsWith('http')) return url;
-    return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
-  };
+  const getFileUrl = getImageUrl;
 
   const getOptimizedCloudinaryUrl = (url) => {
     if (!url) return url;

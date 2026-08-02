@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useFavorites } from '@/lib/FavoriteContext';
+import { getImageUrl } from '@/lib/api';
 import styles from './BookCard.module.css';
 
 export default function BookCard({ book }) {
@@ -18,28 +19,7 @@ export default function BookCard({ book }) {
   const reviewCount = Number(book.review_count || book.reviewCount) || 0;
   const discount = book.discount || (originalPrice > price ? Math.round((1 - price / originalPrice) * 100) : 0);
 
-  // Ensure image URL is absolute and uses correct host
-  const getImageUrl = (url) => {
-    if (!url) return null;
-    
-    let base = process.env.NEXT_PUBLIC_API_URL 
-      ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '')
-      : 'http://127.0.0.1:8000';
-      
-    // Handle LAN testing from mobile
-    if (typeof window !== 'undefined' && window.location.hostname) {
-      const currentHost = window.location.hostname;
-      if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
-        base = base.replace('127.0.0.1', currentHost).replace('localhost', currentHost);
-        if (url.startsWith('http')) {
-          return url.replace('127.0.0.1', currentHost).replace('localhost', currentHost);
-        }
-      }
-    }
-    
-    if (url.startsWith('http')) return url;
-    return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
-  };
+
 
   const getOptimizedCloudinaryUrl = (url) => {
     if (!url) return url;

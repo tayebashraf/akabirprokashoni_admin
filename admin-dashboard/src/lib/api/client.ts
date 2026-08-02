@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.akabirprokashoni.com/api';
+const isLocalEnv = () => {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.');
+  }
+  return process.env.NODE_ENV === 'development';
+};
+
+export const API_URL = isLocalEnv()
+  ? 'http://127.0.0.1:8000/api'
+  : 'https://api.akabirprokashoni.com/api';
 
 // Axios ইনস্ট্যান্স — JWT ইন্টারসেপ্টরসহ
 const api = axios.create({

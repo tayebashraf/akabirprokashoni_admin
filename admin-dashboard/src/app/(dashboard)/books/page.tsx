@@ -1,20 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { BookOpen, Plus, Search, Trash2, Edit, Grid3X3, List, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { booksApi, authorsApi, categoriesApi } from '@/lib/api';
-import type { BookListItem, Author, Category, PaginatedResponse } from '@/lib/types';
+import { authorsApi, booksApi, categoriesApi } from '@/lib/api';
+import { API_URL } from '@/lib/api/client';
+import type { Author, BookListItem, Category, PaginatedResponse } from '@/lib/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
+import { BookOpen, ChevronLeft, ChevronRight, Edit, Grid3X3, List, Plus, Search, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
@@ -23,7 +20,7 @@ const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 const getImageUrl = (url: string | null | undefined): string | null => {
   if (!url) return null;
   if (url.startsWith('http')) return url;
-  const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace('/api', '');
+  const base = API_URL.replace('/api', '');
   return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCart } from '@/lib/CartContext';
 import bdGeodata from '@/lib/bdGeodata.json';
 import styles from './page.module.css';
-import { createOrder, getSiteSettings } from '@/lib/api';
+import { createOrder, getSiteSettings, API_URL } from '@/lib/api';
 import { useAuth } from '@/lib/AuthContext';
 import confetti from 'canvas-confetti';
 
@@ -81,7 +81,7 @@ export default function CheckoutPage() {
     }
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/orders/validate-coupon/`, {
+      const res = await fetch(`${API_URL}/orders/validate-coupon/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: couponCodeInput })
@@ -111,7 +111,7 @@ export default function CheckoutPage() {
         email: user.email || prev.email 
       }));
       if (token) {
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/accounts/profile/`, {
+        fetch(`${API_URL}/accounts/profile/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         .then(res => res.json())

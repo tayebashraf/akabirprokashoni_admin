@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { getAdminOrders, updateAdminOrder, sendOrderEmailNotification } from '@/lib/api';
+import { getAdminOrders, updateAdminOrder, sendOrderEmailNotification, getBooks } from '@/lib/api';
 import PrintInvoice from '@/components/PrintInvoice';
 import styles from './page.module.css';
 
@@ -62,6 +62,14 @@ export default function AdminOrders() {
   const [selectedEmailType, setSelectedEmailType] = useState('confirmed');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
+  // Available Books Catalog for Adding to Orders
+  const [catalogBooks, setCatalogBooks] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [selectedBookId, setSelectedBookId] = useState('');
+  const [newBookPrice, setNewBookPrice] = useState('');
+  const [newBookQuantity, setNewBookQuantity] = useState(1);
+  const [bookSearchQuery, setBookSearchQuery] = useState('');
+
   // Steadfast Tracking State
   const [trackingLoading, setTrackingLoading] = useState(false);
   const [trackingError, setTrackingError] = useState('');
@@ -121,6 +129,22 @@ export default function AdminOrders() {
       }
     }
     loadOrders();
+  }, []);
+
+  // Fetch catalog books once
+  useEffect(() => {
+    async function loadCatalog() {
+      setCatalogLoading(true);
+      try {
+        const data = await getBooks({ page_size: 100 });
+        setCatalogBooks(data.results || data || []);
+      } catch (err) {
+        console.error('Failed to load books catalog', err);
+      } finally {
+        setCatalogLoading(false);
+      }
+    }
+    loadCatalog();
   }, []);
 
   useEffect(() => {
@@ -189,6 +213,10 @@ export default function AdminOrders() {
     });
     setSteadfastStatus(null);
     setTrackingError('');
+    setSelectedBookId('');
+    setNewBookPrice('');
+    setNewBookQuantity(1);
+    setBookSearchQuery('');
     
     if (order.steadfast_consignment_id || order.steadfast_tracking_code) {
       fetchTrackingStatus(order.order_id);
@@ -212,6 +240,92 @@ export default function AdminOrders() {
         items: updatedItems,
         subtotal: newSubtotal,
         total: Math.max(0, newTotal)
+      };
+    });
+  };
+
+  // Helper: Select a book from catalog to prepare adding
+  const handleBookSelect = (bookId) => {
+    setSelectedBookId(bookId);
+    const found = catalogBooks.find(b => String(b.id) === String(bookId));
+    if (found) {
+      setNewBookPrice(found.price !== undefined ? found.price : '');
+    } else {
+      setNewBookPrice('');
+    }
+  };
+
+  // Helper: Add a book to order items list
+  const handleAddBookToOrder = () => {
+    if (!selectedBookId) {
+      alert('অনুগ্রহ করে তালিকা থেকে একটি বই নির্বাচন করুন।');
+      return;
+    }
+    const bookObj = catalogBooks.find(b => String(b.id) === String(selectedBookId));
+    if (!bookObj) return;
+
+    const priceNum = (newBookPrice !== '' && !isNaN(Number(newBookPrice))) ? Math.max(0, Number(newBookPrice)) : (bookObj.price || 0);
+    const qtyNum = Math.max(1, Number(newBookQuantity) || 1);
+
+    setFormData(prev => {
+      const existingIdx = prev.items.findIndex(itm => String(itm.book) === String(bookObj.id));
+      let updatedItems;
+
+      if (existingIdx > -1) {
+        // Book already exists in order items, increase quantity
+        updatedItems = [...prev.items];
+        updatedItems[existingIdx] = {
+          ...updatedItems[existingIdx],
+          quantity: (Number(updatedItems[existingIdx].quantity) || 0) + qtyNum,
+          price: priceNum
+        };
+      } else {
+        // Add new item
+        const newItem = {
+          book: bookObj.id,
+          book_title: bookObj.title,
+          author_name: bookObj.author_name || '',
+          price: priceNum,
+          quantity: qtyNum,
+          line_total: priceNum * qtyNum
+        };
+        updatedItems = [...prev.items, newItem];
+      }
+
+      const newSubtotal = updatedItems.reduce((acc, itm) => acc + (Number(itm.price || 0) * Number(itm.quantity || 1)), 0);
+      const newTotal = Math.max(0, newSubtotal + Number(prev.delivery_charge || 0) - Number(prev.discount_amount || 0));
+
+      return {
+        ...prev,
+        items: updatedItems,
+        subtotal: newSubtotal,
+        total: newTotal
+      };
+    });
+
+    // Reset selector inputs
+    setSelectedBookId('');
+    setNewBookPrice('');
+    setNewBookQuantity(1);
+    setBookSearchQuery('');
+  };
+
+  // Helper: Remove a book from order items list
+  const handleRemoveBookFromOrder = (index) => {
+    const itemToRemove = formData.items[index];
+    const confirmMsg = `আপনি কি নিশ্চিত যে "${itemToRemove.book_title || 'এই বইটি'}" অর্ডার থেকে মুছে ফেলতে চান?`;
+    if (!confirm(confirmMsg)) return;
+
+    setFormData(prev => {
+      const updatedItems = prev.items.filter((_, idx) => idx !== index);
+      const newSubtotal = updatedItems.reduce((acc, itm) => acc + (Number(itm.price || 0) * Number(itm.quantity || 1)), 0);
+      const newTotal = Math.max(0, newSubtotal + Number(prev.delivery_charge || 0) - Number(prev.discount_amount || 0));
+
+      return {
+        ...prev,
+        items: updatedItems,
+        subtotal: newSubtotal,
+        total: newTotal
       };
     });
   };
@@ -654,12 +768,12 @@ export default function AdminOrders() {
 
               {/* Middle Section: Items List & Price Editing */}
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                   <h3 style={{ fontSize: '15px', color: '#1e293b', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold' }}>
                     📚 বইয়ের তালিকা ও মূল্য পরিবর্তন (Edit Rates & Quantities)
                   </h3>
                   <span style={{ fontSize: '11px', color: '#64748b' }}>
-                    * মূল্য বা পরিমাণ পরিবর্তন করলে মোট বিল স্বয়ংক্রিয়ভাবে হিসাব হবে
+                    * নতুন বই যোগ, অপ্রয়োজনীয় বই মুছে ফেলা বা মূল্য/পরিমাণ পরিবর্তন করা যাবে
                   </span>
                 </div>
 
@@ -667,11 +781,12 @@ export default function AdminOrders() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1' }}>
-                        <th style={{ padding: '8px', textAlign: 'center', width: '40px' }}>#</th>
+                        <th style={{ padding: '8px', textAlign: 'center', width: '35px' }}>#</th>
                         <th style={{ padding: '8px', textAlign: 'left' }}>বইয়ের নাম</th>
-                        <th style={{ padding: '8px', textAlign: 'center', width: '140px' }}>একক মূল্য (৳)</th>
-                        <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>পরিমাণ</th>
-                        <th style={{ padding: '8px', textAlign: 'right', width: '130px' }}>মোট মূল্য (৳)</th>
+                        <th style={{ padding: '8px', textAlign: 'center', width: '130px' }}>একক মূল্য (৳)</th>
+                        <th style={{ padding: '8px', textAlign: 'center', width: '90px' }}>পরিমাণ</th>
+                        <th style={{ padding: '8px', textAlign: 'right', width: '120px' }}>মোট মূল্য (৳)</th>
+                        <th style={{ padding: '8px', textAlign: 'center', width: '60px' }}>মুছুন</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -681,12 +796,17 @@ export default function AdminOrders() {
                             <td style={{ padding: '8px', textAlign: 'center', color: '#64748b' }}>{idx + 1}</td>
                             <td style={{ padding: '8px', fontWeight: '600', color: '#1e293b' }}>
                               {item.book_title}
+                              {item.author_name && (
+                                <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 'normal' }}>
+                                  {item.author_name}
+                                </span>
+                              )}
                             </td>
                             <td style={{ padding: '8px', textAlign: 'center' }}>
                               <input 
                                 type="number" 
                                 min="0"
-                                style={{ width: '100px', padding: '6px 8px', textAlign: 'center', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', fontSize: '13px' }}
+                                style={{ width: '90px', padding: '6px 8px', textAlign: 'center', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', fontSize: '13px' }}
                                 value={item.price}
                                 onChange={(e) => updateItemField(idx, 'price', e.target.value)}
                               />
@@ -695,7 +815,7 @@ export default function AdminOrders() {
                               <input 
                                 type="number" 
                                 min="1"
-                                style={{ width: '70px', padding: '6px 8px', textAlign: 'center', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', fontSize: '13px' }}
+                                style={{ width: '65px', padding: '6px 8px', textAlign: 'center', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', fontSize: '13px' }}
                                 value={item.quantity}
                                 onChange={(e) => updateItemField(idx, 'quantity', e.target.value)}
                               />
@@ -703,17 +823,154 @@ export default function AdminOrders() {
                             <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold', color: '#0d6b3f' }}>
                               ৳{(Number(item.price || 0) * Number(item.quantity || 1))}
                             </td>
+                            <td style={{ padding: '8px', textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveBookFromOrder(idx)}
+                                style={{
+                                  backgroundColor: '#fee2e2',
+                                  color: '#dc2626',
+                                  border: '1px solid #fca5a5',
+                                  borderRadius: '6px',
+                                  padding: '4px 8px',
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                  fontWeight: 'bold',
+                                  transition: 'background 0.2s',
+                                }}
+                                title="এই বইটি অর্ডার থেকে বাদ দিন"
+                              >
+                                🗑️
+                              </button>
+                            </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={5} style={{ textAlign: 'center', padding: '16px', color: '#64748b' }}>
-                            কোনো বইয়ের আইটেম পাওয়া যায়নি।
+                          <td colSpan={6} style={{ textAlign: 'center', padding: '16px', color: '#64748b' }}>
+                            কোনো বইয়ের আইটেম নেই। নিচে থেকে বই যোগ করুন।
                           </td>
                         </tr>
                       )}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Add New Book Section */}
+                <div style={{ marginTop: '16px', padding: '14px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '6px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      ➕ অর্ডারে নতুন বই যোগ করুন
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#15803d' }}>
+                      একাধিক অর্ডার একসাথে করতে বা নতুন বই যুক্ত করতে এটি ব্যবহার করুন
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                    {/* Book Search & Selector */}
+                    <div style={{ flex: '1 1 280px', minWidth: '240px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}>
+                        বই নির্বাচন করুন {catalogLoading ? '(লোড হচ্ছে...)' : `(${catalogBooks.length} টি বই)`}
+                      </label>
+                      <select
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #86efac',
+                          fontSize: '13px',
+                          backgroundColor: '#ffffff',
+                          color: '#1e293b',
+                          outline: 'none'
+                        }}
+                        value={selectedBookId}
+                        onChange={(e) => handleBookSelect(e.target.value)}
+                      >
+                        <option value="">-- বই সিলেক্ট করুন --</option>
+                        {catalogBooks.map(b => (
+                          <option key={b.id} value={b.id}>
+                            {b.title} {b.author_name ? `(${b.author_name})` : ''} — ৳{b.price}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Unit Price */}
+                    <div style={{ width: '110px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}>
+                        একক মূল্য (৳)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="মূল্য"
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '6px',
+                          border: '1px solid #86efac',
+                          fontSize: '13px',
+                          textAlign: 'center',
+                          backgroundColor: '#ffffff',
+                          fontWeight: 'bold',
+                          boxSizing: 'border-box'
+                        }}
+                        value={newBookPrice}
+                        onChange={(e) => setNewBookPrice(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Quantity */}
+                    <div style={{ width: '80px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}>
+                        পরিমাণ
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        style={{
+                          width: '100%',
+                          padding: '8px',
+                          borderRadius: '6px',
+                          border: '1px solid #86efac',
+                          fontSize: '13px',
+                          textAlign: 'center',
+                          backgroundColor: '#ffffff',
+                          fontWeight: 'bold',
+                          boxSizing: 'border-box'
+                        }}
+                        value={newBookQuantity}
+                        onChange={(e) => setNewBookQuantity(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Add Button */}
+                    <div>
+                      <button
+                        type="button"
+                        onClick={handleAddBookToOrder}
+                        disabled={!selectedBookId}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: selectedBookId ? '#0d6b3f' : '#94a3b8',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontWeight: 'bold',
+                          fontSize: '13px',
+                          cursor: selectedBookId ? 'pointer' : 'not-allowed',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          height: '38px',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        ➕ বই যোগ করুন
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Calculation Summary Grid */}

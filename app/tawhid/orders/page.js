@@ -31,6 +31,311 @@ const paymentStatusOptions = [
   { value: 'refunded', label: 'রিফান্ড' },
 ];
 
+/* ─────────────────────────────────────────────────────────────
+   OrderBookAutocomplete — search input with icon, filtering, & dropdown
+   ───────────────────────────────────────────────────────────── */
+function OrderBookAutocomplete({
+  catalogBooks,
+  catalogLoading,
+  selectedBookId,
+  onSelectBook,
+  onClearBook,
+}) {
+  const [query, setQuery] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
+  const wrapperRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const selectedBook = catalogBooks.find(b => String(b.id) === String(selectedBookId)) || null;
+
+  // Filter books by title or author
+  const filteredBooks = catalogBooks.filter(book => {
+    if (!query.trim()) return true;
+    const q = query.toLowerCase().trim();
+    const titleMatch = (book.title || '').toLowerCase().includes(q);
+    const authorMatch = (book.author_name || '').toLowerCase().includes(q);
+    const origMatch = (book.original_title || '').toLowerCase().includes(q);
+    const pubMatch = (book.publisher || '').toLowerCase().includes(q);
+    return titleMatch || authorMatch || origMatch || pubMatch;
+  });
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelect = (book) => {
+    onSelectBook(book);
+    setQuery('');
+    setIsOpen(false);
+    setHighlightIndex(-1);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!isOpen && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+      setIsOpen(true);
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightIndex(prev => Math.min(prev + 1, filteredBooks.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightIndex(prev => Math.max(prev - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightIndex >= 0 && highlightIndex < filteredBooks.length) {
+        handleSelect(filteredBooks[highlightIndex]);
+      } else if (filteredBooks.length === 1) {
+        handleSelect(filteredBooks[0]);
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
+      {selectedBook ? (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '7px 12px',
+          background: '#f0fdf4',
+          border: '1.5px solid #86efac',
+          borderRadius: '8px',
+          gap: '10px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+            <span style={{ fontSize: '18px', flexShrink: 0 }}>📗</span>
+            <div style={{ overflow: 'hidden' }}>
+              <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#166534', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {selectedBook.title}
+              </div>
+              <div style={{ fontSize: '11px', color: '#15803d' }}>
+                {selectedBook.author_name ? `লেখক: ${selectedBook.author_name}` : 'মূল্য: ৳' + selectedBook.price}
+                {selectedBook.stock !== undefined && ` • স্টক: ${selectedBook.stock}টি`}
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              onClearBook();
+              setTimeout(() => inputRef.current?.focus(), 50);
+            }}
+            style={{
+              padding: '4px 8px',
+              fontSize: '11px',
+              backgroundColor: '#dcfce7',
+              color: '#166534',
+              border: '1px solid #bbf7d0',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            ✕ পরিবর্তন
+          </button>
+        </div>
+      ) : (
+        <div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: '#ffffff',
+            border: isOpen ? '1.5px solid #0d6b3f' : '1.5px solid #86efac',
+            borderRadius: '8px',
+            padding: '4px 10px',
+            boxShadow: isOpen ? '0 0 0 3px rgba(13, 107, 63, 0.15)' : 'none',
+            transition: 'all 0.2s',
+          }}>
+            <span style={{ fontSize: '15px', color: '#0d6b3f', marginRight: '8px', display: 'flex', alignItems: 'center' }}>
+              🔍
+            </span>
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setIsOpen(true);
+                setHighlightIndex(0);
+              }}
+              onFocus={() => setIsOpen(true)}
+              onKeyDown={handleKeyDown}
+              placeholder={catalogLoading ? 'বই লোড হচ্ছে...' : 'বইয়ের নাম বা লেখক লিখে সার্চ করুন বা পেস্ট করুন...'}
+              style={{
+                flex: 1,
+                border: 'none',
+                outline: 'none',
+                fontSize: '13px',
+                color: '#1e293b',
+                background: 'transparent',
+                padding: '4px 0',
+              }}
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery('');
+                  inputRef.current?.focus();
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  padding: '2px 4px',
+                  marginLeft: '4px'
+                }}
+                title="মুছে ফেলুন"
+              >
+                ✕
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsOpen(!isOpen)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64748b',
+                cursor: 'pointer',
+                fontSize: '11px',
+                padding: '2px 4px',
+                marginLeft: '4px'
+              }}
+            >
+              {isOpen ? '▲' : '▼'}
+            </button>
+          </div>
+
+          {/* Dropdown Results */}
+          {isOpen && (
+            <div style={{
+              position: 'absolute',
+              top: 'calc(100% + 4px)',
+              left: 0,
+              right: 0,
+              maxHeight: '260px',
+              overflowY: 'auto',
+              backgroundColor: '#ffffff',
+              border: '1px solid #cbd5e1',
+              borderRadius: '8px',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+              zIndex: 1000,
+            }}>
+              {/* Header Info */}
+              <div style={{
+                padding: '6px 10px',
+                fontSize: '11px',
+                backgroundColor: '#f8fafc',
+                borderBottom: '1px solid #e2e8f0',
+                color: '#64748b',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span>
+                  {query ? `🔍 "${query}" এর ফলাফলে ${filteredBooks.length}টি বই` : `📚 মোট ${filteredBooks.length}টি বই`}
+                </span>
+                <span style={{ fontSize: '10px' }}>Enter বা ক্লিক করে সিলেক্ট করুন</span>
+              </div>
+
+              {filteredBooks.length === 0 ? (
+                <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                  <p style={{ margin: 0 }}>❌ কোনো বই পাওয়া যায়নি</p>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#64748b' }}>সঠিক বানান লিখুন বা অন্য নাম দিয়ে চেষ্টা করুন</p>
+                </div>
+              ) : (
+                filteredBooks.map((book, idx) => {
+                  const isHighlighted = idx === highlightIndex;
+                  return (
+                    <div
+                      key={book.id}
+                      onClick={() => handleSelect(book)}
+                      onMouseEnter={() => setHighlightIndex(idx)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        cursor: 'pointer',
+                        backgroundColor: isHighlighted ? '#f0fdf4' : '#ffffff',
+                        borderBottom: '1px solid #f1f5f9',
+                        transition: 'background-color 0.1s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <span style={{ fontSize: '16px', flexShrink: 0 }}>📖</span>
+                        <div style={{ overflow: 'hidden' }}>
+                          <div style={{
+                            fontSize: '13px',
+                            fontWeight: isHighlighted ? 'bold' : '600',
+                            color: isHighlighted ? '#166534' : '#1e293b',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}>
+                            {book.title}
+                          </div>
+                          {book.author_name && (
+                            <div style={{ fontSize: '11px', color: '#64748b' }}>
+                              লেখক: {book.author_name}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                        {book.stock !== undefined && (
+                          <span style={{
+                            fontSize: '10px',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            backgroundColor: book.stock > 0 ? '#e0f2fe' : '#fee2e2',
+                            color: book.stock > 0 ? '#0369a1' : '#dc2626',
+                            fontWeight: 'bold'
+                          }}>
+                            {book.stock > 0 ? `স্টক: ${book.stock}` : 'স্টক আউট'}
+                          </span>
+                        )}
+                        <span style={{
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          color: '#0d6b3f',
+                          backgroundColor: '#dcfce7',
+                          padding: '2px 8px',
+                          borderRadius: '4px'
+                        }}>
+                          ৳{book.price}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -245,14 +550,20 @@ export default function AdminOrders() {
   };
 
   // Helper: Select a book from catalog to prepare adding
-  const handleBookSelect = (bookId) => {
-    setSelectedBookId(bookId);
+  const handleBookSelect = (bookOrId) => {
+    const bookId = (bookOrId && typeof bookOrId === 'object') ? bookOrId.id : bookOrId;
+    setSelectedBookId(bookId || '');
     const found = catalogBooks.find(b => String(b.id) === String(bookId));
     if (found) {
       setNewBookPrice(found.price !== undefined ? found.price : '');
     } else {
       setNewBookPrice('');
     }
+  };
+
+  const handleClearBook = () => {
+    setSelectedBookId('');
+    setNewBookPrice('');
   };
 
   // Helper: Add a book to order items list
@@ -868,32 +1179,21 @@ export default function AdminOrders() {
                   </div>
 
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                    {/* Book Search & Selector */}
-                    <div style={{ flex: '1 1 280px', minWidth: '240px' }}>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}>
-                        বই নির্বাচন করুন {catalogLoading ? '(লোড হচ্ছে...)' : `(${catalogBooks.length} টি বই)`}
+                    {/* Book Search & Selector with Search Icon */}
+                    <div style={{ flex: '1 1 300px', minWidth: '240px' }}>
+                      <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 'bold', color: '#374151', marginBottom: '4px' }}>
+                        <span>🔍 বই নির্বাচন করুন বা সার্চ করুন</span>
+                        <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 'normal' }}>
+                          {catalogLoading ? 'লোড হচ্ছে...' : `মোট ${catalogBooks.length}টি বই`}
+                        </span>
                       </label>
-                      <select
-                        style={{
-                          width: '100%',
-                          padding: '8px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid #86efac',
-                          fontSize: '13px',
-                          backgroundColor: '#ffffff',
-                          color: '#1e293b',
-                          outline: 'none'
-                        }}
-                        value={selectedBookId}
-                        onChange={(e) => handleBookSelect(e.target.value)}
-                      >
-                        <option value="">-- বই সিলেক্ট করুন --</option>
-                        {catalogBooks.map(b => (
-                          <option key={b.id} value={b.id}>
-                            {b.title} {b.author_name ? `(${b.author_name})` : ''} — ৳{b.price}
-                          </option>
-                        ))}
-                      </select>
+                      <OrderBookAutocomplete
+                        catalogBooks={catalogBooks}
+                        catalogLoading={catalogLoading}
+                        selectedBookId={selectedBookId}
+                        onSelectBook={(book) => handleBookSelect(book)}
+                        onClearBook={handleClearBook}
+                      />
                     </div>
 
                     {/* Unit Price */}

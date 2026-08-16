@@ -352,6 +352,7 @@ export default function AdminBooks() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextUrl, setNextUrl] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
   const loadMoreRef = useRef(null);
   
   // Form State
@@ -869,6 +870,52 @@ export default function AdminBooks() {
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div style={{ margin: '15px 0', maxWidth: '420px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: '#ffffff',
+            border: '1.5px solid #d1d5db',
+            borderRadius: '8px',
+            padding: '6px 12px',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}>
+            <span style={{ fontSize: '15px', color: '#64748b', marginRight: '8px' }}>🔍</span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="বইয়ের নাম, লেখক বা বিষয় দিয়ে খুঁজুন..."
+              style={{
+                flex: 1,
+                border: 'none',
+                outline: 'none',
+                fontSize: '13.5px',
+                color: '#1e293b',
+                background: 'transparent'
+              }}
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  padding: '2px 4px'
+                }}
+                title="মুছে ফেলুন"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Books Table */}
         <div className={styles.tableCard}>
           {loading ? (
@@ -886,7 +933,16 @@ export default function AdminBooks() {
                   </tr>
                 </thead>
                 <tbody>
-                  {books.map(book => (
+                  {books
+                    .filter(book => {
+                      if (!searchTerm.trim()) return true;
+                      const q = searchTerm.toLowerCase().trim();
+                      const titleMatch = (book.title || '').toLowerCase().includes(q);
+                      const authorMatch = (book.author?.name || book.author_name || '').toLowerCase().includes(q);
+                      const catMatch = (book.category?.name || book.category_name || '').toLowerCase().includes(q);
+                      return titleMatch || authorMatch || catMatch;
+                    })
+                    .map(book => (
                     <tr key={book.id}>
                       <td>
                         <div className={styles.bookCell}>
